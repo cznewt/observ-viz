@@ -28,5 +28,18 @@ local g = import 'g.libsonnet';
 
     'reference-postgres.json':
       ref(g.packs.databases.postgres.new({ uid: 'reference-postgres', dashboardTitle: 'Reference / PostgreSQL' }).grafana.dashboard),
+
+    // the Grafana LGTM stack + Alloy collector (what we actually run)
+    'reference-alloy.json':
+      ref(g.packs.collector.alloy.new({ uid: 'reference-alloy', dashboardTitle: 'Reference / Alloy' }).grafana.dashboard),
+
+    'reference-mimir.json':
+      ref(g.packs.lgtm.mimir.new({ uid: 'reference-mimir', dashboardTitle: 'Reference / Mimir' }).grafana.dashboard),
+
+    'reference-loki.json':
+      ref(g.packs.lgtm.loki.new({ uid: 'reference-loki', dashboardTitle: 'Reference / Loki' }).grafana.dashboard),
+
+    'reference-tempo.json':
+      ref(g.packs.lgtm.tempo.new({ uid: 'reference-tempo', dashboardTitle: 'Reference / Tempo' }).grafana.dashboard),
   },
 }
