@@ -14,15 +14,25 @@ local g = import 'g.libsonnet';
     local signals = packInstance.signals;
     local groups = packInstance.grafana.groups;
 
-    // markdown: one bullet per signal (name, unit, query).
-    local md =
-      '# ' + title + '\n\n## Signals\n\n'
-      + std.join('\n', [
-        '- **' + signals[k]._name + '** _(' + signals[k]._unit + ')_ — `' + signals[k]._expr + '`'
-        for k in std.objectFields(signals)
-      ]);
+    // escape table-breaking pipes (PromQL regex uses |).
+    local esc(s) = std.strReplace(s, '|', '\\|');
+    // a signal's description column: its description, else the query.
+    local sigRow(key) =
+      local s = signals[key];
+      local desc = if s._description != '' then esc(s._description) else '`' + esc(s._expr) + '`';
+      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' |';
+    // one section per signal group (same grouping as the tabs).
+    local section(grp) =
+      local keys = std.filter(function(k) std.objectHas(signals, k), std.objectFields(grp.elements));
+      '### ' + grp.title + '\n\n'
+      + (if std.length(keys) > 0
+         then '| Signal | Unit | Description |\n|---|---|---|\n' + std.join('\n', [sigRow(k) for k in keys])
+         else '_No signal-backed panels._');
+
+    // markdown page: titled with the board, then Signals split by group.
+    local md = '## Signals\n\n' + std.join('\n\n', [section(grp) for grp in groups]);
     local about =
-      g.panel.text.new('About')
+      g.panel.text.new(title)
       + g.panel.text.withOptions({ mode: 'markdown', content: md });
 
     local elements = packInstance.grafana.elements + g.element.panel('__about', about);

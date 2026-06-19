@@ -16,21 +16,21 @@ local signal = import 'signal/main.libsonnet';
       selector: 'job=~"$job"',
     } + config;
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    local sig(name, expr, unit, desc='') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withDescription(desc);
 
     local signals = {
-    goroutines: sig('Goroutines', 'go_goroutines{%(queriesSelector)s}', 'short'),
-    threads: sig('OS threads', 'go_threads{%(queriesSelector)s}', 'short'),
-    cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
-    openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short'),
-    heapInuse: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes'),
-    heapAlloc: sig('Heap alloc', 'go_memstats_heap_alloc_bytes{%(queriesSelector)s}', 'bytes'),
-    heapObjects: sig('Heap objects', 'go_memstats_heap_objects{%(queriesSelector)s}', 'short'),
-    stackInuse: sig('Stack in use', 'go_memstats_stack_inuse_bytes{%(queriesSelector)s}', 'bytes'),
-    rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
-    gcPauseMax: sig('GC pause (max)', 'go_gc_duration_seconds{quantile="1", %(queriesSelector)s}', 's'),
-    gcRate: sig('GC rate', 'rate(go_gc_duration_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops'),
+    goroutines: sig('Goroutines', 'go_goroutines{%(queriesSelector)s}', 'short', 'Goroutines currently running.'),
+    threads: sig('OS threads', 'go_threads{%(queriesSelector)s}', 'short', 'OS threads created by the Go runtime.'),
+    cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Process CPU cores used.'),
+    openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short', 'Open file descriptors.'),
+    heapInuse: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Heap memory in use.'),
+    heapAlloc: sig('Heap alloc', 'go_memstats_heap_alloc_bytes{%(queriesSelector)s}', 'bytes', 'Heap bytes allocated and live.'),
+    heapObjects: sig('Heap objects', 'go_memstats_heap_objects{%(queriesSelector)s}', 'short', 'Allocated heap objects.'),
+    stackInuse: sig('Stack in use', 'go_memstats_stack_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Stack memory in use.'),
+    rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
+    gcPauseMax: sig('GC pause (max)', 'go_gc_duration_seconds{quantile="1", %(queriesSelector)s}', 's', 'Max GC stop-the-world pause.'),
+    gcRate: sig('GC rate', 'rate(go_gc_duration_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops', 'Completed GC cycles per second.'),
   };
 
   pack.build(cfg, signals, [

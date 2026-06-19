@@ -16,6 +16,7 @@ local query = import 'custom/query.libsonnet';
     _datasource:: datasource,
     _expr:: expr,
     _unit:: unit,
+    _description:: '',
     _legend:: null,
     _filteringSelector:: '',
     _groupLabels:: [],
@@ -25,6 +26,7 @@ local query = import 'custom/query.libsonnet';
     // --- builder modifiers (return a modified signal) ---
     withExpr(e):: self { _expr:: e },
     withUnit(u):: self { _unit:: u },
+    withDescription(d):: self { _description:: d },
     withLegendFormat(l):: self { _legend:: l },
     withDatasource(ds):: self { _datasource:: ds },
     filteringSelector(s):: self { _filteringSelector:: s },

@@ -1,10 +1,12 @@
-// observ-viz reference — Panels folder. One board per Grafana panel type.
+// observ-viz reference — Panels folder. timeSeries gets a rich, testdata-driven
+// board (style variations, ported from the models/catalog reference-mixin); the
+// rest are single-panel boards.
 local g = import 'g.libsonnet';
 local place = (import 'reference/_util.libsonnet').place;
+local timeseries = import 'reference/panels/timeseries.libsonnet';
 
 // friendly builder name -> display label (the full Grafana panel set)
 local kinds = [
-  ['timeSeries', 'Time series'],
   ['barChart', 'Bar chart'],
   ['histogram', 'Histogram'],
   ['heatmap', 'Heatmap'],
@@ -33,7 +35,7 @@ local kinds = [
 
 // kinds that render a metric query
 local dataKinds = [
-  'timeSeries', 'barChart', 'histogram', 'heatmap', 'stat', 'gauge', 'barGauge',
+  'barChart', 'histogram', 'heatmap', 'stat', 'gauge', 'barGauge',
   'pieChart', 'table', 'stateTimeline', 'statusHistory', 'candlestick', 'trend', 'xyChart',
 ];
 
@@ -53,6 +55,9 @@ local board(name, label, cfg) =
 {
   _config+:: {},
   grafanaDashboards+:: {
+    // rich, testdata-driven Time series reference
+    'panel-timeSeries.json': place(timeseries($._config).board, $._config.folders.panels, $._config.tags),
+  } + {
     ['panel-' + k[0] + '.json']: place(board(k[0], k[1], $._config), $._config.folders.panels, $._config.tags)
     for k in kinds
   },

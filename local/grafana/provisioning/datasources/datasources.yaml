@@ -11,3 +11,6 @@ datasources:
     uid: loki
     access: proxy
     url: http://loki:3100
+  - name: TestData
+    type: grafana-testdata-datasource
+    uid: testdata
