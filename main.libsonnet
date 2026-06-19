@@ -29,6 +29,7 @@ local cv = import 'custom/variable.libsonnet';
   library: import 'library/main.libsonnet',
   alert: import 'alert/main.libsonnet',
   logs: import 'logs/main.libsonnet',
+  deploy: import 'deploy/main.libsonnet',
   packs: import 'packs/main.libsonnet',
   patterns: import 'patterns/main.libsonnet',
   config: import 'config/config.libsonnet',

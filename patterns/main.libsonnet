@@ -1,3 +1,5 @@
-// observ-viz patterns namespace — whole-dashboard encapsulations (RED, alerts).
-// Filled in during the patterns milestone.
-{}
+// observ-viz patterns namespace — whole-dashboard encapsulations.
+{
+  red: import 'patterns/red.libsonnet',
+  alertsOverview: import 'patterns/alertsOverview.libsonnet',
+}
