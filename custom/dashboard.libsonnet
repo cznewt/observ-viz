@@ -40,6 +40,8 @@ local util = import 'custom/util/main.libsonnet';
   },
 
   withUid(uid): { metadata+: { name: uid } },
+  // place the dashboard in a Grafana folder (by folder uid / k8s name).
+  withFolder(folderUid): { metadata+: { annotations+: { 'grafana.app/folder': folderUid } } },
   withElements(elements): { spec+: { elements+: elements } },
   withElementsMixin(elements): { spec+: { elements+: elements } },
   withLayout(layout): { spec+: { layout: layout } },

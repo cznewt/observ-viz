@@ -38,29 +38,60 @@ def req(method, url, body=None):
         return e.code, e.read()
 
 
-def push(path):
-    doc = json.loads(_jsonnet.evaluate_file(path, jpathdir=[ROOT]))
-    if doc.get("kind") != "Dashboard":
-        print(f"  skip {os.path.basename(path)} (not a Dashboard)")
+_folders_done = set()
+
+
+def ensure_folder(uid):
+    """Create a Grafana folder (idempotent) so dashboards annotated with it land there."""
+    if not uid or uid in _folders_done:
         return
+    title = uid.replace("-", " ").title()
+    req("POST", f"{URL}/api/folders", {"uid": uid, "title": title})  # 409 if exists -> ignore
+    _folders_done.add(uid)
+
+
+def docs_from_file(path):
+    """A file may evaluate to one Dashboard resource or a map { name: resource }."""
+    val = json.loads(_jsonnet.evaluate_file(path, jpathdir=[ROOT]))
+    if isinstance(val, dict) and val.get("kind") == "Dashboard":
+        return [val]
+    if isinstance(val, dict):
+        return [v for v in val.values() if isinstance(v, dict) and v.get("kind") == "Dashboard"]
+    return []
+
+
+def push_doc(doc, label):
     name = doc["metadata"]["name"]
-    # the app-platform wants metadata.namespace on the object too
     doc["metadata"]["namespace"] = NS
+    folder = doc.get("metadata", {}).get("annotations", {}).get("grafana.app/folder")
+    ensure_folder(folder)
     status, _ = req("POST", API, doc)
     if status == 409:  # exists -> replace
         req("DELETE", f"{API}/{name}", None)
-        status, body = req("POST", API, doc)
-    label = os.path.basename(path)
+        status, _ = req("POST", API, doc)
+    fld = f" [folder: {folder}]" if folder else ""
     if 200 <= status < 300:
-        print(f"  OK   {label} -> {URL}/d/{name}")
+        print(f"  OK   {label}:{name}{fld} -> {URL}/d/{name}")
     else:
-        print(f"  FAIL {label} (HTTP {status})")
+        print(f"  FAIL {label}:{name} (HTTP {status})")
+
+
+def push(path):
+    docs = docs_from_file(path)
+    if not docs:
+        print(f"  skip {os.path.basename(path)} (no Dashboard)")
+        return
+    for doc in docs:
+        push_doc(doc, os.path.basename(path))
 
 
 def main():
     args = sys.argv[1:]
     if args:
-        paths = [a if os.path.isabs(a) else os.path.join(EXAMPLES, a) for a in args]
+        paths = [
+            a if (os.path.isabs(a) or os.path.exists(a)) else os.path.join(EXAMPLES, a)
+            for a in args
+        ]
     else:
         paths = [
             os.path.join(EXAMPLES, f)
