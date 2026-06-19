@@ -55,7 +55,7 @@ local query = import 'custom/query.libsonnet';
       local base =
         if this._type == 'loki' then query.loki.new(this._datasource, e)
         else if this._type == 'prometheus' then query.prometheus.new(this._datasource, e)
-        else query.base(this._type, { expr: e }) + query.withDatasource(this._type, this._datasource);
+        else query.base(this._type, { expr: e }) + query.withDatasource(this._datasource);
       base + (if this._legend != null then { spec+: { query+: { spec+: { legendFormat: this._legend } } } } else {}),
 
     asTableTarget()::

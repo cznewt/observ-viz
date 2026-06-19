@@ -31,7 +31,6 @@ local dashboard =
     + g.variable.datasource.withLabel('Metrics'),
     g.variable.query.new('job')
     + g.variable.query.withLabel('Job')
-    + g.variable.query.withDatasourceFromVariable('datasource')
     + g.variable.query.withLabelValues('job', 'up'),
   ])
   + g.dashboard.withTimeSettings(

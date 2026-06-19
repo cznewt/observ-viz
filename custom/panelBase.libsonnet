@@ -18,10 +18,13 @@ function(vizKind, title) {
         queryOptions: {},
       },
     },
+    // v2beta1: kind is the literal 'VizConfig'; the plugin id goes in `group`
+    // and the plugin version in `version` (NOT in spec).
     vizConfig: {
-      kind: vizKind,
+      kind: 'VizConfig',
+      group: vizKind,
+      version: if std.objectHas(versions, vizKind) then versions[vizKind] else '',
       spec: {
-        pluginVersion: if std.objectHas(versions, vizKind) then versions[vizKind] else '',
         options: {},
         fieldConfig: { defaults: {}, overrides: [] },
       },

@@ -48,7 +48,6 @@ local variable =
           + variable.datasource.withLabel('Data source'),
           variable.query.new('job')
           + variable.query.withLabel('Job')
-          + variable.query.withDatasourceFromVariable('datasource')
           + variable.query.withLabelValues('job', varMetric)
           + variable.query.withMulti()
           + variable.query.withIncludeAll(),

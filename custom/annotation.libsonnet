@@ -11,8 +11,14 @@
       enable: true,
       hide: true,
       iconColor: 'rgba(0, 211, 255, 1)',
-      datasource: { type: 'grafana', uid: '-- Grafana --' },
-      query: { kind: 'grafana', spec: {} },
+      builtIn: true,
+      query: {
+        kind: 'DataQuery',
+        group: 'grafana',
+        version: 'v0',
+        datasource: { name: '-- Grafana --' },
+        spec: {},
+      },
     },
   },
 }
