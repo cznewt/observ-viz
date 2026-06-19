@@ -1,0 +1,68 @@
+// observ-viz local stack — Alloy collector.
+// Scrapes the sample apps + Alloy itself, remote-writes metrics to Mimir, and
+// tails container logs into Loki. (The alloy-resources modules follow the same
+// prometheus.scrape -> prometheus.remote_write / loki.source -> loki.write shape.)
+
+// ---- metrics: sink to Mimir --------------------------------------------------
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+
+// one scrape job per app; the `job` target label sets a clean job name that the
+// packs key off (selector job=~"$job", varMetric like go_info/jvm_info).
+prometheus.scrape "app_go" {
+  targets    = [{ "__address__" = "app-go:8080", "job" = "app-go" }]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+prometheus.scrape "app_python" {
+  targets    = [{ "__address__" = "app-python:8080", "job" = "app-python" }]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+prometheus.scrape "app_jvm" {
+  targets    = [{ "__address__" = "app-jvm:8080", "job" = "app-jvm" }]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+prometheus.scrape "app_dotnet" {
+  targets    = [{ "__address__" = "app-dotnet:8080", "job" = "app-dotnet" }]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// Alloy's own metrics (feeds the collector.alloy pack).
+prometheus.exporter.self "alloy" {}
+prometheus.scrape "alloy" {
+  targets    = prometheus.exporter.self.alloy.targets
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// ---- logs: tail containers into Loki ----------------------------------------
+loki.write "loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "job"
+  }
+}
+
+loki.source.docker "logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.write.loki.receiver]
+}

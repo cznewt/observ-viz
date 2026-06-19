@@ -1,0 +1,19 @@
+apiVersion: 1
+datasources:
+  # Mimir speaks PromQL — exposed as a prometheus datasource (the default).
+  - name: Mimir
+    type: prometheus
+    uid: mimir
+    access: proxy
+    url: http://mimir:9009/prometheus
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+  - name: TestData
+    type: grafana-testdata-datasource
+    uid: testdata

@@ -44,6 +44,25 @@ down:
 # restart the stack
 restart: down up
 
+# ── apps stack (Alloy -> Mimir/Loki + sample Go/Python/JVM/.NET apps) ─────────
+
+# build + start the apps stack (sample apps light up the runtime dashboards)
+up-apps:
+    docker compose -f docker-compose.apps.yml up -d --build
+    @echo "Grafana: http://localhost:3000 (admin/admin, default DS = Mimir) — run 'just load-all'"
+
+# stop the apps stack
+down-apps:
+    docker compose -f docker-compose.apps.yml down
+
+# build the sample-app images
+apps-build:
+    docker compose -f docker-compose.apps.yml build app-go app-python app-jvm app-dotnet
+
+# build + publish the sample-app images to the registry
+apps-publish: apps-build
+    docker compose -f docker-compose.apps.yml push app-go app-python app-jvm app-dotnet
+
 # ── load dashboards (v2 app-platform API) ───────────────────────────────────
 
 # load example dashboards

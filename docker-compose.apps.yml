@@ -1,0 +1,56 @@
+# observ-viz "apps" stack: sample Go/Python/JVM/.NET apps -> Alloy -> Mimir/Loki.
+# The runtime/language dashboards light up with real data.
+#   just up-apps          # build + start
+#   just load-all         # push observ-viz dashboards
+#   open http://localhost:3000   (admin/admin; default datasource = Mimir)
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_FEATURE_TOGGLES_ENABLE: "kubernetesDashboards,dashboardNewLayouts,kubernetesClientDashboardsFolders,grafanaAPIServerWithExperimentalAPIs"
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"
+    volumes:
+      - ./local/grafana/provisioning-apps:/etc/grafana/provisioning
+
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir/mimir.yaml", "-target=all"]
+    volumes:
+      - ./local/mimir/mimir.yaml:/etc/mimir/mimir.yaml
+    ports:
+      - "9009:9009"
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  alloy:
+    image: grafana/alloy:latest
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./local/alloy/config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "12345:12345"
+
+  app-go:
+    image: ghcr.io/cznewt/observ-viz-sample-go:latest
+    build: ./extra/apps/go
+  app-python:
+    image: ghcr.io/cznewt/observ-viz-sample-python:latest
+    build: ./extra/apps/python
+  app-jvm:
+    image: ghcr.io/cznewt/observ-viz-sample-jvm:latest
+    build: ./extra/apps/java
+  app-dotnet:
+    image: ghcr.io/cznewt/observ-viz-sample-dotnet:latest
+    build: ./extra/apps/dotnet
