@@ -41,12 +41,11 @@ def req(method, url, body=None):
 _folders_done = set()
 
 
-def ensure_folder(uid):
+def ensure_folder(uid, title=None):
     """Create a Grafana folder (idempotent) so dashboards annotated with it land there."""
     if not uid or uid in _folders_done:
         return
-    title = uid.replace("-", " ").title()
-    req("POST", f"{URL}/api/folders", {"uid": uid, "title": title})  # 409 if exists -> ignore
+    req("POST", f"{URL}/api/folders", {"uid": uid, "title": title or uid.replace("-", " ").title()})
     _folders_done.add(uid)
 
 
@@ -63,8 +62,10 @@ def docs_from_file(path):
 def push_doc(doc, label):
     name = doc["metadata"]["name"]
     doc["metadata"]["namespace"] = NS
-    folder = doc.get("metadata", {}).get("annotations", {}).get("grafana.app/folder")
-    ensure_folder(folder)
+    anns = doc.get("metadata", {}).get("annotations", {})
+    folder = anns.get("grafana.app/folder")
+    title = anns.pop("observ-viz.dev/folder-title", None)  # private hint -> strip before push
+    ensure_folder(folder, title)
     status, _ = req("POST", API, doc)
     if status == 409:  # exists -> replace
         req("DELETE", f"{API}/{name}", None)

@@ -40,8 +40,15 @@ local util = import 'custom/util/main.libsonnet';
   },
 
   withUid(uid): { metadata+: { name: uid } },
-  // place the dashboard in a Grafana folder (by folder uid / k8s name).
-  withFolder(folderUid): { metadata+: { annotations+: { 'grafana.app/folder': folderUid } } },
+  // place the dashboard in a Grafana folder (by folder uid / k8s name). An
+  // optional title is carried in a private annotation that the loader uses to
+  // create the folder with a readable name (and strips before pushing).
+  withFolder(folderUid, folderTitle=null): {
+    metadata+: {
+      annotations+: { 'grafana.app/folder': folderUid }
+                    + (if folderTitle != null then { 'observ-viz.dev/folder-title': folderTitle } else {}),
+    },
+  },
   withElements(elements): { spec+: { elements+: elements } },
   withElementsMixin(elements): { spec+: { elements+: elements } },
   withLayout(layout): { spec+: { layout: layout } },
