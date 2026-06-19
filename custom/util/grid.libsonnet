@@ -10,13 +10,13 @@
   // specs. width should divide 24 (e.g. 6, 8, 12) to avoid right-edge gaps.
   wrapItems(names, width=12, height=8, startY=0)::
     local n = std.length(names);
-    local perRow = std.max(1, std.floorToInt(gridWidth / width));
+    local perRow = std.max(1, std.floor(gridWidth / width));
     [
       {
         kind: 'GridLayoutItem',
         spec: {
           x: (i % perRow) * width,
-          y: startY + std.floorToInt(i / perRow) * height,
+          y: startY + std.floor(i / perRow) * height,
           width: width,
           height: height,
           element: { kind: 'ElementReference', name: names[i] },

@@ -41,5 +41,18 @@ fmt:
 lint:
     bash tests/render-golden.sh --lint
 
+# start the local Grafana + Prometheus + Loki + node-exporter stack
+up:
+    docker compose up -d
+    @echo "Grafana: http://localhost:3000 (admin/admin) — run 'just load' to push dashboards"
+
+# stop the local stack
+down:
+    docker compose down
+
+# render examples and push them to local Grafana via the v2 app-platform API
+load *ARGS:
+    python3 scripts/load.py {{ARGS}}
+
 # run the full local test suite
 test: compile gen-test

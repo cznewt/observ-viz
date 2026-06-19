@@ -17,12 +17,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXAMPLES_DIR = os.path.join(ROOT, "examples")
 GOLDEN_DIR = os.path.join(ROOT, "tests", "golden")
 
-# Examples that emit a single Dashboard resource (others may emit mixins).
-DASHBOARD_EXAMPLES = [
-    "minimal-grid.jsonnet",
-    "red-dashboard.jsonnet",
-    "alerts-overview.jsonnet",
-]
+# Auto-discover examples; *.mixin.jsonnet / mixin.libsonnet are not dashboards.
+def discover_examples():
+    out = []
+    for fn in sorted(os.listdir(EXAMPLES_DIR)):
+        if not fn.endswith(".jsonnet"):
+            continue
+        if fn.endswith(".mixin.jsonnet") or fn == "render.jsonnet":
+            continue
+        out.append(fn)
+    return out
 
 
 def evaluate(path):
@@ -102,7 +106,7 @@ def maybe_golden(name, doc):
 def main():
     all_errors = []
     ran = 0
-    for name in DASHBOARD_EXAMPLES:
+    for name in discover_examples():
         path = os.path.join(EXAMPLES_DIR, name)
         if not os.path.exists(path):
             continue

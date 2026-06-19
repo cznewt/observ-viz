@@ -1,0 +1,35 @@
+# Local stack for testing observ-viz v2 dashboards end-to-end.
+#   just up     # start Grafana + Prometheus + Loki + node-exporter
+#   just load   # render examples and push them via the v2 app-platform API
+#   open http://localhost:3000  (admin/admin)
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      # v2 dashboard schema + new layouts + the kubernetes-style app-platform API
+      GF_FEATURE_TOGGLES_ENABLE: "kubernetesDashboards,dashboardNewLayouts,kubernetesClientDashboardsFolders,grafanaAPIServerWithExperimentalAPIs"
+      # let the DOOM text panel render its <iframe>
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"
+    volumes:
+      - ./local/grafana/provisioning:/etc/grafana/provisioning
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./local/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
