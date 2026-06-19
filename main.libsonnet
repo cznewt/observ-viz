@@ -31,6 +31,7 @@ local cv = import 'custom/variable.libsonnet';
   logs: import 'logs/main.libsonnet',
   deploy: import 'deploy/main.libsonnet',
   packs: import 'packs/main.libsonnet',
+  scenarios: import 'scenarios/main.libsonnet',
   patterns: import 'patterns/main.libsonnet',
   config: import 'config/config.libsonnet',
 }
