@@ -1,6 +1,8 @@
-// observ-viz reference — Deployment folder. One board per deployment target.
+// observ-viz reference — Deployment folder. One TABBED board per deployment
+// target, sourced directly from the pack mixins (system/kubernetes), same
+// presentation as the Language reference: Overview tab + tabs per signal group.
 local g = import 'g.libsonnet';
-local place = (import 'reference/_util.libsonnet').place;
+local util = import 'reference/_util.libsonnet';
 
 // [ pack, uid-suffix, title ]
 local boards = [
@@ -15,8 +17,16 @@ local boards = [
   _config+:: {},
   grafanaDashboards+:: {
     ['deploy-' + b[1] + '.json']:
-      place(
-        b[0].new({ uid: 'observ-viz-deploy-' + b[1], dashboardTitle: b[2] }).grafana.dashboard,
+      util.place(
+        util.tabbedBoard(
+          b[0].new({
+            uid: 'observ-viz-deploy-' + b[1],
+            dashboardTitle: b[2],
+            datasource: $._config.datasource,
+          }),
+          b[2],
+          'observ-viz-deploy-' + b[1],
+        ),
         $._config.folders.deployments,
         $._config.tags,
       )
