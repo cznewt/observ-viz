@@ -23,6 +23,8 @@ local variable =
     signals: signals,
 
     grafana: {
+      // the raw group structure (so consumers can re-lay-out, e.g. as tabs).
+      groups: groups,
       // flatten every group's elements into one elements map.
       elements: std.foldl(function(acc, grp) acc + grp.elements, groups, {}),
 

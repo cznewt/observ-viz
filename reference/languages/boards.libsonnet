@@ -1,6 +1,7 @@
-// observ-viz reference — Language folder. One board per language runtime pack.
+// observ-viz reference — Language folder. One TABBED board per language runtime:
+// an Overview tab (markdown signal descriptions) + one tab per signal group.
 local g = import 'g.libsonnet';
-local place = (import 'reference/_util.libsonnet').place;
+local util = import 'reference/_util.libsonnet';
 
 local runtimes = [
   ['golang', 'Go'],
@@ -14,8 +15,16 @@ local runtimes = [
   _config+:: {},
   grafanaDashboards+:: {
     ['lang-' + r[0] + '.json']:
-      place(
-        g.packs.runtimes[r[0]].new({ uid: 'observ-viz-lang-' + r[0], dashboardTitle: r[1] + ' runtime' }).grafana.dashboard,
+      util.place(
+        util.tabbedBoard(
+          g.packs.runtimes[r[0]].new({
+            uid: 'observ-viz-lang-' + r[0],
+            dashboardTitle: r[1] + ' runtime',
+            datasource: $._config.datasource,
+          }),
+          r[1] + ' runtime',
+          'observ-viz-lang-' + r[0],
+        ),
         $._config.folders.languages,
         $._config.tags,
       )
