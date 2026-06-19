@@ -1,0 +1,22 @@
+site_name: Observ Viz
+site_description: >-
+  A standalone Jsonnet library for generating Grafana dashboard schema v2
+  resources — panels-as-elements, first-class layouts, signals, and reusable
+  alert/log/domain packs.
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Concepts: concepts.md
+  - API Reference: api.md
+  - Generator: generator.md
+  - Packs: packs.md
+  - Examples: examples.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - fenced_code

@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: observ-viz
+  title: Observ Viz
+  description: >-
+    A standalone Jsonnet library (grafonnet-style) for generating Grafana
+    dashboard schema v2 resources — panels-as-elements, first-class layouts,
+    a lean signal abstraction, and reusable alert/log/domain packs.
+  tags:
+    - jsonnet
+    - grafana
+    - observability
+    - dashboards-as-code
+  annotations:
+    github.com/project-slug: cznewt/observ-viz
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: library
+  lifecycle: experimental
+  owner: monitoring

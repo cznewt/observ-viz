@@ -1,0 +1,9 @@
+vendor/
+build/
+*.tmp.json
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
