@@ -5,6 +5,7 @@
 //   g.libs.collector.alloy.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'alloy_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -73,5 +78,39 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           uptime: signals.uptime.asStat('Uptime'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('alloy', [
+        alert.rule.new(
+          'AlloyNoRunningComponents',
+          'alloy_component_controller_running_components' + rsBrace + ' == 0',
+          '5m', 'critical', {},
+          { summary: 'Alloy on {{ $labels.instance }} has no running components.' }
+        ),
+        alert.rule.new(
+          'AlloyRemoteWriteFailing',
+          'rate(prometheus_remote_storage_samples_failed_total' + rsBrace + '[5m]) > 0',
+          '15m', 'warning', {},
+          { summary: 'Alloy remote write on {{ $labels.instance }} is failing to send samples.' }
+        ),
+        alert.rule.new(
+          'AlloyRemoteWriteBacklog',
+          'prometheus_remote_storage_samples_pending' + rsBrace + ' > 10000',
+          '15m', 'warning', {},
+          { summary: 'Alloy remote write backlog on {{ $labels.instance }} is above 10000 pending samples.' }
+        ),
+        alert.rule.new(
+          'AlloyControllerQueueHigh',
+          'alloy_component_controller_evaluating' + rsBrace + ' > 0',
+          '15m', 'warning', {},
+          { summary: 'Alloy controller evaluation queue on {{ $labels.instance }} is not draining.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('alloy.rules', [
+        alert.rule.record('instance:alloy_cpu_usage:rate5m', 'rate(alloy_resources_process_cpu_seconds_total' + rsBrace + '[5m])'),
+        alert.rule.record('instance:alloy_samples_appended:rate5m', 'rate(prometheus_remote_write_wal_samples_appended_total' + rsBrace + '[5m])'),
+      ]),
     ]),
 }

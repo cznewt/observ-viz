@@ -4,6 +4,7 @@
 //   g.libs.lgtm.mimir.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -14,7 +15,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'cortex_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -56,5 +61,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           cpu: signals.cpu.asTimeSeries('CPU (cores)'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('mimir', [
+        alert.rule.new(
+          'MimirDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Mimir {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'MimirHighRequestLatency',
+          'histogram_quantile(0.99, sum by (le) (rate(cortex_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
+          '15m', 'warning', {},
+          { summary: 'Request p99 latency on {{ $labels.instance }} is above 1s.' }
+        ),
+        alert.rule.new(
+          'MimirHighHeapMemory',
+          'go_memstats_heap_inuse_bytes' + rsBrace + ' > 4e9',
+          '15m', 'warning', {},
+          { summary: 'Heap in use on {{ $labels.instance }} is above 4GB.' }
+        ),
+        alert.rule.new(
+          'MimirHighCpu',
+          'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
+          '15m', 'warning', {},
+          { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('mimir.rules', [
+        alert.rule.record('instance:cortex_received_samples:rate5m', 'sum(rate(cortex_distributor_received_samples_total' + rsBrace + '[5m]))'),
+        alert.rule.record('instance:cortex_queries:rate5m', 'sum(rate(cortex_query_frontend_queries_total' + rsBrace + '[5m]))'),
+      ]),
     ]),
 }

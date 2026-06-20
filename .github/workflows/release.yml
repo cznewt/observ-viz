@@ -1,0 +1,37 @@
+name: release
+
+# On a VERSION bump (push to main), create the matching git tag + GitHub release.
+# The `image` workflow triggers on `v*` tags and publishes ghcr.io/cznewt/observ-lib.
+on:
+  push:
+    branches: [main]
+    paths: ['VERSION']
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: read version
+        id: v
+        run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      - name: tag + release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER="v${{ steps.v.outputs.version }}"
+          if git rev-parse "$VER" >/dev/null 2>&1; then
+            echo "$VER already exists — nothing to do"; exit 0
+          fi
+          git tag "$VER"
+          git push origin "$VER"
+          gh release create "$VER" \
+            --title "observ-viz $VER" \
+            --target "${{ github.sha }}" \
+            --notes "Automated release for $VER. Image: \`ghcr.io/cznewt/observ-lib:${{ steps.v.outputs.version }}\`."

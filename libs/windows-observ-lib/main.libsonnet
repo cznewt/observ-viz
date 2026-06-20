@@ -4,6 +4,7 @@
 //   g.libs.system.windows.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -14,7 +15,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'windows_os_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -69,5 +74,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           netSent: signals.netSent.asTimeSeries('Network sent'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('windows', [
+        alert.rule.new(
+          'WindowsHostDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Windows host {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'WindowsHighCpu',
+          '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m])) > 0.9',
+          '15m', 'warning', {},
+          { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
+        ),
+        alert.rule.new(
+          'WindowsHighCommittedMemory',
+          'windows_memory_committed_bytes' + rsBrace + ' > 1e10',
+          '15m', 'warning', {},
+          { summary: 'Committed memory on {{ $labels.instance }} is above 10GB.' }
+        ),
+        alert.rule.new(
+          'WindowsLowDiskSpace',
+          'windows_logical_disk_free_bytes' + rsBrace + ' < 5e9',
+          '15m', 'warning', {},
+          { summary: 'Logical disk {{ $labels.volume }} on {{ $labels.instance }} has less than 5GB free.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('windows.rules', [
+        alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
+        alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
+      ]),
     ]),
 }

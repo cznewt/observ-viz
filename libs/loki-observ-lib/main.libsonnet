@@ -5,6 +5,7 @@
 //   g.libs.lgtm.loki.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'loki_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -57,5 +62,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           cpu: signals.cpu.asTimeSeries('CPU (cores)'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('loki', [
+        alert.rule.new(
+          'LokiDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Loki {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'LokiHighRequestLatency',
+          'histogram_quantile(0.99, sum by (le) (rate(loki_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
+          '15m', 'warning', {},
+          { summary: 'Request latency p99 on {{ $labels.instance }} is above 1s.' }
+        ),
+        alert.rule.new(
+          'LokiHighHeapMemory',
+          'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
+          '15m', 'warning', {},
+          { summary: 'Heap in use on {{ $labels.instance }} is above 1GB.' }
+        ),
+        alert.rule.new(
+          'LokiManyActiveStreams',
+          'sum(loki_ingester_memory_streams' + rsBrace + ') > 100000',
+          '15m', 'warning', {},
+          { summary: 'Active streams on {{ $labels.instance }} are above 100000.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('loki.rules', [
+        alert.rule.record('instance:loki_lines_received:rate5m', 'sum(rate(loki_distributor_lines_received_total' + rsBrace + '[5m]))'),
+        alert.rule.record('instance:loki_bytes_received:rate5m', 'sum(rate(loki_distributor_bytes_received_total' + rsBrace + '[5m]))'),
+      ]),
     ]),
 }

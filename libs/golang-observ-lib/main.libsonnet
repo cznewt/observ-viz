@@ -5,6 +5,7 @@
 //   g.libs.runtimes.golang.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -14,7 +15,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['golang', 'runtime'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit, desc='') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withDescription(desc);
@@ -65,5 +70,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         gcRate: signals.gcRate.asTimeSeries('GC cycles/s'),
       },
     },
+  ], [
+    // alerting rule group
+    alert.rule.group('golang', [
+      alert.rule.new(
+        'GoProcessDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+        { summary: 'Go process {{ $labels.instance }} is down.' }
+      ),
+      alert.rule.new(
+        'GoHighGoroutines',
+        'go_goroutines' + rsBrace + ' > 10000',
+        '15m', 'warning', {},
+        { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
+      ),
+      alert.rule.new(
+        'GoHighHeapMemory',
+        'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
+        '15m', 'warning', {},
+        { summary: 'Heap in use on {{ $labels.instance }} is above 1GB.' }
+      ),
+      alert.rule.new(
+        'GoSlowGcPause',
+        'go_gc_duration_seconds{quantile="1"' + rsComma + '} > 0.1',
+        '15m', 'warning', {},
+        { summary: 'Max GC pause on {{ $labels.instance }} is above 100ms.' }
+      ),
+    ]),
+  ], [
+    // recording rule group
+    alert.rule.group('golang.rules', [
+      alert.rule.record('instance:go_cpu_usage:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
+      alert.rule.record('instance:go_gc_rate:rate5m', 'rate(go_gc_duration_seconds_count' + rsBrace + '[5m])'),
+    ]),
   ]),
 }

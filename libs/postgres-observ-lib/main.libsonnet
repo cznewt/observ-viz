@@ -5,6 +5,7 @@
 //   g.libs.databases.postgres.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'pg_up',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -64,5 +69,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           deadlocks: signals.deadlocks.asTimeSeries('Deadlocks/s'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('postgres', [
+        alert.rule.new(
+          'PostgresDown', 'pg_up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'PostgreSQL instance {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'PostgresHighRollbackRate',
+          'sum without (datname) (rate(pg_stat_database_xact_rollback' + rsBrace + '[5m])) / sum without (datname) (rate(pg_stat_database_xact_commit' + rsBrace + '[5m]) + rate(pg_stat_database_xact_rollback' + rsBrace + '[5m])) > 0.1',
+          '15m', 'warning', {},
+          { summary: 'Rollback rate on {{ $labels.instance }} is above 10% of transactions.' }
+        ),
+        alert.rule.new(
+          'PostgresLowCacheHitRatio',
+          'sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) / (sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) + sum without (datname) (rate(pg_stat_database_blks_read' + rsBrace + '[5m]))) < 0.9',
+          '15m', 'warning', {},
+          { summary: 'Buffer cache hit ratio on {{ $labels.instance }} is below 90%.' }
+        ),
+        alert.rule.new(
+          'PostgresDeadlocks',
+          'sum without (datname) (rate(pg_stat_database_deadlocks' + rsBrace + '[5m])) > 0',
+          '15m', 'warning', {},
+          { summary: 'Deadlocks detected on {{ $labels.instance }}.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('postgres.rules', [
+        alert.rule.record('instance:pg_cache_hit_ratio:ratio5m', 'sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) / (sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) + sum without (datname) (rate(pg_stat_database_blks_read' + rsBrace + '[5m])))'),
+        alert.rule.record('instance:pg_commits:rate5m', 'sum without (datname) (rate(pg_stat_database_xact_commit' + rsBrace + '[5m]))'),
+      ]),
     ]),
 }

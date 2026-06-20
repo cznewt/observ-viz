@@ -5,6 +5,7 @@
 //   g.libs.runtimes.dotnet.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'dotnet_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -73,5 +78,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           jitMethods: signals.jitMethods.asTimeSeries('JIT methods/s'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('dotnet', [
+        alert.rule.new(
+          'DotnetDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: '.NET app {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'DotnetHighExceptionRate',
+          'rate(dotnet_exceptions_total' + rsBrace + '[5m]) > 1',
+          '15m', 'warning', {},
+          { summary: 'Exception rate on {{ $labels.instance }} is above 1/s.' }
+        ),
+        alert.rule.new(
+          'DotnetHighCpu',
+          'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
+          '15m', 'warning', {},
+          { summary: 'CPU on {{ $labels.instance }} is above 0.9 cores.' }
+        ),
+        alert.rule.new(
+          'DotnetThreadPoolStarvation',
+          'dotnet_threadpool_num_threads' + rsBrace + ' > 200',
+          '15m', 'warning', {},
+          { summary: 'Thread-pool threads on {{ $labels.instance }} are above 200.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('dotnet.rules', [
+        alert.rule.record('instance:dotnet_exceptions:rate5m', 'rate(dotnet_exceptions_total' + rsBrace + '[5m])'),
+        alert.rule.record('instance:dotnet_cpu_utilisation:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
+      ]),
     ]),
 }

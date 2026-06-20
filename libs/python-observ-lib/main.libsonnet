@@ -5,6 +5,7 @@
 //   g.libs.runtimes.python.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'python_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -57,5 +62,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           maxFds: signals.maxFds.asTimeSeries('Max file descriptors'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('python', [
+        alert.rule.new(
+          'PythonProcessDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Python process {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'PythonHighCpu',
+          'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
+          '15m', 'warning', {},
+          { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
+        ),
+        alert.rule.new(
+          'PythonHighMemory',
+          'process_resident_memory_bytes' + rsBrace + ' > 1e9',
+          '15m', 'warning', {},
+          { summary: 'Resident memory on {{ $labels.instance }} is above 1GB.' }
+        ),
+        alert.rule.new(
+          'PythonFileDescriptorsExhausted',
+          'process_open_fds' + rsBrace + ' / process_max_fds' + rsBrace + ' > 0.9',
+          '15m', 'warning', {},
+          { summary: 'Open file descriptors on {{ $labels.instance }} are above 90% of the limit.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('python.rules', [
+        alert.rule.record('instance:python_cpu_usage:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
+        alert.rule.record('instance:python_gc_collections:rate5m', 'sum without (generation) (rate(python_gc_collections_total' + rsBrace + '[5m]))'),
+      ]),
     ]),
 }

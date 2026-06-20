@@ -2,6 +2,7 @@
 // Grafana Tempo self-monitoring (tempo_* metrics), emitted as native v2 elements.
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -12,7 +13,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'tempo_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -67,5 +72,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           goroutines: signals.goroutines.asTimeSeries('Goroutines'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('tempo', [
+        alert.rule.new(
+          'TempoDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Tempo {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'TempoHighBlocklistLength',
+          'tempodb_blocklist_length' + rsBrace + ' > 1000',
+          '15m', 'warning', {},
+          { summary: 'Blocklist length on {{ $labels.instance }} is above 1000.' }
+        ),
+        alert.rule.new(
+          'TempoSlowRequests',
+          'histogram_quantile(0.99, sum by (le) (rate(tempo_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
+          '15m', 'warning', {},
+          { summary: 'Request p99 on {{ $labels.instance }} is above 1s.' }
+        ),
+        alert.rule.new(
+          'TempoHighGoroutines',
+          'go_goroutines' + rsBrace + ' > 10000',
+          '15m', 'warning', {},
+          { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('tempo.rules', [
+        alert.rule.record('instance:tempo_spans_received:rate5m', 'sum(rate(tempo_distributor_spans_received_total' + rsBrace + '[5m]))'),
+        alert.rule.record('instance:tempo_request_rate:rate5m', 'sum(rate(tempo_request_duration_seconds_count' + rsBrace + '[5m]))'),
+      ]),
     ]),
 }

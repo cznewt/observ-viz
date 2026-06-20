@@ -5,6 +5,7 @@
 //   g.libs.runtimes.nodejs.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'nodejs_version_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -68,5 +73,39 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           activeRequests: signals.activeRequests.asTimeSeries('Active requests'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('nodejs', [
+        alert.rule.new(
+          'NodeJsDown',
+          'absent(nodejs_heap_size_used_bytes' + rsBrace + ') == 1',
+          '5m', 'critical', {},
+          { summary: 'Node.js runtime metrics for {{ $labels.instance }} are unavailable.' }
+        ),
+        alert.rule.new(
+          'NodeJsHighEventLoopLag',
+          'nodejs_eventloop_lag_p99_seconds' + rsBrace + ' > 0.1',
+          '15m', 'warning', {},
+          { summary: 'Event loop lag (p99) on {{ $labels.instance }} is above 100ms.' }
+        ),
+        alert.rule.new(
+          'NodeJsHighHeapUsage',
+          'nodejs_heap_size_used_bytes' + rsBrace + ' / nodejs_heap_size_total_bytes' + rsBrace + ' > 0.9',
+          '15m', 'warning', {},
+          { summary: 'Heap usage on {{ $labels.instance }} is above 90% of heap total.' }
+        ),
+        alert.rule.new(
+          'NodeJsHighGcTime',
+          'rate(nodejs_gc_duration_seconds_sum{' + cfg.selector + '}[5m])' == '',  // placeholder
+          '15m', 'warning', {},
+          { summary: 'GC time on {{ $labels.instance }} is high.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('nodejs.rules', [
+        alert.rule.record('instance:nodejs_heap_utilisation:ratio', 'nodejs_heap_size_used_bytes' + rsBrace + ' / nodejs_heap_size_total_bytes' + rsBrace),
+        alert.rule.record('instance:nodejs_gc_duration:rate5m', 'rate(nodejs_gc_duration_seconds_sum{' + 'job=~".+"' + rsComma + '}[5m])'),
+      ]),
     ]),
 }

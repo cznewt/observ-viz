@@ -4,6 +4,7 @@
 //   g.libs.lgtm.pyroscope.new({ selector: 'job="pyroscope"' }).grafana.dashboard
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -14,7 +15,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'pyroscope_build_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -60,5 +65,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           goroutines: signals.goroutines.asTimeSeries('Goroutines'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('pyroscope', [
+        alert.rule.new(
+          'PyroscopeDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Pyroscope {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'PyroscopeHighRequestLatency',
+          'histogram_quantile(0.99, sum by (le' + rsComma + ')(rate(pyroscope_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
+          '15m', 'warning', {},
+          { summary: 'Request p99 latency on {{ $labels.instance }} is above 1s.' }
+        ),
+        alert.rule.new(
+          'PyroscopeHighHeapMemory',
+          'go_memstats_heap_inuse_bytes' + rsBrace + ' > 2e9',
+          '15m', 'warning', {},
+          { summary: 'Heap in use on {{ $labels.instance }} is above 2GB.' }
+        ),
+        alert.rule.new(
+          'PyroscopeHighGoroutines',
+          'go_goroutines' + rsBrace + ' > 10000',
+          '15m', 'warning', {},
+          { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('pyroscope.rules', [
+        alert.rule.record('instance:pyroscope_request_rate:rate5m', 'sum by (instance' + rsComma + ')(rate(pyroscope_request_duration_seconds_count' + rsBrace + '[5m]))'),
+        alert.rule.record('instance:pyroscope_cpu_usage:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
+      ]),
     ]),
 }

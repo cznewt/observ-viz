@@ -5,6 +5,7 @@
 //   g.libs.kubernetes.cadvisor.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',
       varMetric: 'cadvisor_version_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -68,5 +73,39 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           diskWrites: signals.diskWrites.asTimeSeries('Disk writes'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('cadvisor', [
+        alert.rule.new(
+          'ContainerCpuThrottlingHigh',
+          'sum by (pod) (rate(container_cpu_cfs_throttled_periods_total' + rsBrace + '[5m])) > 1',
+          '15m', 'warning', {},
+          { summary: 'Container CPU throttling on pod {{ $labels.pod }} is high.' }
+        ),
+        alert.rule.new(
+          'ContainerHighMemory',
+          'sum by (pod, container) (container_memory_working_set_bytes{container!=""' + rsComma + '}) > 1e9',
+          '15m', 'warning', {},
+          { summary: 'Container memory working set on pod {{ $labels.pod }} is above 1GB.' }
+        ),
+        alert.rule.new(
+          'ContainerHighCpu',
+          'sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m])) > 2',
+          '15m', 'warning', {},
+          { summary: 'Container CPU usage on pod {{ $labels.pod }} is above 2 cores.' }
+        ),
+        alert.rule.new(
+          'ContainerNetworkUnavailable',
+          'sum by (pod) (rate(container_network_receive_bytes_total' + rsBrace + '[5m])) == 0',
+          '5m', 'critical', {},
+          { summary: 'Container network receive on pod {{ $labels.pod }} is unavailable.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('cadvisor.rules', [
+        alert.rule.record('pod:container_cpu_usage:rate5m', 'sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m]))'),
+        alert.rule.record('pod:container_memory_working_set:sum', 'sum by (pod, container) (container_memory_working_set_bytes{container!=""' + rsComma + '})'),
+      ]),
     ]),
 }
