@@ -1,0 +1,29 @@
+local base = import './base.libsonnet';
+base {
+  new(
+    name,
+    type,
+    unit,
+    nameShort,
+    description,
+    aggLevel,
+    aggFunction,
+    vars,
+    datasource,
+    sourceMaps,
+  ):
+    base.new(
+      name,
+      type,
+      unit,
+      nameShort,
+      description,
+      aggLevel,
+      aggFunction,
+      vars,
+      datasource,
+      sourceMaps=sourceMaps,
+    )
+    {
+    },
+}
