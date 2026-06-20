@@ -73,9 +73,13 @@ load:
 load-ref:
     python3 scripts/load.py reference/render.jsonnet
 
-# load the scenario boards (Linux/Docker/Kubernetes/LGTM folders)
+# load the scenario boards (all deployment-profile folders)
 load-scenarios:
     python3 scripts/load.py scenarios/render.jsonnet
+
+# deploy a deployment profile (render + apply its boards), e.g. `just deploy linux-server`
+deploy *ARGS:
+    python3 scripts/deploy.py {{ARGS}}
 
 # load everything
 load-all: load load-ref load-scenarios

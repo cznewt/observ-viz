@@ -12,30 +12,6 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
-  name: observ-viz-linux
-  tags:
-  - observ-viz
-  - observability
-  title: Linux host
-spec:
-  domain: observability
-  owner: monitoring
----
-apiVersion: backstage.io/v1alpha1
-kind: System
-metadata:
-  name: observ-viz-docker
-  tags:
-  - observ-viz
-  - observability
-  title: Docker host
-spec:
-  domain: observability
-  owner: monitoring
----
-apiVersion: backstage.io/v1alpha1
-kind: System
-metadata:
   name: observ-viz-kubernetes
   tags:
   - observ-viz
@@ -58,88 +34,58 @@ spec:
   owner: monitoring
 ---
 apiVersion: backstage.io/v1alpha1
-kind: Component
+kind: System
 metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-linux
-  name: observ-viz-linux-host
-  title: Linux host / host
+  name: observ-viz-linux-desktop
+  tags:
+  - observ-viz
+  - observability
+  title: Linux desktop
 spec:
-  lifecycle: experimental
+  domain: observability
   owner: monitoring
-  system: observ-viz-linux
-  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: observ-viz-linux-docker
+  tags:
+  - observ-viz
+  - observability
+  title: Linux Docker host
+spec:
+  domain: observability
+  owner: monitoring
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: observ-viz-linux-podman
+  tags:
+  - observ-viz
+  - observability
+  title: Linux Podman host
+spec:
+  domain: observability
+  owner: monitoring
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: observ-viz-linux-server
+  tags:
+  - observ-viz
+  - observability
+  title: Linux server
+spec:
+  domain: observability
+  owner: monitoring
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-linux
-  name: observ-viz-linux-containers
-  title: Linux host / containers
-spec:
-  lifecycle: experimental
-  owner: monitoring
-  system: observ-viz-linux
-  type: observability-pack
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-linux
-  name: observ-viz-linux-collector
-  title: Linux host / collector
-spec:
-  lifecycle: experimental
-  owner: monitoring
-  system: observ-viz-linux
-  type: observability-pack
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-docker
-  name: observ-viz-docker-containers
-  title: Docker host / containers
-spec:
-  lifecycle: experimental
-  owner: monitoring
-  system: observ-viz-docker
-  type: observability-pack
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-docker
-  name: observ-viz-docker-host
-  title: Docker host / host
-spec:
-  lifecycle: experimental
-  owner: monitoring
-  system: observ-viz-docker
-  type: observability-pack
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-docker
-  name: observ-viz-docker-collector
-  title: Docker host / collector
-spec:
-  lifecycle: experimental
-  owner: monitoring
-  system: observ-viz-docker
-  type: observability-pack
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-kubernetes
+    grafana.app/dashboard-folder: observ-viz-kubernetes
   name: observ-viz-kubernetes-pods
   title: Kubernetes / pods
 spec:
@@ -152,7 +98,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-kubernetes
+    grafana.app/dashboard-folder: observ-viz-kubernetes
   name: observ-viz-kubernetes-containers
   title: Kubernetes / containers
 spec:
@@ -165,7 +111,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-kubernetes
+    grafana.app/dashboard-folder: observ-viz-kubernetes
   name: observ-viz-kubernetes-collector
   title: Kubernetes / collector
 spec:
@@ -178,7 +124,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-lgtm
+    grafana.app/dashboard-folder: observ-viz-lgtm
   name: observ-viz-lgtm-mimir
   title: Grafana LGTM stack / mimir
 spec:
@@ -191,7 +137,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-lgtm
+    grafana.app/dashboard-folder: observ-viz-lgtm
   name: observ-viz-lgtm-loki
   title: Grafana LGTM stack / loki
 spec:
@@ -204,7 +150,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-lgtm
+    grafana.app/dashboard-folder: observ-viz-lgtm
   name: observ-viz-lgtm-tempo
   title: Grafana LGTM stack / tempo
 spec:
@@ -217,7 +163,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-lgtm
+    grafana.app/dashboard-folder: observ-viz-lgtm
   name: observ-viz-lgtm-pyroscope
   title: Grafana LGTM stack / pyroscope
 spec:
@@ -230,11 +176,141 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   annotations:
-    grafana.app/dashboard-folder: observ-viz-scn-lgtm
+    grafana.app/dashboard-folder: observ-viz-lgtm
   name: observ-viz-lgtm-alloy
   title: Grafana LGTM stack / alloy
 spec:
   lifecycle: experimental
   owner: monitoring
   system: observ-viz-lgtm
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-desktop
+  name: observ-viz-linux-desktop-host
+  title: Linux desktop / host
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-desktop
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-desktop
+  name: observ-viz-linux-desktop-collector
+  title: Linux desktop / collector
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-desktop
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-docker
+  name: observ-viz-linux-docker-host
+  title: Linux Docker host / host
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-docker
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-docker
+  name: observ-viz-linux-docker-containers
+  title: Linux Docker host / containers
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-docker
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-docker
+  name: observ-viz-linux-docker-collector
+  title: Linux Docker host / collector
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-docker
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-podman
+  name: observ-viz-linux-podman-host
+  title: Linux Podman host / host
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-podman
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-podman
+  name: observ-viz-linux-podman-containers
+  title: Linux Podman host / containers
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-podman
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-podman
+  name: observ-viz-linux-podman-collector
+  title: Linux Podman host / collector
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-podman
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-server
+  name: observ-viz-linux-server-host
+  title: Linux server / host
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-server
+  type: observability-pack
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    grafana.app/dashboard-folder: observ-viz-linux-server
+  name: observ-viz-linux-server-collector
+  title: Linux server / collector
+spec:
+  lifecycle: experimental
+  owner: monitoring
+  system: observ-viz-linux-server
   type: observability-pack

@@ -1,7 +1,12 @@
-// observ-viz scenarios namespace — environment aggregates (board packs).
+// observ-viz scenarios — deployment profiles. Each is a built scenario
+// (folder of observ-lib boards + merged alerts + Backstage system).
+local scenario = import 'scenarios/_scenario.libsonnet';
+local build(cfg) = scenario.new(cfg);
 {
-  linux: import 'scenarios/linux.libsonnet',
-  docker: import 'scenarios/docker.libsonnet',
-  kubernetes: import 'scenarios/kubernetes.libsonnet',
-  lgtm: import 'scenarios/lgtm.libsonnet',
+  'linux-server': build(import 'scenarios/linux-server/config.libsonnet'),
+  'linux-desktop': build(import 'scenarios/linux-desktop/config.libsonnet'),
+  'linux-docker': build(import 'scenarios/linux-docker/config.libsonnet'),
+  'linux-podman': build(import 'scenarios/linux-podman/config.libsonnet'),
+  kubernetes: build(import 'scenarios/kubernetes/config.libsonnet'),
+  lgtm: build(import 'scenarios/lgtm/config.libsonnet'),
 }

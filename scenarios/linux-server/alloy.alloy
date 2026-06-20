@@ -1,0 +1,29 @@
+// observ-viz deployment Alloy config. Set METRICS_URL / LOGS_URL (defaults =
+// the local stack). Sends metrics to Mimir and logs to Loki.
+logging { level = "warn" }
+
+prometheus.remote_write "mimir" {
+  endpoint { url = coalesce(sys.env("METRICS_URL"), "http://mimir:9009/api/v1/push") }
+}
+loki.write "loki" {
+  endpoint { url = coalesce(sys.env("LOGS_URL"), "http://loki:3100/loki/api/v1/push") }
+}
+
+prometheus.exporter.self "alloy" {}
+prometheus.scrape "alloy" {
+  targets    = prometheus.exporter.self.alloy.targets
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// host metrics (node_exporter built in)
+prometheus.exporter.unix "node" {}
+prometheus.scrape "node" {
+  targets    = prometheus.exporter.unix.node.targets
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+// systemd journal -> Loki
+loki.source.journal "journal" {
+  forward_to = [loki.write.loki.receiver]
+  labels     = { job = "systemd-journal" }
+}
