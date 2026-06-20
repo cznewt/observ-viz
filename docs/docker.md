@@ -22,14 +22,14 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render <manifest.jsonn
 
 ## Rendering a bundled observ-lib
 
-The image ships all 26 observ-libs, so you can render any of them straight to the
+The image ships all 23 observ-libs, so you can render any of them straight to the
 3-dir container layout with no checkout — output lands in the mounted dir:
 
 ```sh
 docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib \
-  render-lib iot.homeAssistant --validate
-# -> build/iot.homeAssistant/{dashboards,alerts,rules}/
-#    e.g. runtimes.golang, system.linux, databases.timeseries.mimir, alerts, logs
+  render-lib system.linux --validate
+# -> build/system.linux/{dashboards,alerts,rules}/
+#    e.g. runtimes.golang, system.linux, monitoring.mimir, alerts, logs
 ```
 
 ## Rendering a consuming observ-lib

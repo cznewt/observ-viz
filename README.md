@@ -70,7 +70,7 @@ walkthrough is in [docs/usage.md](docs/usage.md).
 
 ```sh
 # 1) render with the image, no vendoring — a bundled observ-lib -> dashboards/ + alerts/ + rules/
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linux --validate
 
 # 2) author your own dashboards: vendor + render        (vendor-and-render.justfile)
 # 3) ship an observ-lib container: dashboards+alerts+rules (observ-lib.justfile)
@@ -83,7 +83,7 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAss
 | `gen/` | **Generated** typed builders (do not hand-edit) |
 | `custom/` | Hand-written veneer: dashboard / element / panel / query / layout / variable / annotation / util |
 | `libs/common-lib/` | Shared base: signal engine, 56 panel presets, annotations, tokens, utils, alert/logs/deploy, the `pack` contract |
-| `libs/*-observ-lib/` | 26 domain observ-libs (runtimes · system · kubernetes · databases · collector · infra · iot · alerts · logs) |
+| `libs/*-observ-lib/` | 23 domain observ-libs (runtimes · system · kubernetes · databases · monitoring · collector · alerts · logs) |
 | `libs/reference-lib/` | Reference boards (4 Grafana folders) · `scenarios/` deployment profiles · `patterns/` (RED, alerts overview) |
 | `templates/observ-lib/` | Generic observ-lib justfile + mixin template (Makefile_mixin analogue) |
 | `scripts/`, `docker/` | Render / load / deploy tooling + the renderer image |
@@ -93,7 +93,7 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAss
 
 ```sh
 just test         # compile + packs + panels (no docker)
-just render-lib iot.homeAssistant --validate   # render an observ-lib -> 3 dirs
+just render-lib system.linux --validate   # render an observ-lib -> 3 dirs
 just up           # local Grafana+Prometheus+Loki   ·   just load-all
 just docs         # build the docs site
 ```

@@ -13,7 +13,7 @@ run from images, nothing else is installed.
 **1 · Render with the image (no vendoring).** The image bundles observ-viz on the jpath.
 ```sh
 docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render <manifest.jsonnet> > board.json
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linux --validate
 #   render-lib -> build/<lib>/{dashboards/<uid>.json, alerts/<group>.yaml, rules/<group>.yaml}
 ```
 
@@ -49,8 +49,8 @@ Render: `jsonnet -J vendor/github.com/cznewt/observ-viz -J vendor -J . dashboard
 - `signal` — `new(name, type, ds, expr, unit)` then `.filteringSelector/.groupLabels/.aggLevel` then `.asTimeSeries/.asStat/.asTable/.asTarget(title)`. Rich form: `init(...)` + `addSignal(name, type='counter'|'histogram'|'gauge'|…, expr/unit)` (auto rate/quantile wrapping) + variable generation.
 - `panels` (56 presets, 8 categories), `annotations` (base + severity + reboot/service_failed), `tokens`, `utils` (label→selector/legend, chainLabels), `alert`/`logs`/`deploy`, `pack`.
 
-## observ-libs (`g.libs.*`) — 26 domain packs
-`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `monitoring.{prometheus,mimir,loki,tempo,pyroscope}` · `collector.alloy` · `iot.homeAssistant` · `alerts` · `logs`.
+## observ-libs (`g.libs.*`) — 23 domain packs
+`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `monitoring.{prometheus,mimir,loki,tempo,pyroscope}` · `collector.alloy` · `alerts` · `logs`.
 Each `new(config)` → `{ signals, grafana:{dashboard,dashboards,elements,layout}, prometheus:{alerts,rules}, asMonitoringMixin() }`.
 
 ## observ-lib container contract

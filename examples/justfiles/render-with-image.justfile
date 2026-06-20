@@ -19,7 +19,7 @@ render-multi FILE OUT="dashboards_out":
     {{RUN}} render {{FILE}} -m {{OUT}}
 
 # render a BUNDLED observ-lib -> build/<lib>/{dashboards,alerts,rules}/
-#   just lib iot.homeAssistant --validate
+#   just lib system.linux --validate
 lib LIB *ARGS:
     {{RUN}} render-lib {{LIB}} {{ARGS}}
 

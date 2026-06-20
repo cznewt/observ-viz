@@ -35,7 +35,6 @@ selector, varMetric }` and produces a self-contained dashboard (with
 | `kubernetes` | `pod`, `cadvisor` |
 | `runtimes` | `golang`, `jvm`, `python`, `dotnet`, `nodejs` |
 | `infra` | `prometheus` |
-| `iot` | `homeAssistant` |
 | _cross-cutting_ | `alerts` (alerts-observ-lib), `logs` (logs-lib) — signals + annotations + reusable panels, built on common-lib |
 
 ## Adding a pack

@@ -29,7 +29,7 @@ observ-viz — render Grafana v2 dashboards from Jsonnet.
 The library is at \$OBSERV_VIZ_HOME ($H), already on the jpath. Mount your repo
 at /work:
   docker run --rm -v "\$PWD":/work ghcr.io/cznewt/observ-lib \\
-    render operations/home-assistant-observ-lib/render.jsonnet
+    render-lib system.linux --validate
 EOF
     ;;
 esac

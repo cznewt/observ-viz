@@ -7,14 +7,14 @@ justfiles for each are in [`examples/justfiles/`](https://github.com/cznewt/obse
 ## 1 · Render with the image (no vendoring)
 
 The published image bundles observ-viz on the jpath, so it renders your manifests
-— or any of the 26 bundled observ-libs — with nothing installed locally.
+— or any of the 23 bundled observ-libs — with nothing installed locally.
 
 ```sh
 # your own manifest -> Grafana v2 JSON
 docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render dashboards/board.jsonnet > board.json
 
 # a bundled observ-lib -> build/<lib>/{dashboards,alerts,rules}/
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linux --validate
 ```
 
 → [`render-with-image.justfile`](https://github.com/cznewt/observ-viz/blob/main/examples/justfiles/render-with-image.justfile)
@@ -75,7 +75,7 @@ just build      # dashboards_out/ + prometheus_alerts.yaml + prometheus_rules.ya
 # dashboards -> a local Grafana (v2 app-platform API)
 docker run --rm --network host -v "$PWD":/work ghcr.io/cznewt/observ-lib load board.jsonnet
 # or render + validate + deploy a bundled lib (dashboards -> Grafana, rules -> Mimir ruler)
-just deploy-lib iot.homeAssistant
+just deploy-lib system.linux
 ```
 
 See [Examples & local Grafana](examples.md) for a one-command local stack to try it against.

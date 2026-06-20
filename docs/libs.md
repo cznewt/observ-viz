@@ -57,12 +57,6 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `collector.alloy` | Alloy | 10 | 10 |
 
-## IoT
-
-| `g.libs.…` | Dashboard | Signals | Panels |
-|---|---|---|---|
-| `iot.homeAssistant` | Home Assistant | 14 | 14 |
-
 ## Cross-cutting
 
 | `g.libs.…` | Dashboard | Signals | Panels |

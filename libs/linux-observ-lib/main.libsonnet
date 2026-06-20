@@ -5,6 +5,7 @@
 //   g.libs.system.linux.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'node_uname_info',
+      // static label filter for the alerting/recording rules (no dashboard vars).
+      ruleSelector: '',
     } + config;
+    local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
+    local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
@@ -68,5 +73,37 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           netTx: signals.netTx.asTimeSeries('Network transmitted'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('node', [
+        alert.rule.new(
+          'NodeDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          { summary: 'Node {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'NodeHighCpu',
+          '1 - avg without (cpu, mode) (rate(node_cpu_seconds_total{mode="idle"' + rsComma + '}[5m])) > 0.9',
+          '15m', 'warning', {},
+          { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
+        ),
+        alert.rule.new(
+          'NodeHighMemory',
+          '1 - node_memory_MemAvailable_bytes' + rsBrace + ' / node_memory_MemTotal_bytes' + rsBrace + ' > 0.9',
+          '15m', 'warning', {},
+          { summary: 'Memory on {{ $labels.instance }} is above 90%.' }
+        ),
+        alert.rule.new(
+          'NodeFilesystemAlmostFull',
+          '1 - node_filesystem_avail_bytes{fstype!=""' + rsComma + '} / node_filesystem_size_bytes{fstype!=""' + rsComma + '} > 0.9',
+          '15m', 'warning', {},
+          { summary: 'Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is above 90%.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('node.rules', [
+        alert.rule.record('instance:node_cpu_utilisation:rate5m', '1 - avg without (cpu, mode) (rate(node_cpu_seconds_total{mode="idle"' + rsComma + '}[5m]))'),
+        alert.rule.record('instance:node_memory_utilisation:ratio', '1 - node_memory_MemAvailable_bytes' + rsBrace + ' / node_memory_MemTotal_bytes' + rsBrace),
+      ]),
     ]),
 }

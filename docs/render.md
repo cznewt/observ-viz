@@ -18,12 +18,12 @@ build/<lib>/rules/<group>.yaml       recording rule groups  (one file per group)
 | `just deploy-lib <lib>` | render + validate + deploy: dashboards → Grafana (v2 API), rule groups → Mimir ruler (if `MIMIR_RULER_URL` set) |
 
 ```sh
-just render-lib   iot.homeAssistant
-just validate-lib iot.homeAssistant
-just deploy-lib   iot.homeAssistant
+just render-lib   system.linux
+just validate-lib system.linux
+just deploy-lib   system.linux
 # or directly / in the image:
-python3 scripts/render-lib.py iot.homeAssistant --validate --deploy
-docker run --rm -v "$PWD/build":/work/build ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
+python3 scripts/render-lib.py system.linux --validate --deploy
+docker run --rm -v "$PWD/build":/work/build ghcr.io/cznewt/observ-lib render-lib system.linux --validate
 ```
 
 ## Contract
@@ -42,12 +42,13 @@ Rules are authored with the common-lib alert builder and passed to `pack.build`:
 ```jsonnet
 local alert = g.common.alert;
 pack.build(cfg, signals, groups,
-  [ alert.rule.group('home-assistant', [
-      alert.rule.new('HomeAssistantDeviceLowBattery', 'hass_device_battery_remaining < 15', '10m', 'warning', {},
-                     { summary: 'Device {{ $labels.device_name }} battery low.' }),
+  [ alert.rule.group('node', [
+      alert.rule.new('NodeDown', 'up == 0', '5m', 'critical', {},
+                     { summary: 'Node {{ $labels.instance }} is down.' }),
     ]) ],
-  [ alert.rule.group('home-assistant.rules', [
-      alert.rule.record('hass:entity_available:ratio', 'avg(hass_entity_available)'),
+  [ alert.rule.group('node.rules', [
+      alert.rule.record('instance:node_cpu_utilisation:rate5m',
+                        '1 - avg without (cpu, mode) (rate(node_cpu_seconds_total{mode="idle"}[5m]))'),
     ]) ])
 ```
 
@@ -66,20 +67,20 @@ API (folders are created as needed). Target **any** Grafana with env vars:
 
 ```sh
 # local Grafana (basic auth)
-just deploy-lib iot.homeAssistant
+just deploy-lib system.linux
 
 # any remote Grafana, through the image (token auth)
 docker run --rm -e GRAFANA_URL=https://grafana.example.com -e GRAFANA_TOKEN="$TOKEN" \
-  -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --deploy
+  -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linux --deploy
 
 # local Grafana, through the image (host network so the container can reach it)
 docker run --rm --network host -v "$PWD":/work \
-  ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --deploy
+  ghcr.io/cznewt/observ-lib render-lib system.linux --deploy
 ```
 
-## Example — home-assistant
+## Example — system.linux
 
-`iot.homeAssistant` is the worked example: a 14-panel dashboard, a `home-assistant`
-alerting group (low battery / entity unavailable / stale entity / weak Zigbee
-signal) and a `home-assistant.rules` recording group (availability ratio, min
-battery, device count) — rendered, validated and deployed by the commands above.
+`system.linux` is the worked example: a node dashboard (CPU/load, memory,
+disk/filesystem, network), a `node` alerting group (down / high CPU / high memory
+/ filesystem almost full) and a `node.rules` recording group (CPU + memory
+utilisation) — rendered, validated and deployed by the commands above.

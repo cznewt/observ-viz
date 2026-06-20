@@ -18,8 +18,8 @@ once and *layouts* reference them by name.
 - **annotations** (base + critical/warning/info/fatal + reboot/service_failed), **tokens** (colours + timeSeries), **utils** (label→selector/legend, `chainLabels`).
 - reusable **alert** (rule + record + group + panels), **logs**, **deploy** primitives.
 
-## 3 · observ-libs — 26 domain packs (`g.libs.*`)
-- runtimes (go/jvm/python/dotnet/nodejs) · system (linux/docker/windows) · kubernetes (pod/cadvisor) · databases (postgres/mysql/redis/memcached/etcd/mimir/loki/tempo/pyroscope) · collector (alloy) · infra (prometheus) · iot (home-assistant) · cross-cutting (alerts, logs).
+## 3 · observ-libs — 23 domain packs (`g.libs.*`)
+- runtimes (go/jvm/python/dotnet/nodejs) · system (linux/docker/windows) · kubernetes (pod/cadvisor) · databases (postgres/mysql/redis/memcached/etcd) · monitoring (prometheus/mimir/loki/tempo/pyroscope) · collector (alloy) · cross-cutting (alerts, logs).
 - Each `new(config)` → `signals` + `grafana{dashboard,elements,layout}` + `prometheus{alerts,rules}` + `asMonitoringMixin()`.
 - Each declares its dependency via **jb** (`jsonnetfile.json`).
 
