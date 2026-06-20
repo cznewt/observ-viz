@@ -1,8 +1,8 @@
 // observ-viz Linux node pack (hand-written).
 // node_exporter host metrics (CPU/load, memory, disk/filesystem, network),
 // emitted as native v2 elements. Usage:
-//   g.packs.system.linux.new({ selector: 'job="node"' }).grafana.dashboard
-//   g.packs.system.linux.new({...}).grafana.elements   // reuse in a board
+//   g.libs.system.linux.new({ selector: 'job="node"' }).grafana.dashboard
+//   g.libs.system.linux.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

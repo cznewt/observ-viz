@@ -1,8 +1,8 @@
 // observ-viz Redis pack (hand-written).
 // Mirrors redis_exporter signal conventions, emitted as native v2 elements.
 // Usage:
-//   g.packs.databases.redis.new({ selector: 'job="redis"' }).grafana.dashboard
-//   g.packs.databases.redis.new({...}).grafana.elements   // reuse in a board
+//   g.libs.databases.redis.new({ selector: 'job="redis"' }).grafana.dashboard
+//   g.libs.databases.redis.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

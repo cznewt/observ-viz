@@ -40,4 +40,7 @@
   infra: {
     prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
   },
+  iot: {
+    homeAssistant: import 'libs/home-assistant-observ-lib/main.libsonnet',
+  },
 }

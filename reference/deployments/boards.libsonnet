@@ -6,11 +6,11 @@ local util = import 'reference/_util.libsonnet';
 
 // [ pack, uid-suffix, title ]
 local boards = [
-  [g.packs.system.linux, 'linux', 'Linux'],
-  [g.packs.system.docker, 'docker', 'Docker'],
-  [g.packs.system.windows, 'windows', 'Windows'],
-  [g.packs.kubernetes.pod, 'kube-pod', 'Kubernetes pod'],
-  [g.packs.kubernetes.cadvisor, 'cadvisor', 'Container resources'],
+  [g.libs.system.linux, 'linux', 'Linux'],
+  [g.libs.system.docker, 'docker', 'Docker'],
+  [g.libs.system.windows, 'windows', 'Windows'],
+  [g.libs.kubernetes.pod, 'kube-pod', 'Kubernetes pod'],
+  [g.libs.kubernetes.cadvisor, 'cadvisor', 'Container resources'],
 ];
 
 {

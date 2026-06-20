@@ -1,7 +1,7 @@
 // observ-viz Windows host pack (hand-written).
 // Signals from windows_exporter, emitted as native v2 elements. Usage:
-//   g.packs.system.windows.new({ selector: 'job="windows"' }).grafana.dashboard
-//   g.packs.system.windows.new({...}).grafana.elements   // reuse in a board
+//   g.libs.system.windows.new({ selector: 'job="windows"' }).grafana.dashboard
+//   g.libs.system.windows.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

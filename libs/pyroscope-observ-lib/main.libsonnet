@@ -1,7 +1,7 @@
 // observ-viz Pyroscope pack (hand-written).
 // Grafana Pyroscope self-monitoring (pyroscope_* metrics), emitted as native v2
 // elements. Usage:
-//   g.packs.lgtm.pyroscope.new({ selector: 'job="pyroscope"' }).grafana.dashboard
+//   g.libs.lgtm.pyroscope.new({ selector: 'job="pyroscope"' }).grafana.dashboard
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

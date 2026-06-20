@@ -1,8 +1,8 @@
 // observ-viz Memcached pack (hand-written).
 // Mirrors memcached_exporter signal conventions, emitted as native v2 elements.
 // Usage:
-//   g.packs.databases.memcached.new({ selector: 'job="memcached"' }).grafana.dashboard
-//   g.packs.databases.memcached.new({...}).grafana.elements   // reuse in a board
+//   g.libs.databases.memcached.new({ selector: 'job="memcached"' }).grafana.dashboard
+//   g.libs.databases.memcached.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

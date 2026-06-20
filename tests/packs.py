@@ -18,13 +18,14 @@ PACKS = [
     "kubernetes.pod", "kubernetes.cadvisor",
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
     "infra.prometheus",
+    "iot.homeAssistant",
 ]
 
 
 def main():
     fail = 0
     for p in PACKS:
-        snippet = f"(import 'g.libsonnet').packs.{p}.new({{}}).grafana.dashboard.toResource()"
+        snippet = f"(import 'g.libsonnet').libs.{p}.new({{}}).grafana.dashboard.toResource()"
         try:
             d = json.loads(_jsonnet.evaluate_snippet("t", snippet, jpathdir=[ROOT]))
             assert d["kind"] == "Dashboard"

@@ -1,7 +1,7 @@
 // observ-viz Prometheus pack (hand-written).
 // Self-monitoring for a Prometheus server, emitted as native v2 elements. Usage:
-//   g.packs.infra.prometheus.new({ selector: 'job="prometheus"' }).grafana.dashboard
-//   g.packs.infra.prometheus.new({...}).grafana.elements   // reuse in a board
+//   g.libs.infra.prometheus.new({ selector: 'job="prometheus"' }).grafana.dashboard
+//   g.libs.infra.prometheus.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

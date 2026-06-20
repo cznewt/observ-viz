@@ -1,8 +1,8 @@
 // observ-viz Kubernetes pod pack (hand-written).
 // Pod-level CPU, memory and health from kube-state-metrics + cadvisor, emitted as
 // native v2 elements. Usage:
-//   g.packs.kubernetes.pod.new({ selector: 'namespace="prod"' }).grafana.dashboard
-//   g.packs.kubernetes.pod.new({...}).grafana.elements   // reuse in a board
+//   g.libs.kubernetes.pod.new({ selector: 'namespace="prod"' }).grafana.dashboard
+//   g.libs.kubernetes.pod.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

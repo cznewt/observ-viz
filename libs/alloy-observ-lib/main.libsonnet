@@ -1,8 +1,8 @@
 // observ-viz Alloy pack (hand-written).
 // Grafana Alloy internal monitoring (alloy_* metrics), emitted as native v2
 // elements. Usage:
-//   g.packs.collector.alloy.new({ selector: 'job="alloy"' }).grafana.dashboard
-//   g.packs.collector.alloy.new({...}).grafana.elements   // reuse in a board
+//   g.libs.collector.alloy.new({ selector: 'job="alloy"' }).grafana.dashboard
+//   g.libs.collector.alloy.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

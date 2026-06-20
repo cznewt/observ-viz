@@ -1,8 +1,8 @@
 // observ-viz Container resources pack (hand-written).
 // cAdvisor container resource usage in Kubernetes (CPU, memory, network, disk),
 // emitted as native v2 elements. Usage:
-//   g.packs.kubernetes.cadvisor.new({ selector: 'namespace="default"' }).grafana.dashboard
-//   g.packs.kubernetes.cadvisor.new({...}).grafana.elements   // reuse in a board
+//   g.libs.kubernetes.cadvisor.new({ selector: 'namespace="default"' }).grafana.dashboard
+//   g.libs.kubernetes.cadvisor.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

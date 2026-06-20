@@ -17,7 +17,7 @@ local runtimes = [
     ['lang-' + r[0] + '.json']:
       util.place(
         util.tabbedBoard(
-          g.packs.runtimes[r[0]].new({
+          g.libs.runtimes[r[0]].new({
             uid: 'observ-viz-lang-' + r[0],
             dashboardTitle: r[1] + ' runtime',
             datasource: $._config.datasource,

@@ -1,8 +1,8 @@
 // observ-viz Loki pack (hand-written).
 // Grafana Loki self-monitoring (loki_* metrics), emitted as native v2 elements.
 // Usage:
-//   g.packs.lgtm.loki.new({ selector: 'job="loki"' }).grafana.dashboard
-//   g.packs.lgtm.loki.new({...}).grafana.elements   // reuse in a board
+//   g.libs.lgtm.loki.new({ selector: 'job="loki"' }).grafana.dashboard
+//   g.libs.lgtm.loki.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

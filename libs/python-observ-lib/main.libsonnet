@@ -1,8 +1,8 @@
 // observ-viz Python runtime pack (hand-written).
 // Built from prometheus_client default metrics (python_gc_* + process_*),
 // emitted as native v2 elements. Usage:
-//   g.packs.runtimes.python.new({ selector: 'job="api"' }).grafana.dashboard
-//   g.packs.runtimes.python.new({...}).grafana.elements   // reuse in a board
+//   g.libs.runtimes.python.new({ selector: 'job="api"' }).grafana.dashboard
+//   g.libs.runtimes.python.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

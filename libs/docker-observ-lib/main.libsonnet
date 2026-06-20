@@ -1,8 +1,8 @@
 // observ-viz Docker containers pack (hand-written).
 // cAdvisor container metrics for Docker workloads, emitted as native v2 elements.
 // Usage:
-//   g.packs.system.docker.new({ selector: 'job="cadvisor"' }).grafana.dashboard
-//   g.packs.system.docker.new({...}).grafana.elements   // reuse in a board
+//   g.libs.system.docker.new({ selector: 'job="cadvisor"' }).grafana.dashboard
+//   g.libs.system.docker.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

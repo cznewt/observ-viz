@@ -1,7 +1,7 @@
 // observ-viz Mimir pack (hand-written).
 // Grafana Mimir self-monitoring. Mimir exposes cortex_* metrics. Usage:
-//   g.packs.lgtm.mimir.new({ selector: 'job="mimir"' }).grafana.dashboard
-//   g.packs.lgtm.mimir.new({...}).grafana.elements   // reuse in a board
+//   g.libs.lgtm.mimir.new({ selector: 'job="mimir"' }).grafana.dashboard
+//   g.libs.lgtm.mimir.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

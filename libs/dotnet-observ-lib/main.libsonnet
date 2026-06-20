@@ -1,8 +1,8 @@
 // observ-viz .NET runtime pack (hand-written).
 // Mirrors prometheus-net runtime metrics (dotnet_* family), emitted as native v2
 // elements. Usage:
-//   g.packs.runtimes.dotnet.new({ selector: 'job="api"' }).grafana.dashboard
-//   g.packs.runtimes.dotnet.new({...}).grafana.elements   // reuse in a board
+//   g.libs.runtimes.dotnet.new({ selector: 'job="api"' }).grafana.dashboard
+//   g.libs.runtimes.dotnet.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

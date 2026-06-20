@@ -1,8 +1,8 @@
 // observ-viz JVM runtime pack (hand-written).
 // Mirrors Micrometer/Prometheus JVM metric conventions, emitted as native v2
 // elements. Usage:
-//   g.packs.runtimes.jvm.new({ selector: 'job="api"' }).grafana.dashboard
-//   g.packs.runtimes.jvm.new({...}).grafana.elements   // reuse in a board
+//   g.libs.runtimes.jvm.new({ selector: 'job="api"' }).grafana.dashboard
+//   g.libs.runtimes.jvm.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 

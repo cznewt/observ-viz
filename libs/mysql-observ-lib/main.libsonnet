@@ -1,8 +1,8 @@
 // observ-viz MySQL pack (hand-written).
 // Mirrors mysqld_exporter metric conventions, emitted as native v2 elements.
 // Usage:
-//   g.packs.databases.mysql.new({ selector: 'job="mysql"' }).grafana.dashboard
-//   g.packs.databases.mysql.new({...}).grafana.elements   // reuse in a board
+//   g.libs.databases.mysql.new({ selector: 'job="mysql"' }).grafana.dashboard
+//   g.libs.databases.mysql.new({...}).grafana.elements   // reuse in a board
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
