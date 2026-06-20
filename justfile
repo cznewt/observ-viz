@@ -18,8 +18,16 @@ compile:
 packs:
     python3 tests/packs.py
 
+# build every common chart preset + variation board (no docker)
+panels:
+    python3 tests/panels.py
+
+# regenerate docs/panels.md from the chart definitions
+docs-panels:
+    python3 scripts/gen-panel-docs.py
+
 # full local test suite
-test: compile packs
+test: compile packs panels
 
 # format all jsonnet (docker)
 fmt:

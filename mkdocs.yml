@@ -18,6 +18,7 @@ nav:
   - Concepts: concepts.md
   - Core API: api.md
   - Packs (mixins): packs.md
+  - Chart types: panels.md
   - Reference & scenarios: reference.md
   - Backstage: backstage.md
   - Examples & local Grafana: examples.md
