@@ -9,7 +9,7 @@ rules. This renders one to:
   <out>/rules/<group>.yaml      prometheus recording rule groups (one file per group)
 
   render-lib.py <lib.dotted.path> [--out DIR] [--config '{json}'] [--validate] [--deploy]
-  e.g.  render-lib.py iot.homeAssistant --validate
+  e.g.  render-lib.py system.windows --validate
 
 --validate runs structural checks (+ promtool on the rule files if installed).
 --deploy pushes dashboards to Grafana (v2 API, like load.py) and, if
@@ -119,7 +119,7 @@ def deploy(m, lib):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("lib", help="observ-lib dotted path, e.g. iot.homeAssistant")
+    ap.add_argument("lib", help="observ-lib dotted path, e.g. system.windows")
     ap.add_argument("--out")
     ap.add_argument("--config", default="{}")
     ap.add_argument("--validate", action="store_true")

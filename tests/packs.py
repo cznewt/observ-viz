@@ -17,7 +17,6 @@ PACKS = [
     "system.linux", "system.docker", "system.windows",
     "kubernetes.pod", "kubernetes.cadvisor",
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
-    "iot.homeAssistant",
     "alerts",
     "logs",
 ]
