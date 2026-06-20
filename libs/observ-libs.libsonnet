@@ -38,9 +38,6 @@
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',
   },
-  iot: {
-    homeAssistant: import 'libs/home-assistant-observ-lib/main.libsonnet',
-  },
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',

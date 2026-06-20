@@ -22,7 +22,6 @@ GROUPS = {
         "monitoring.tempo", "monitoring.pyroscope",
     ],
     "Collector": ["collector.alloy"],
-    "IoT": ["iot.homeAssistant"],
     "Cross-cutting": ["alerts", "logs"],
 }
 
