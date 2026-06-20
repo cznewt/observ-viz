@@ -27,18 +27,16 @@
       memcached: import 'libs/memcached-observ-lib/main.libsonnet',
       etcd: import 'libs/etcd-observ-lib/main.libsonnet',
     },
-    timeseries: {
-      mimir: import 'libs/mimir-observ-lib/main.libsonnet',
-      loki: import 'libs/loki-observ-lib/main.libsonnet',
-      tempo: import 'libs/tempo-observ-lib/main.libsonnet',
-      pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
-    },
+  },
+  monitoring: {
+    prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
+    mimir: import 'libs/mimir-observ-lib/main.libsonnet',
+    loki: import 'libs/loki-observ-lib/main.libsonnet',
+    tempo: import 'libs/tempo-observ-lib/main.libsonnet',
+    pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
   },
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',
-  },
-  infra: {
-    prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
   },
   iot: {
     homeAssistant: import 'libs/home-assistant-observ-lib/main.libsonnet',

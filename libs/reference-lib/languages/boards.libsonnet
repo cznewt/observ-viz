@@ -1,7 +1,7 @@
 // observ-viz reference — Language folder. One TABBED board per language runtime:
 // an Overview tab (markdown signal descriptions) + one tab per signal group.
 local g = import 'g.libsonnet';
-local util = import 'reference/_util.libsonnet';
+local util = import 'libs/reference-lib/_util.libsonnet';
 
 local runtimes = [
   ['golang', 'Go'],

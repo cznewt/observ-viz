@@ -16,10 +16,12 @@ GROUPS = {
     "Databases": [
         "databases.sql.postgres", "databases.sql.mysql",
         "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd",
-        "databases.timeseries.mimir", "databases.timeseries.loki",
-        "databases.timeseries.tempo", "databases.timeseries.pyroscope",
     ],
-    "Collector / infra": ["collector.alloy", "infra.prometheus"],
+    "Monitoring": [
+        "monitoring.prometheus", "monitoring.mimir", "monitoring.loki",
+        "monitoring.tempo", "monitoring.pyroscope",
+    ],
+    "Collector": ["collector.alloy"],
     "IoT": ["iot.homeAssistant"],
     "Cross-cutting": ["alerts", "logs"],
 }

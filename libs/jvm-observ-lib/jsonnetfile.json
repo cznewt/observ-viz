@@ -5,6 +5,15 @@
       "source": {
         "git": {
           "remote": "https://github.com/cznewt/observ-viz.git",
+          "subdir": "libs/common-lib"
+        }
+      },
+      "version": "main"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/cznewt/observ-viz.git",
           "subdir": ""
         }
       },

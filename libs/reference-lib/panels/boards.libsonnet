@@ -3,25 +3,25 @@
 // panels get rich testdata-driven examples (ported from the models/catalog
 // reference-mixin); the rest are a single example panel.
 local g = import 'g.libsonnet';
-local place = (import 'reference/_util.libsonnet').place;
-local tabbed = (import 'reference/panels/_tab.libsonnet').tabbed;
+local place = (import 'libs/reference-lib/_util.libsonnet').place;
+local tabbed = (import 'libs/reference-lib/panels/_tab.libsonnet').tabbed;
 
 // rich example boards: function(config) -> { board }
 local rich = {
-  timeSeries: import 'reference/panels/timeseries.libsonnet',
-  stat: import 'reference/panels/stat.libsonnet',
-  gauge: import 'reference/panels/gauge.libsonnet',
-  barGauge: import 'reference/panels/barGauge.libsonnet',
-  pieChart: import 'reference/panels/pieChart.libsonnet',
-  barChart: import 'reference/panels/barChart.libsonnet',
-  histogram: import 'reference/panels/histogram.libsonnet',
-  heatmap: import 'reference/panels/heatmap.libsonnet',
-  table: import 'reference/panels/table.libsonnet',
-  stateTimeline: import 'reference/panels/stateTimeline.libsonnet',
-  statusHistory: import 'reference/panels/statusHistory.libsonnet',
-  candlestick: import 'reference/panels/candlestick.libsonnet',
-  trend: import 'reference/panels/trend.libsonnet',
-  xyChart: import 'reference/panels/xyChart.libsonnet',
+  timeSeries: import 'libs/reference-lib/panels/timeseries.libsonnet',
+  stat: import 'libs/reference-lib/panels/stat.libsonnet',
+  gauge: import 'libs/reference-lib/panels/gauge.libsonnet',
+  barGauge: import 'libs/reference-lib/panels/barGauge.libsonnet',
+  pieChart: import 'libs/reference-lib/panels/pieChart.libsonnet',
+  barChart: import 'libs/reference-lib/panels/barChart.libsonnet',
+  histogram: import 'libs/reference-lib/panels/histogram.libsonnet',
+  heatmap: import 'libs/reference-lib/panels/heatmap.libsonnet',
+  table: import 'libs/reference-lib/panels/table.libsonnet',
+  stateTimeline: import 'libs/reference-lib/panels/stateTimeline.libsonnet',
+  statusHistory: import 'libs/reference-lib/panels/statusHistory.libsonnet',
+  candlestick: import 'libs/reference-lib/panels/candlestick.libsonnet',
+  trend: import 'libs/reference-lib/panels/trend.libsonnet',
+  xyChart: import 'libs/reference-lib/panels/xyChart.libsonnet',
 };
 
 local label = {

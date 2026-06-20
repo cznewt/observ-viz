@@ -40,17 +40,22 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `databases.kv.redis` | Redis | 6 | 6 |
 | `databases.kv.memcached` | Memcached | 10 | 10 |
 | `databases.kv.etcd` | etcd | 6 | 6 |
-| `databases.timeseries.mimir` | Mimir | 6 | 6 |
-| `databases.timeseries.loki` | Loki | 6 | 6 |
-| `databases.timeseries.tempo` | Tempo | 9 | 9 |
-| `databases.timeseries.pyroscope` | Pyroscope | 8 | 8 |
 
-## Collector / infra
+## Monitoring
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `monitoring.prometheus` | Prometheus | 7 | 7 |
+| `monitoring.mimir` | Mimir | 6 | 6 |
+| `monitoring.loki` | Loki | 6 | 6 |
+| `monitoring.tempo` | Tempo | 9 | 9 |
+| `monitoring.pyroscope` | Pyroscope | 8 | 8 |
+
+## Collector
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `collector.alloy` | Alloy | 10 | 10 |
-| `infra.prometheus` | Prometheus | 7 | 7 |
 
 ## IoT
 

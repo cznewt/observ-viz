@@ -84,7 +84,7 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAss
 | `custom/` | Hand-written veneer: dashboard / element / panel / query / layout / variable / annotation / util |
 | `libs/common-lib/` | Shared base (grafana common-lib onboarded): signal engine, 56 panel presets, annotations, tokens, utils, alert/logs/deploy, the `pack` contract |
 | `libs/*-observ-lib/` | 26 domain observ-libs (runtimes · system · kubernetes · databases · collector · infra · iot · alerts · logs) |
-| `reference/` | Reference boards (4 Grafana folders) · `scenarios/` deployment profiles · `patterns/` (RED, alerts overview) |
+| `libs/reference-lib/` | Reference boards (4 Grafana folders) · `scenarios/` deployment profiles · `patterns/` (RED, alerts overview) |
 | `templates/observ-lib/` | Generic observ-lib justfile + mixin template (Makefile_mixin analogue) |
 | `scripts/`, `docker/` | Render / load / deploy tooling + the renderer image |
 | `examples/` | Worked dashboards + [example justfiles](examples/justfiles/) · `generator/` schema → builder generator |

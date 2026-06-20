@@ -2,7 +2,7 @@
 // target, sourced directly from the pack mixins (system/kubernetes), same
 // presentation as the Language reference: Overview tab + tabs per signal group.
 local g = import 'g.libsonnet';
-local util = import 'reference/_util.libsonnet';
+local util = import 'libs/reference-lib/_util.libsonnet';
 
 // [ pack, uid-suffix, title ]
 local boards = [

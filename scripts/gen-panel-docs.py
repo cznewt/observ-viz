@@ -55,7 +55,7 @@ def main():
     lines += ["## Variation boards", "",
               "Each Grafana panel type has a tabbed reference board: an **Overview** tab",
               "(description + Grafana docs link) then one tab per option variation.", ""]
-    boards = ev("import 'reference/render.jsonnet'")
+    boards = ev("import 'libs/reference-lib/render.jsonnet'")
     panels = {k: v for k, v in boards.items() if k.startswith("panel-")}
     lines += ["| Panel type | Variation tabs |", "|------------|----------------|"]
     for name in sorted(panels):

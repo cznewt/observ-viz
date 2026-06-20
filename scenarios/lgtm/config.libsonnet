@@ -8,10 +8,10 @@ local libs = import 'libs/observ-libs.libsonnet';
   folder: { uid: 'observ-viz-lgtm', title: 'Grafana LGTM stack' },
   alloyConfig: 'scenarios/lgtm/alloy.alloy',
   members: [
-    { key: 'mimir', pack: libs.databases.timeseries.mimir },
-    { key: 'loki', pack: libs.databases.timeseries.loki },
-    { key: 'tempo', pack: libs.databases.timeseries.tempo },
-    { key: 'pyroscope', pack: libs.databases.timeseries.pyroscope },
+    { key: 'mimir', pack: libs.monitoring.mimir },
+    { key: 'loki', pack: libs.monitoring.loki },
+    { key: 'tempo', pack: libs.monitoring.tempo },
+    { key: 'pyroscope', pack: libs.monitoring.pyroscope },
     { key: 'alloy', pack: libs.collector.alloy },
   ],
 }

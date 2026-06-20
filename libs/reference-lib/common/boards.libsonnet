@@ -2,7 +2,7 @@
 // per common-lib panel-preset category (each preset rendered with testdata) plus
 // the whole-dashboard patterns. This is the "sample for each common pattern".
 local g = import 'g.libsonnet';
-local place = (import 'reference/_util.libsonnet').place;
+local place = (import 'libs/reference-lib/_util.libsonnet').place;
 
 local td() = g.query.base('grafana-testdata-datasource', { scenarioId: 'random_walk' }) + g.query.withDatasource('testdata');
 local targets = [td(), td(), td()];

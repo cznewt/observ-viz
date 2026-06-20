@@ -48,7 +48,7 @@ def main():
         print(f"  {cat}: {len(presets(cat))} presets")
 
     print("== reference variation boards ==")
-    boards = ev("import 'reference/render.jsonnet'")
+    boards = ev("import 'libs/reference-lib/render.jsonnet'")
     panels = {k: v for k, v in boards.items() if k.startswith("panel-")}
     for name in sorted(panels):
         b = panels[name]

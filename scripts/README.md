@@ -15,7 +15,7 @@ locally) and the Grafana v2 app-platform API.
 ```sh
 # examples + reference + scenarios
 python3 scripts/load.py                       # all examples
-python3 scripts/load.py reference/render.jsonnet
+python3 scripts/load.py libs/reference-lib/render.jsonnet
 
 # deploy a deployment profile (renders + applies into its folder)
 python3 scripts/deploy.py --list

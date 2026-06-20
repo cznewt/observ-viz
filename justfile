@@ -102,7 +102,7 @@ load:
 
 # load the reference boards (3 folders: Panel/Language/Deployment)
 load-ref:
-    python3 scripts/load.py reference/render.jsonnet
+    python3 scripts/load.py libs/reference-lib/render.jsonnet
 
 # load the scenario boards (all deployment-profile folders)
 load-scenarios:

@@ -1,11 +1,12 @@
 # Reference & scenarios
 
-## Reference boards (`reference/`)
+## Reference boards (`libs/reference-lib/`)
 
-Three Grafana folders, structured as a subdir per category:
+Four Grafana folders, structured as a subdir per category:
 
 ```
-reference/
+libs/reference-lib/
+├─ common/      -> 'Common Reference'      a board per common-lib preset category + patterns
 ├─ panels/      -> 'Panel Reference'       one board per panel type (built from g.panel.*)
 ├─ languages/   -> 'Language Reference'    tabbed board per runtime pack
 └─ deployments/ -> 'Deployment Reference'  tabbed board per system/kubernetes pack
@@ -20,7 +21,7 @@ built directly from `g.panel.*`).
 Load them:
 
 ```sh
-python3 scripts/load.py reference/render.jsonnet
+python3 scripts/load.py libs/reference-lib/render.jsonnet
 ```
 
 ## Scenarios (`scenarios/`)
