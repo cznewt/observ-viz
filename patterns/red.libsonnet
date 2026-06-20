@@ -4,7 +4,7 @@
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
 local element = import 'custom/element.libsonnet';
 local layout = import 'custom/layout.libsonnet';
-local sig = import 'library/signals.libsonnet';
+local sig = import 'libs/common-lib/signals.libsonnet';
 
 {
   // new(title, datasource, apps) where apps is { <name>: <selector> }.

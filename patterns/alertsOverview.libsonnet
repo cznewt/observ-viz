@@ -4,7 +4,7 @@
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
 local element = import 'custom/element.libsonnet';
 local layout = import 'custom/layout.libsonnet';
-local alert = import 'alert/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(datasource='${datasource}', selector='', uid='alerts-overview', title='Alerts overview'):

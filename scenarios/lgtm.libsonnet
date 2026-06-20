@@ -1,6 +1,6 @@
 // observ-viz scenario — the Grafana LGTM stack (what Alloy ships telemetry to).
 local scenario = import 'scenarios/_scenario.libsonnet';
-local packs = import 'packs/main.libsonnet';
+local packs = import 'libs/observ-libs.libsonnet';
 {
   new(config={}):
     scenario.new({ uid: 'lgtm', title: 'Grafana LGTM stack' } + config, [
