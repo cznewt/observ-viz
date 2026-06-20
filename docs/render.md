@@ -51,6 +51,32 @@ pack.build(cfg, signals, groups,
     ]) ])
 ```
 
+## Publishing to a Grafana
+
+`--deploy` pushes the rendered dashboards to a Grafana via the v2 app-platform
+API (folders are created as needed). Target **any** Grafana with env vars:
+
+| env | default | for |
+|-----|---------|-----|
+| `GRAFANA_URL` | `http://localhost:3000` | the Grafana base URL |
+| `GRAFANA_TOKEN` | — | service-account / API token (preferred for remote / Grafana Cloud) |
+| `GRAFANA_USER` / `GRAFANA_PASS` | `admin`/`admin` | basic auth (local) |
+| `GRAFANA_NAMESPACE` | `default` | org / stack namespace (Grafana Cloud) |
+| `MIMIR_RULER_URL` | — | also push rule groups to a Mimir ruler |
+
+```sh
+# local Grafana (basic auth)
+just deploy-lib iot.homeAssistant
+
+# any remote Grafana, through the image (token auth)
+docker run --rm -e GRAFANA_URL=https://grafana.example.com -e GRAFANA_TOKEN="$TOKEN" \
+  -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --deploy
+
+# local Grafana, through the image (host network so the container can reach it)
+docker run --rm --network host -v "$PWD":/work \
+  ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --deploy
+```
+
 ## Example — home-assistant
 
 `iot.homeAssistant` is the worked example: a 14-panel dashboard, a `home-assistant`

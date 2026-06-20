@@ -4,8 +4,9 @@ v2 app-platform (kubernetes-style) API.
 
 Usage:  python3 scripts/load.py [example.jsonnet ...]
 Env:    GRAFANA_URL (default http://localhost:3000)
-        GRAFANA_USER / GRAFANA_PASS (default admin/admin)
-        GRAFANA_NAMESPACE (default default)
+        GRAFANA_TOKEN (service-account / API token — preferred for any remote
+          Grafana incl. Grafana Cloud) OR GRAFANA_USER / GRAFANA_PASS (default admin/admin)
+        GRAFANA_NAMESPACE (default default; the org/stack namespace on Grafana Cloud)
 """
 import base64
 import json
@@ -21,9 +22,11 @@ EXAMPLES = os.path.join(ROOT, "examples")
 URL = os.environ.get("GRAFANA_URL", "http://localhost:3000")
 USER = os.environ.get("GRAFANA_USER", "admin")
 PASS = os.environ.get("GRAFANA_PASS", "admin")
+TOKEN = os.environ.get("GRAFANA_TOKEN")
 NS = os.environ.get("GRAFANA_NAMESPACE", "default")
 API = f"{URL}/apis/dashboard.grafana.app/v2beta1/namespaces/{NS}/dashboards"
-AUTH = "Basic " + base64.b64encode(f"{USER}:{PASS}".encode()).decode()
+# token auth (any remote Grafana / Grafana Cloud) takes precedence over basic auth.
+AUTH = ("Bearer " + TOKEN) if TOKEN else ("Basic " + base64.b64encode(f"{USER}:{PASS}".encode()).decode())
 
 
 def req(method, url, body=None):
