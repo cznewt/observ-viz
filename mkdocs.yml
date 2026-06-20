@@ -18,6 +18,7 @@ nav:
   - Concepts: concepts.md
   - Core API: api.md
   - Packs (mixins): packs.md
+  - observ-libs: libs.md
   - Chart types: panels.md
   - Reference & scenarios: reference.md
   - Backstage: backstage.md

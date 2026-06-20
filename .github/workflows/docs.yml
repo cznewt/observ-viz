@@ -1,0 +1,35 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'libs/**'
+      - 'reference/**'
+      - 'custom/**'
+      - 'gen/**'
+      - 'scripts/gen-*.py'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: install
+        run: pip install --quiet jsonnet pyyaml requests mkdocs mkdocs-material
+      - name: regenerate generated docs (chart types + observ-libs)
+        run: |
+          python3 scripts/gen-panel-docs.py
+          python3 scripts/gen-libs-docs.py
+      - name: deploy to gh-pages
+        run: mkdocs gh-deploy --force

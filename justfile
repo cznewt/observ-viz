@@ -26,6 +26,10 @@ panels:
 docs-panels:
     python3 scripts/gen-panel-docs.py
 
+# regenerate docs/libs.md from the observ-lib index
+docs-libs:
+    python3 scripts/gen-libs-docs.py
+
 # full local test suite
 test: compile packs panels
 
@@ -129,7 +133,7 @@ catalog:
 # ── docs ────────────────────────────────────────────────────────────────────
 
 # build the docs site
-docs:
+docs: docs-panels docs-libs
     python3 -m mkdocs build
 
 # serve the docs site at http://localhost:8000
