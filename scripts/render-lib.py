@@ -125,7 +125,9 @@ def main():
     ap.add_argument("--validate", action="store_true")
     ap.add_argument("--deploy", action="store_true")
     a = ap.parse_args()
-    out = a.out or os.path.join(ROOT, "build", slug(a.lib))
+    # default output under the current working dir (the mounted /work in the
+    # image), NOT the observ-viz lib home.
+    out = a.out or os.path.join(os.getcwd(), "build", slug(a.lib))
 
     m = render(a.lib, a.config)
 
