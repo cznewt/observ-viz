@@ -21,6 +21,7 @@ nav:
   - Reference & scenarios: reference.md
   - Backstage: backstage.md
   - Examples & local Grafana: examples.md
+  - Docker image: docker.md
 
 markdown_extensions:
   - toc:

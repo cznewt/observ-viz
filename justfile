@@ -55,6 +55,25 @@ up-apps:
 down-apps:
     docker compose -f docker-compose.apps.yml down
 
+# ── observ-viz image (render manifests anywhere) ─────────────────────────────
+
+IMAGE_NAME := "ghcr.io/cznewt/observ-viz"
+
+# build the observ-viz renderer image
+image:
+    docker build -f docker/Dockerfile -t {{IMAGE_NAME}}:latest .
+
+# build + publish the observ-viz image
+image-publish: image
+    docker push {{IMAGE_NAME}}:latest
+
+# render a manifest through the image (observ-viz on the jpath), e.g.
+#   just render-image operations/home-assistant-observ-lib/render.jsonnet
+render-image *ARGS:
+    docker run --rm -v "$PWD":/work {{IMAGE_NAME}}:latest render {{ARGS}}
+
+# ── sample-app images ────────────────────────────────────────────────────────
+
 # build the sample-app images
 apps-build:
     docker compose -f docker-compose.apps.yml build app-go app-python app-jvm app-dotnet

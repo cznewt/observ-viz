@@ -1,0 +1,13 @@
+.git
+site/
+extra/
+local/
+docs/
+vendor/
+.venv/
+.claude/
+**/__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+tests/golden/
