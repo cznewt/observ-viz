@@ -11,7 +11,14 @@
     annotations: annotations,
   },
 
-  // group(name, rules, interval) -> an alert group.
+  // record(name, expr, labels) -> a single recording rule.
+  record(name, expr, labels={}): {
+    record: name,
+    expr: expr,
+    labels: labels,
+  },
+
+  // group(name, rules, interval) -> a rule group (alerting or recording).
   group(name, rules, interval='1m'): {
     name: name,
     interval: interval,

@@ -112,6 +112,19 @@ load-scenarios:
 deploy *ARGS:
     python3 scripts/deploy.py {{ARGS}}
 
+# render an observ-lib to 3 dirs (dashboards/ + alerts/ + rules/ by group)
+#   just render-lib iot.homeAssistant
+render-lib *ARGS:
+    python3 scripts/render-lib.py {{ARGS}}
+
+# render + structural/promtool validate an observ-lib
+validate-lib LIB *ARGS:
+    python3 scripts/render-lib.py {{LIB}} --validate {{ARGS}}
+
+# render + validate + deploy an observ-lib (dashboards -> Grafana, rules -> Mimir ruler)
+deploy-lib LIB *ARGS:
+    python3 scripts/render-lib.py {{LIB}} --validate --deploy {{ARGS}}
+
 # load everything
 load-all: load load-ref load-scenarios
 

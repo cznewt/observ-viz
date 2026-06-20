@@ -5,6 +5,7 @@
 //   g.libs.iot.homeAssistant.new({ selector: 'job="home-assistant-exporter"' })
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -15,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'hass_device_info',
+      // static label filter applied to the alerting/recording rule exprs
+      // (no dashboard variables here, unlike `selector`).
+      ruleSelector: '',
     } + config;
+    local rsel = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
 
     local sig(name, expr, unit, desc='') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withDescription(desc);
@@ -80,5 +85,40 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           zhaAvailable: signals.zhaAvailable.asStat('ZHA available'),
         },
       },
+    ], [
+      // alerting rule group
+      alert.rule.group('home-assistant', [
+        alert.rule.new(
+          'HomeAssistantDeviceLowBattery',
+          'hass_device_battery_remaining' + rsel + ' < 15',
+          '10m', 'warning', {},
+          { summary: 'Device {{ $labels.device_name }} battery low ({{ $value }}%).' }
+        ),
+        alert.rule.new(
+          'HomeAssistantEntityUnavailable',
+          'hass_entity_available' + rsel + ' == 0',
+          '15m', 'warning', {},
+          { summary: 'Entity {{ $labels.entity_id }} is unavailable.' }
+        ),
+        alert.rule.new(
+          'HomeAssistantEntityStale',
+          '(time() - hass_entity_last_update' + rsel + ') > 3600',
+          '10m', 'info', {},
+          { summary: 'Entity {{ $labels.entity_id }} has not updated in over an hour.' }
+        ),
+        alert.rule.new(
+          'HomeAssistantZigbeeWeakSignal',
+          'hass_zha_device_rssi' + rsel + ' < -85',
+          '15m', 'info', {},
+          { summary: 'Zigbee device {{ $labels.device_name }} has a weak signal ({{ $value }} dBm).' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('home-assistant.rules', [
+        alert.rule.record('hass:entity_available:ratio', 'avg(hass_entity_available' + rsel + ')'),
+        alert.rule.record('hass:device_battery_remaining:min', 'min by (device_name) (hass_device_battery_remaining' + rsel + ')'),
+        alert.rule.record('hass:devices:count', 'count(hass_device_info' + rsel + ')'),
+      ]),
     ]),
 }

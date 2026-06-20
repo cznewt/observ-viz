@@ -23,6 +23,7 @@ nav:
   - Reference & scenarios: reference.md
   - Backstage: backstage.md
   - Examples & local Grafana: examples.md
+  - observ-lib container: render.md
   - Docker image: docker.md
 
 markdown_extensions:

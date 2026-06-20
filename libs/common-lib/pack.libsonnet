@@ -12,12 +12,13 @@ local variable =
   { datasource: gv.datasource + cv.datasource, query: gv.query + cv.query };
 
 {
-  // build(config, signals, groups, alerts)
+  // build(config, signals, groups, alerts, rules)
   //   config: { uid, dashboardTitle, dashboardTags, ... }
   //   signals: { name: signal }            (observ-lib .signals accessor)
   //   groups:  [{ title, width, height, elements: { name: PanelKind } }]
-  //   alerts:  [ alertGroup ]              (optional prometheus rule groups)
-  build(config, signals, groups, alerts=[]):: {
+  //   alerts:  [ alertGroup ]              (optional prometheus alerting rule groups)
+  //   rules:   [ ruleGroup ]               (optional prometheus recording rule groups)
+  build(config, signals, groups, alerts=[], rules=[]):: {
     local this = self,
     config: config,
     signals: signals,
@@ -56,14 +57,19 @@ local variable =
         ])
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
+
+      // named dashboards map (render entry point for the dashboards/ dir).
+      dashboards: { [config.uid + '.json']: this.grafana.dashboard },
     },
 
-    prometheus: { alerts: alerts },
+    // the prometheus side of the container: alerting + recording rule groups.
+    prometheus: { alerts: alerts, rules: rules },
 
-    // observ-lib mixin output for the monitor-tools render pipeline.
+    // observ-lib mixin output for the monitor-tools / render-lib pipeline.
     asMonitoringMixin():: {
       grafanaDashboards+:: { [config.uid + '.json']: this.grafana.dashboard.toSpec() },
       [if std.length(alerts) > 0 then 'prometheusAlerts']+:: { groups: alerts },
+      [if std.length(rules) > 0 then 'prometheusRules']+:: { groups: rules },
     },
   },
 }

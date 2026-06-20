@@ -6,6 +6,7 @@ H="${OBSERV_VIZ_HOME:-/observ-viz}"
 cmd="${1:-help}"; shift || true
 case "$cmd" in
   render)  exec python3 "$H/scripts/render.py" "$@" ;;       # render a manifest -> v2 JSON
+  render-lib) exec python3 "$H/scripts/render-lib.py" "$@" ;;  # render an observ-lib -> dashboards/+alerts/+rules/
   load)    exec python3 "$H/scripts/load.py" "$@" ;;         # apply dashboards to Grafana (v2 API)
   deploy)  exec python3 "$H/scripts/deploy.py" "$@" ;;       # deploy a scenario profile
   catalog) exec python3 "$H/scripts/gen-catalog.py" "$@" ;;  # backstage catalog
