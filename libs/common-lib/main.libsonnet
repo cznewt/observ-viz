@@ -4,7 +4,7 @@
   signal: import 'libs/common-lib/signal/main.libsonnet',
   pack: import 'libs/common-lib/pack.libsonnet',
   // base panel presets + signal presets + element groups
-  panels: import 'libs/common-lib/panels.libsonnet',
+  panels: import 'libs/common-lib/panels/main.libsonnet',
   signals: import 'libs/common-lib/signals.libsonnet',
   rows: import 'libs/common-lib/rows.libsonnet',
   library: import 'libs/common-lib/library.libsonnet',
