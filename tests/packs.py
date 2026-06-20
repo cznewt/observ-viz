@@ -19,6 +19,8 @@ PACKS = [
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
     "infra.prometheus",
     "iot.homeAssistant",
+    "alerts",
+    "logs",
 ]
 
 

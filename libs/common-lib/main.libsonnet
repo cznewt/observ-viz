@@ -9,6 +9,7 @@
   rows: import 'libs/common-lib/rows.libsonnet',
   library: import 'libs/common-lib/library.libsonnet',
   // reusable annotation / alert / log / deploy primitives
+  annotations: import 'libs/common-lib/annotations.libsonnet',
   alert: import 'libs/common-lib/alert/main.libsonnet',
   logs: import 'libs/common-lib/logs/main.libsonnet',
   deploy: import 'libs/common-lib/deploy/main.libsonnet',
