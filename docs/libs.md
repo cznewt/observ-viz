@@ -69,9 +69,10 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 The shared base every observ-lib builds on (`g.common.*`):
 
-- **`signal`** — the lean v2 signal abstraction (metric → element/target).
+- **`signal`** — the grafana common-lib **signal engine** onboarded onto our v2 viz: `init` / `addSignal` (gauge/counter/histogram/info/raw/log/stub) + the lean `signal.new()` facade; `as*` panels & targets + variable generation (`getVariables*`, `queriesSelector*`, multi/single instance).
 - **`panels`** — 56 base panel presets across 8 categories (see [Chart types](panels.md)).
-- **`annotations`** — severity-coloured annotation primitives (base/critical/warning/info/fatal/reboot/serviceFailed).
+- **`annotations`** — grafana-faithful annotation primitives (base + critical/warning/info/fatal/reboot/serviceFailed), built from a signal target.
+- **`tokens`** — colour + timeSeries styling tokens; **`utils`** — label→selector/legend/URL helpers + `chainLabels`.
 - **`signals`**, **`rows`**, **`library`** — common signal presets + element groups.
 - **`alert`**, **`logs`**, **`deploy`** — reusable alert-rule / log-panel / deploy-annotation primitives.
 - **`pack`** — the observ-lib build contract.
