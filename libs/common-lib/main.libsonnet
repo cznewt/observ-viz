@@ -10,7 +10,8 @@
   library: import 'libs/common-lib/library.libsonnet',
   // reusable annotation / alert / log / deploy primitives
   annotations: import 'libs/common-lib/annotations/main.libsonnet',
-  tokens: { colors: import 'libs/common-lib/tokens/colors.libsonnet' },
+  tokens: import 'libs/common-lib/tokens/main.libsonnet',
+  utils: import 'libs/common-lib/utils.libsonnet',
   alert: import 'libs/common-lib/alert/main.libsonnet',
   logs: import 'libs/common-lib/logs/main.libsonnet',
   deploy: import 'libs/common-lib/deploy/main.libsonnet',
