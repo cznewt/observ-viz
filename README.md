@@ -70,7 +70,7 @@ walkthrough is in [docs/usage.md](docs/usage.md).
 
 ```sh
 # 1) render with the image, no vendoring — a bundled observ-lib -> dashboards/ + alerts/ + rules/
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
 
 # 2) author your own dashboards: vendor + render        (vendor-and-render.justfile)
 # 3) ship an observ-lib container: dashboards+alerts+rules (observ-lib.justfile)

@@ -40,7 +40,7 @@ once and *layouts* reference them by name.
 
 ## 8 · Tooling & integrations
 - **justfile**: `test` (compile + packs + panels), `up`/`up-apps` stacks, `load*`/`deploy*`, `image*`, `docs*`, `catalog`.
-- **Docker image** `ghcr.io/cznewt/observ-viz` — render any manifest with no vendoring (`render`, `render-lib`, `load`, `deploy`, `jb`).
+- **Docker image** `ghcr.io/cznewt/observ-lib` — render any manifest with no vendoring (`render`, `render-lib`, `load`, `deploy`, `jb`).
 - **Local stacks** — Grafana+Prometheus+Loki, and **Alloy→Mimir/Loki** + sample apps (go/python/jvm/dotnet).
 - **Backstage** catalog (Domain/Systems/Components) · **docs site** (mkdocs) + **publish Action** (gh-pages) · auto-generated chart-types & observ-libs pages.
 - Fits the **monitor-tools** pipeline (`grafanaDashboards` + `prometheusAlerts` + `prometheusRules`).

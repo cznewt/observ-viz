@@ -1,11 +1,11 @@
-# The observ-viz image
+# The observ-lib image
 
-`ghcr.io/cznewt/observ-viz` bundles the observ-viz library + tooling and renders
+`ghcr.io/cznewt/observ-lib` bundles the observ-viz library + tooling and renders
 **any** Jsonnet manifest that imports it — **no vendoring needed**, because the
 library sits at `/observ-viz` on the jpath.
 
 ```sh
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz render <manifest.jsonnet>
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render <manifest.jsonnet>
 ```
 
 ## Commands
@@ -26,7 +26,7 @@ The image ships all 26 observ-libs, so you can render any of them straight to th
 3-dir container layout with no checkout — output lands in the mounted dir:
 
 ```sh
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz \
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib \
   render-lib iot.homeAssistant --validate
 # -> build/iot.homeAssistant/{dashboards,alerts,rules}/
 #    e.g. runtimes.golang, system.linux, databases.timeseries.mimir, alerts, logs
@@ -39,7 +39,7 @@ needs no `jb install` — just mount it and render:
 
 ```sh
 # from the exporter repo
-docker run --rm -v "$PWD/operations":/work ghcr.io/cznewt/observ-viz \
+docker run --rm -v "$PWD/operations":/work ghcr.io/cznewt/observ-lib \
   render home-assistant-observ-lib/render.jsonnet > home-assistant.json
 ```
 
@@ -49,7 +49,7 @@ The manifest's `import 'home-assistant-observ-lib/main.libsonnet'` resolves from
 ## Build / publish
 
 ```sh
-just image            # docker build -f docker/Dockerfile -t ghcr.io/cznewt/observ-viz:latest .
+just image            # docker build -f docker/Dockerfile -t ghcr.io/cznewt/observ-lib:latest .
 just image-publish    # build + docker push
 just render-image operations/home-assistant-observ-lib/render.jsonnet
 ```

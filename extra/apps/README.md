@@ -27,7 +27,7 @@ remote-writes to Mimir; it tails container logs into Loki.
 
 ## Publish
 
-The images are tagged `ghcr.io/cznewt/observ-viz-sample-<lang>`:
+The images are tagged `ghcr.io/cznewt/observ-lib-sample-<lang>`:
 
 ```sh
 just apps-build      # build all four

@@ -69,7 +69,7 @@ down-apps:
 
 # ── observ-viz image (render manifests anywhere) ─────────────────────────────
 
-IMAGE_NAME := "ghcr.io/cznewt/observ-viz"
+IMAGE_NAME := "ghcr.io/cznewt/observ-lib"
 
 # build the observ-viz renderer image
 image:

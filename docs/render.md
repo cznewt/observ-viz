@@ -23,7 +23,7 @@ just validate-lib iot.homeAssistant
 just deploy-lib   iot.homeAssistant
 # or directly / in the image:
 python3 scripts/render-lib.py iot.homeAssistant --validate --deploy
-docker run --rm -v "$PWD/build":/work/build ghcr.io/cznewt/observ-viz render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD/build":/work/build ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
 ```
 
 ## Contract

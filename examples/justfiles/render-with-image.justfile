@@ -2,7 +2,7 @@
 # no jb/vendoring). The image bundles observ-viz on the jpath.
 # Copy this into your repo as `justfile`.
 
-IMAGE := "ghcr.io/cznewt/observ-viz:latest"
+IMAGE := "ghcr.io/cznewt/observ-lib:latest"
 RUN   := "docker run --rm -v \"$PWD\":/work " + IMAGE
 
 # list targets

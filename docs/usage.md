@@ -11,10 +11,10 @@ The published image bundles observ-viz on the jpath, so it renders your manifest
 
 ```sh
 # your own manifest -> Grafana v2 JSON
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz render dashboards/board.jsonnet > board.json
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render dashboards/board.jsonnet > board.json
 
 # a bundled observ-lib -> build/<lib>/{dashboards,alerts,rules}/
-docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz render-lib iot.homeAssistant --validate
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAssistant --validate
 ```
 
 → [`render-with-image.justfile`](https://github.com/cznewt/observ-viz/blob/main/examples/justfiles/render-with-image.justfile)
@@ -73,7 +73,7 @@ just build      # dashboards_out/ + prometheus_alerts.yaml + prometheus_rules.ya
 
 ```sh
 # dashboards -> a local Grafana (v2 app-platform API)
-docker run --rm --network host -v "$PWD":/work ghcr.io/cznewt/observ-viz load board.jsonnet
+docker run --rm --network host -v "$PWD":/work ghcr.io/cznewt/observ-lib load board.jsonnet
 # or render + validate + deploy a bundled lib (dashboards -> Grafana, rules -> Mimir ruler)
 just deploy-lib iot.homeAssistant
 ```
