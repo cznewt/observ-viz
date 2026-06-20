@@ -1,4 +1,4 @@
-// alerts-observ-lib config (mirrors grafana/jsonnet-libs alerts-observ-lib).
+// alerts-observ-lib config.
 {
   uid: 'observ-viz-alerts',
   dashboardTitle: 'Alerts overview',

@@ -18,7 +18,8 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib iot.homeAss
 ```
 
 **2 · Author your own dashboards (vendor with jb).** `jsonnetfile.json` declares
-`github.com/cznewt/observ-viz` (subdir "", legacyImports). Then:
+common-lib + observ-viz (`github.com/cznewt/observ-viz`, subdirs `libs/common-lib`
+and "", legacyImports). Then:
 ```jsonnet
 local g = import 'g.libsonnet';
 local ds = '${datasource}';
@@ -44,12 +45,12 @@ Render: `jsonnet -J vendor/github.com/cznewt/observ-viz -J vendor -J . dashboard
 - `g.layout.{grid,rows,autoGrid,tabs}` — items reference elements **by name** (`grid.item(name,x,y,w,h)`, `rows.row(title, layout)`, `tabs.tab(title, layout)`); nestable.
 - `g.variable.<kind>.new(...)`, `g.annotation.new(...)`.
 
-## common-lib (`g.common.*`) — grafana common-lib onboarded
+## common-lib (`g.common.*`)
 - `signal` — `new(name, type, ds, expr, unit)` then `.filteringSelector/.groupLabels/.aggLevel` then `.asTimeSeries/.asStat/.asTable/.asTarget(title)`. Rich form: `init(...)` + `addSignal(name, type='counter'|'histogram'|'gauge'|…, expr/unit)` (auto rate/quantile wrapping) + variable generation.
 - `panels` (56 presets, 8 categories), `annotations` (base + severity + reboot/service_failed), `tokens`, `utils` (label→selector/legend, chainLabels), `alert`/`logs`/`deploy`, `pack`.
 
 ## observ-libs (`g.libs.*`) — 26 domain packs
-`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `databases.timeseries.{mimir,loki,tempo,pyroscope}` · `collector.alloy` · `infra.prometheus` · `iot.homeAssistant` · `alerts` · `logs`.
+`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `monitoring.{prometheus,mimir,loki,tempo,pyroscope}` · `collector.alloy` · `iot.homeAssistant` · `alerts` · `logs`.
 Each `new(config)` → `{ signals, grafana:{dashboard,dashboards,elements,layout}, prometheus:{alerts,rules}, asMonitoringMixin() }`.
 
 ## observ-lib container contract

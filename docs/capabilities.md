@@ -12,7 +12,7 @@ once and *layouts* reference them by name.
 - v2 **variables** (8 kinds), **annotations**, time settings, links.
 - Output: **`toResource()`** (full k8s envelope) / **`toSpec()`** (bare spec).
 
-## 2 · common-lib (grafana `common-lib/common` onboarded, rendered via our viz)
+## 2 · common-lib (rendered through our v2 viz)
 - **signal engine** — `init` / `addSignal` (gauge/counter/histogram/info/raw/log/stub) + lean `signal.new()`; `asTimeSeries/asStat/asTable/asGauge/asTarget/…`; modifiers (topK/offset/quantile/agg…); auto unit gen; **variable generation** (`getVariables*`, `queriesSelector*`).
 - **56 base panel presets** across 8 categories (cpu/memory/disk/network/system/requests/hardware/generic).
 - **annotations** (base + critical/warning/info/fatal + reboot/service_failed), **tokens** (colours + timeSeries), **utils** (label→selector/legend, `chainLabels`).

@@ -1,4 +1,4 @@
-// logs-lib config (mirrors grafana/jsonnet-libs logs-lib).
+// logs-lib config.
 {
   uid: 'observ-viz-logs',
   dashboardTitle: 'Logs',

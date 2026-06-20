@@ -1,5 +1,4 @@
-// common-lib annotations — base (onboard of grafana/jsonnet-libs
-// common-lib/common/annotations/base). Builds a v2 AnnotationQuery from a
+// common-lib annotations — base. Builds a v2 AnnotationQuery from a
 // signal target (signal.asTarget()) or a plain { datasource, expr } target,
 // reusing the observ-viz annotation builder.
 local annotation = import 'custom/annotation.libsonnet';

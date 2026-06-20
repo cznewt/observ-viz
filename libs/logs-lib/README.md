@@ -1,6 +1,6 @@
 # logs-lib
 
-An observ-viz onboard of grafana/jsonnet-libs **logs-lib**. Reusable Loki **log
+Reusable Loki **log
 panels** + a logs dashboard.
 
 ```jsonnet

@@ -1,4 +1,4 @@
-// common-lib utils — onboard of grafana/jsonnet-libs common-lib/common/utils.
+// common-lib utils.
 // Label -> selector / legend / URL helpers + chainLabels for chained variables.
 // Pure std (no grafonnet dependency); reused across common-lib.
 {

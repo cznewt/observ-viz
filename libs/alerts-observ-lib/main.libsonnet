@@ -1,5 +1,4 @@
-// alerts-observ-lib — onboard of grafana/jsonnet-libs alerts-observ-lib to
-// observ-viz v2. Exposes ALERTS signals, alert annotations, reusable alert
+// alerts-observ-lib — ALERTS signals, alert annotations, reusable alert
 // panels, and an alerts-overview dashboard, all reusable.
 //   g.libs.alerts.new({ filteringSelector: 'cluster="$cluster"' })
 local defaults = import 'libs/alerts-observ-lib/config.libsonnet';

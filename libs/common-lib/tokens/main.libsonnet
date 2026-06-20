@@ -1,4 +1,4 @@
-// common-lib tokens — onboard of grafana/jsonnet-libs common-lib/common/tokens.
+// common-lib tokens.
 {
   base: {
     colors: import 'libs/common-lib/tokens/colors.libsonnet',

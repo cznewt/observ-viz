@@ -1,5 +1,5 @@
 // observ-viz Go runtime pack (hand-written).
-// Mirrors grafana/jsonnet-libs golang-observ-lib signal conventions, emitted as
+// Signal conventions, emitted as
 // native v2 elements. Usage:
 //   g.libs.runtimes.golang.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.golang.new({...}).grafana.elements   // reuse in a board

@@ -1,5 +1,5 @@
-// observ-viz common-lib — the shared base every observ-lib builds on
-// (mirrors grafana/jsonnet-libs common-lib). Built on the observ-viz v2 builder.
+// observ-viz common-lib — the shared base every observ-lib builds on,
+// built on the observ-viz v2 builder.
 {
   signal: import 'libs/common-lib/signal/main.libsonnet',
   pack: import 'libs/common-lib/pack.libsonnet',

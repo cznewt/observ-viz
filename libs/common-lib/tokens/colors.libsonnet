@@ -1,5 +1,5 @@
-// common-lib tokens/colors — onboard of grafana/jsonnet-libs
-// common-lib/common/tokens/colors. Semantic colour palette reused by
+// common-lib tokens/colors
+// Semantic colour palette reused by
 // annotations + panel presets.
 {
   palette: {

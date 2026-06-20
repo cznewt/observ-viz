@@ -1,5 +1,5 @@
-// common-lib tokens/timeSeries — onboard of grafana/jsonnet-libs
-// common-lib/common/tokens/timeSeries. Time-series styling tokens reused by the
+// common-lib tokens/timeSeries
+// Time-series styling tokens reused by the
 // panel presets.
 {
   lines: {

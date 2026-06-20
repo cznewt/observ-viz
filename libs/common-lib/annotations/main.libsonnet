@@ -1,5 +1,5 @@
-// common-lib annotations — onboard of grafana/jsonnet-libs
-// common-lib/common/annotations. base + severity/event presets that build v2
+// common-lib annotations
+// base + severity/event presets that build v2
 // AnnotationQuery objects from a signal target (signal.asTarget()) or a plain
 // annotations.base.target(datasource, expr).
 {

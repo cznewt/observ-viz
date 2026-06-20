@@ -1,6 +1,6 @@
 # alerts-observ-lib
 
-An observ-viz onboard of grafana/jsonnet-libs **alerts-observ-lib**. Builds an
+Builds an
 **Alerts overview** from the `ALERTS` metric — reusable **signals**,
 **annotations** and **panels**, plus a dashboard.
 

@@ -1,4 +1,4 @@
-// logs-lib — onboard of grafana/jsonnet-libs logs-lib to observ-viz v2.
+// logs-lib.
 // Reusable Loki log panels (logs, stacked volume-by-level, rate) + a logs
 // dashboard. Reuse the panels directly, or the whole dashboard.
 //   g.libs.logs.new({ filterSelector: 'job="myapp"' }).grafana.panels.logsVolume
