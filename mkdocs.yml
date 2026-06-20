@@ -16,6 +16,7 @@ theme:
 nav:
   - Home: index.md
   - Capabilities: capabilities.md
+  - Usage & justfiles: usage.md
   - Concepts: concepts.md
   - Core API: api.md
   - Packs (mixins): packs.md

@@ -61,28 +61,45 @@ g.dashboard.new('Minimal')
 Call `.toResource()` for the full `apiVersion/kind/metadata/spec` envelope
 (grafanactl / k8s API), or `.toSpec()` for the bare `DashboardV2Spec` (grizzly).
 
+## Usage
+
+Three ways to use it — and `jb`/`jsonnet` run from a Docker image, so the only
+local requirement is Docker + [`just`](https://github.com/casey/just). Each has a
+ready-made justfile in [`examples/justfiles/`](examples/justfiles/); the full
+walkthrough is in [docs/usage.md](docs/usage.md).
+
+```sh
+# 1) render with the image, no vendoring — a bundled observ-lib -> dashboards/ + alerts/ + rules/
+docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-viz render-lib iot.homeAssistant --validate
+
+# 2) author your own dashboards: vendor + render        (vendor-and-render.justfile)
+# 3) ship an observ-lib container: dashboards+alerts+rules (observ-lib.justfile)
+```
+
 ## Layout of this repo
 
 | Path | What |
 |------|------|
 | `gen/` | **Generated** typed builders (do not hand-edit) |
-| `custom/` | Hand-written veneer: `new()` constructors, layouts, util |
-| `signal/` | Lean v2-native signal abstraction |
-| `library/` | Common reusable element definitions |
-| `alert/`, `logs/` | Reusable alert-rule + log builders |
-| `packs/` | Domain & runtime observ-lib packs |
-| `patterns/` | Whole-dashboard encapsulations (RED, alerts overview) |
-| `generator/` | Python schema → Jsonnet builder generator |
-| `examples/` | Worked dashboards |
+| `custom/` | Hand-written veneer: dashboard / element / panel / query / layout / variable / annotation / util |
+| `libs/common-lib/` | Shared base (grafana common-lib onboarded): signal engine, 56 panel presets, annotations, tokens, utils, alert/logs/deploy, the `pack` contract |
+| `libs/*-observ-lib/` | 26 domain observ-libs (runtimes · system · kubernetes · databases · collector · infra · iot · alerts · logs) |
+| `reference/` | Reference boards (4 Grafana folders) · `scenarios/` deployment profiles · `patterns/` (RED, alerts overview) |
+| `templates/observ-lib/` | Generic observ-lib justfile + mixin template (Makefile_mixin analogue) |
+| `scripts/`, `docker/` | Render / load / deploy tooling + the renderer image |
+| `examples/` | Worked dashboards + [example justfiles](examples/justfiles/) · `generator/` schema → builder generator |
 
 ## Development
 
 ```sh
-just compile      # local _jsonnet compile + structural checks (no docker)
-just gen          # regenerate gen/ from generator/schemas
-just render       # full docker render + golden diff (monitor-tools image)
-just test         # compile + generator unit tests
+just test         # compile + packs + panels (no docker)
+just render-lib iot.homeAssistant --validate   # render an observ-lib -> 3 dirs
+just up           # local Grafana+Prometheus+Loki   ·   just load-all
+just docs         # build the docs site
 ```
+
+Full capability list: [docs/capabilities.md](docs/capabilities.md). Docs site
+is published to GitHub Pages from `main`.
 
 ## Status
 
