@@ -23,6 +23,7 @@ local dashboardsFn = import 'libs/logs-lib/dashboards.libsonnet';
         dashboard: board,
         dashboards: { [cfg.uid + '.json']: board },
       },
+      prometheus: { alerts: [], recordingRules: [] },
       asMonitoringMixin():: {
         grafanaDashboards+:: { [cfg.uid + '.json']: board.toSpec() },
       },

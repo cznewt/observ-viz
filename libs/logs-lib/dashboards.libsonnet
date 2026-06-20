@@ -12,6 +12,7 @@ function(cfg, panels)
   dashboard.new(cfg.dashboardTitle)
   + dashboard.withUid(cfg.uid)
   + dashboard.withTags(cfg.dashboardTags)
+  + dashboard.withVariables([{ kind: 'DatasourceVariable', spec: { name: 'loki_datasource', pluginId: 'loki', label: 'Logs' } }])
   + dashboard.withElements(elements)
   + dashboard.withLayout(
     layout.rows.new() + layout.rows.withRows([

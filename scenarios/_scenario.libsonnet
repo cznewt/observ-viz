@@ -4,6 +4,8 @@
 // Backstage System with a Component per member pack. Mirrors the alloy-resources
 // scenarios/ concept (a composition of modules for a deployment).
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
+local alertsLib = import 'libs/alerts-observ-lib/main.libsonnet';
+local logsLib = import 'libs/logs-lib/main.libsonnet';
 
 {
   // new(config)
@@ -12,12 +14,19 @@ local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (impor
   new(config)::
     local cfg = {
       datasource: '${datasource}',
+      lokiDatasource: '${loki_datasource}',
       tags: [],
       owner: 'monitoring',
       domain: 'observability',
+      includeAlerts: true,
+      includeLogs: true,
       members: [],
     } + config;
-    local members = cfg.members;
+    // every profile also gets an alerts-overview + logs board (toggleable).
+    local extra =
+      (if cfg.includeAlerts then [{ key: 'alerts', pack: alertsLib, config: { filteringSelector: '' } }] else [])
+      + (if cfg.includeLogs then [{ key: 'logs', pack: logsLib, config: { datasource: cfg.lokiDatasource, filterSelector: 'job=~".+"' } }] else []);
+    local members = cfg.members + extra;
     local folder = if std.objectHas(cfg, 'folder') then cfg.folder else { uid: 'observ-viz-scn-' + cfg.uid, title: cfg.title };
     local tags = ['observ-viz', 'scenario', cfg.uid] + cfg.tags;
     local sysName = 'observ-viz-' + cfg.uid;
@@ -49,7 +58,10 @@ local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (impor
 
       // merged prometheus alerts across all members.
       prometheusAlerts: {
-        groups: std.flattenArrays([inst.instance.prometheus.alerts for inst in instances]),
+        groups: std.flattenArrays([
+          if std.objectHas(inst.instance, 'prometheus') then inst.instance.prometheus.alerts else []
+          for inst in instances
+        ]),
       },
 
       // Backstage catalog: a System for the scenario + a Component per member.
