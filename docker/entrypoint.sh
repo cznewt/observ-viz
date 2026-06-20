@@ -18,6 +18,8 @@ case "$cmd" in
 observ-viz — render Grafana v2 dashboards from Jsonnet.
 
   render <file.jsonnet> [-m <dir>] [-J <path>]   render a manifest to v2 JSON
+  render-lib <lib> [--validate] [--deploy]        render a bundled observ-lib
+                                                  -> build/<lib>/{dashboards,alerts,rules}/
   load   <file.jsonnet> ...                       apply dashboards to Grafana
   deploy <profile> | all                          deploy a scenario profile
   catalog                                          emit the Backstage catalog
