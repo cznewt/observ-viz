@@ -5,6 +5,12 @@ local g = import 'g.libsonnet';
   place(dashboard, folder, tags):
     dashboard
     + g.dashboard.withFolder(folder.uid, folder.title)
+    + (if std.objectHas(folder, 'parent') then {
+         metadata+: { annotations+: {
+           'observ-viz.dev/folder-parent-uid': folder.parent.uid,
+           'observ-viz.dev/folder-parent-title': folder.parent.title,
+         } },
+       } else {})
     + g.dashboard.withTagsMixin(tags),
 
   // tabbedBoard(packInstance, title, uid): lay a pack out as a TabsLayout — an

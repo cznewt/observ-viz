@@ -44,11 +44,16 @@ def req(method, url, body=None):
 _folders_done = set()
 
 
-def ensure_folder(uid, title=None):
-    """Create a Grafana folder (idempotent) so dashboards annotated with it land there."""
+def ensure_folder(uid, title=None, parent_uid=None):
+    """Create a Grafana folder (idempotent); nest under parent_uid if given."""
     if not uid or uid in _folders_done:
         return
-    req("POST", f"{URL}/api/folders", {"uid": uid, "title": title or uid.replace("-", " ").title()})
+    body = {"uid": uid, "title": title or uid.replace("-", " ").title()}
+    if parent_uid:
+        body["parentUid"] = parent_uid
+    status, _ = req("POST", f"{URL}/api/folders", body)
+    if status == 409 and parent_uid:  # already exists -> move under the parent
+        req("POST", f"{URL}/api/folders/{uid}/move", {"parentUid": parent_uid})
     _folders_done.add(uid)
 
 
@@ -68,7 +73,11 @@ def push_doc(doc, label):
     anns = doc.get("metadata", {}).get("annotations", {})
     folder = anns.get("grafana.app/folder")
     title = anns.pop("observ-viz.dev/folder-title", None)  # private hint -> strip before push
-    ensure_folder(folder, title)
+    parent_uid = anns.pop("observ-viz.dev/folder-parent-uid", None)
+    parent_title = anns.pop("observ-viz.dev/folder-parent-title", None)
+    if parent_uid:
+        ensure_folder(parent_uid, parent_title)
+    ensure_folder(folder, title, parent_uid)
     status, _ = req("POST", API, doc)
     if status == 409:  # exists -> replace
         req("DELETE", f"{API}/{name}", None)
