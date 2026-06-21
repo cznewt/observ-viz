@@ -45,14 +45,17 @@ _folders_done = set()
 
 
 def ensure_folder(uid, title=None, parent_uid=None):
-    """Create a Grafana folder (idempotent); nest under parent_uid if given."""
+    """Create/update a Grafana folder (idempotent); nest under parent_uid if given."""
     if not uid or uid in _folders_done:
         return
-    body = {"uid": uid, "title": title or uid.replace("-", " ").title()}
+    t = title or uid.replace("-", " ").title()
+    body = {"uid": uid, "title": t}
     if parent_uid:
         body["parentUid"] = parent_uid
     status, _ = req("POST", f"{URL}/api/folders", body)
-    if status == 409 and parent_uid:  # already exists -> move under the parent
+    if status >= 400:  # already exists -> update the title
+        req("PUT", f"{URL}/api/folders/{uid}", {"title": t, "overwrite": True})
+    if parent_uid:  # ensure it's nested (idempotent)
         req("POST", f"{URL}/api/folders/{uid}/move", {"parentUid": parent_uid})
     _folders_done.add(uid)
 
