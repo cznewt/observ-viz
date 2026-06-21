@@ -1,6 +1,8 @@
 // Index of all observ-viz observ-libs (the mixins), grouped to mirror the
 // alloy-resources module tree. Each entry is a libs/<name>-observ-lib.
 {
+  // base/cluster fleet overview boards (ported from the base-mixin into common-lib)
+  base: import 'libs/common-lib/base.libsonnet',
   runtimes: {
     golang: import 'libs/golang-observ-lib/main.libsonnet',
     jvm: import 'libs/jvm-observ-lib/main.libsonnet',
