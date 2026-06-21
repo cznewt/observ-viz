@@ -20,6 +20,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'node_uname_info',
       varLabels: ['cluster', 'instance'],
+      // proxmox-exporter metrics key on the PVE node name; assume it matches the
+      // node_exporter instance (override if your PVE node names differ).
+      proxmoxSelector: 'node=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       // runbook base; runbook_url = runbookBase + lower(name) -> the official
@@ -34,6 +37,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     // append their device/mountpoint/sensor label.
     local sig(name, expr, unit, legend='{{instance}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
+    // proxmox VE signals use the proxmox node correlation selector.
+    local psig(name, expr, unit, legend='{{node}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.proxmoxSelector).withLegendFormat(legend);
 
     local signals = {
       // --- CPU / Load ---
@@ -90,6 +96,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // --- Temperature (hardware) ---
       tempCelsius: sig('Temperature', 'node_hwmon_temp_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{chip}} {{sensor}}'),
       thermalZone: sig('Thermal zone', 'node_thermal_zone_temp{%(queriesSelector)s}', 'celsius', '{{instance}} / {{type}}'),
+
+      // --- Proxmox VE (optional tab; renders only on PVE hosts via showIfData) ---
+      pveUp: psig('PVE node up', 'proxmox_node_up{%(queriesSelector)s}', 'short'),
+      pveCpusAllocated: psig('vCPUs allocated', 'proxmox_node_cpus_allocated{%(queriesSelector)s}', 'short'),
+      pveMemAllocated: psig('Memory allocated', 'proxmox_node_memory_allocated_bytes{%(queriesSelector)s}', 'bytes'),
     };
 
     pack.build(cfg, signals, [
@@ -534,5 +545,17 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         signals.netRxExclLo.asRecordingRule('instance:node_network_receive_bytes_excluding_lo:rate5m', cfg.ruleSelector),
         signals.netTxExclLo.asRecordingRule('instance:node_network_transmit_bytes_excluding_lo:rate5m', cfg.ruleSelector),
       ]),
+    ], [
+      // optional Proxmox VE tab — renders only on PVE hosts (showIfData).
+      {
+        title: 'Proxmox',
+        width: 8,
+        height: 6,
+        elements: {
+          pveUp: signals.pveUp.asStat('PVE node up'),
+          pveCpusAllocated: signals.pveCpusAllocated.asStat('vCPUs allocated'),
+          pveMemAllocated: signals.pveMemAllocated.asStat('Memory allocated'),
+        },
+      },
     ]),
 }

@@ -18,7 +18,7 @@ local variable =
   //   groups:  [{ title, width, height, elements: { name: PanelKind } }]
   //   alerts:  [ alertGroup ]              (optional prometheus alerting rule groups)
   //   rules:   [ ruleGroup ]               (optional prometheus recording rule groups)
-  build(config, signals, groups, alerts=[], rules=[]):: {
+  build(config, signals, groups, alerts=[], rules=[], optionalTabs=[]):: {
     local this = self,
     config: config,
     signals: signals,
@@ -26,20 +26,27 @@ local variable =
     grafana: {
       // the raw group structure (so consumers can re-lay-out, e.g. as tabs).
       groups: groups,
-      // flatten every group's elements into one elements map.
-      elements: std.foldl(function(acc, grp) acc + grp.elements, groups, {}),
+      // flatten every group's (and optional tab's) elements into one elements map.
+      elements: std.foldl(function(acc, grp) acc + grp.elements, groups + optionalTabs, {}),
 
-      // one RowsLayout row per group, each a wrapped grid of that group's elements.
-      layout:
+      local gridOf(grp) =
+        layout.grid.new()
+        + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)),
+      local rowsLayout =
         layout.rows.new()
-        + layout.rows.withRows([
-          layout.rows.row(
-            grp.title,
-            layout.grid.new()
-            + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height))
+        + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) for grp in groups]),
+
+      // default: one RowsLayout row per group. With optionalTabs, wrap the main
+      // board in a primary tab and append each optional tab with showIfData(), so
+      // it renders only on targets that actually have those metrics.
+      layout:
+        if std.length(optionalTabs) > 0 then
+          layout.tabs.new()
+          + layout.tabs.withTabs(
+            [layout.tabs.tab(config.dashboardTitle, rowsLayout)]
+            + [layout.tabs.tab(t.title, gridOf(t)) + layout.showIfData() for t in optionalTabs]
           )
-          for grp in groups
-        ]),
+        else rowsLayout,
 
       dashboard:
         local varMetric = if std.objectHas(config, 'varMetric') then config.varMetric else 'up';
