@@ -53,4 +53,19 @@ local grid = import 'custom/util/grid.libsonnet';
     withTabs(tabs): { spec+: { tabs: tabs } },
     withTabsMixin(tabs): { spec+: { tabs+: tabs } },
   },
+
+  // v2 conditional rendering — show/hide a row, tab or panel by rules.
+  // The key one: conditional.data() shows the section ONLY if its queries return
+  // data, so an exporter-specific tab/row appears only on nodes that have it.
+  conditional: {
+    group(items, condition='and', visibility='show'):
+      { kind: 'ConditionalRenderingGroup', spec: { visibility: visibility, condition: condition, items: items } },
+    data(value=true): { kind: 'ConditionalRenderingData', spec: { value: value } },
+    variable(name, value, operator='equals'):
+      { kind: 'ConditionalRenderingVariable', spec: { variable: name, operator: operator, value: value } },
+  },
+  // attach a conditional-rendering group to a row/tab/panel: `... + layout.withConditionalRendering(g)`.
+  withConditionalRendering(group): { spec+: { conditionalRendering: group } },
+  // shorthand: render this row/tab/panel only when its queries return data.
+  showIfData(): self.withConditionalRendering(self.conditional.group([self.conditional.data(true)])),
 }
