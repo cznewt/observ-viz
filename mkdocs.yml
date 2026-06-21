@@ -26,6 +26,7 @@ nav:
   - Backstage: backstage.md
   - Examples & local Grafana: examples.md
   - observ-lib container: render.md
+  - Runbooks (node): runbooks/node.md
   - Docker image: docker.md
 
 markdown_extensions:
