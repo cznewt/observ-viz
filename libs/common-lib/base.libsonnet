@@ -130,15 +130,16 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100'),
           tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemAvailable_bytes{' + s + '}) / avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemTotal_bytes{' + s + '})) * 100'),
           tq(c, 'max by (' + c.clusterLabel + ', ' + nl + ') (time() - node_boot_time_seconds{' + s + '})'),
+          tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})'),
         ])
         + panel.table.withTransformations([
           { id: 'labelsToFields' },
-          { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, nl, 'release', 'Value #B', 'Value #C', 'Value #D'] } } },
+          { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, nl, 'pretty_name', 'release', 'Value #B', 'Value #C', 'Value #D'] } } },
           { id: 'seriesToColumns', options: { byField: nl } },
           { id: 'organize', options: {
-            excludeByName: { 'Value #A': true, [c.clusterLabel + ' 2']: true, [c.clusterLabel + ' 3']: true, [c.clusterLabel + ' 4']: true },
-            indexByName: { [c.clusterLabel]: 0, [nl]: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5 },
-            renameByName: { [c.clusterLabel]: 'Cluster', [nl]: 'Node', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime' },
+            excludeByName: { 'Value #A': true, 'Value #E': true, [c.clusterLabel + ' 2']: true, [c.clusterLabel + ' 3']: true, [c.clusterLabel + ' 4']: true, [c.clusterLabel + ' 5']: true },
+            indexByName: { [c.clusterLabel]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6 },
+            renameByName: { [c.clusterLabel]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime' },
           } },
         ])
         + panel.table.withOverrides([
