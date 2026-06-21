@@ -124,7 +124,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           ['App', 'Pods', 'Alerts']
         );
       local linuxServers =
-        panel.table.new('Linux servers')
+        panel.table.new('Servers')
         + panel.table.withTargets([
           tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', release) (' + c.nodeMetric + '{' + s + '})'),
           tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100'),
@@ -149,7 +149,8 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       {
         config: c,
         grafana: { dashboard: board(c.uidCluster, 'Base / Cluster', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
-          { title: 'Resources', width: 12, height: 14, elements: { workload: workload, linuxServers: linuxServers } },
+          { title: 'Servers', width: 24, height: 12, elements: { linuxServers: linuxServers } },
+          { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
         ]) },
       },
   },
