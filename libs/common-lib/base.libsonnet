@@ -20,8 +20,8 @@ local defaults = {
   appLabel: 'app_part_of',
   selector: '',  // optional base label filter, e.g. 'job=~".+"'
   datasource: '${datasource}',
-  uidHome: 'observ-viz-base-home',
-  uidCluster: 'observ-viz-base-cluster',
+  uidHome: 'base-home',
+  uidCluster: 'base-cluster',
   nodeUid: 'observ-viz-linux',  // per-node board for node drill-through
   tags: ['base'],
 };
