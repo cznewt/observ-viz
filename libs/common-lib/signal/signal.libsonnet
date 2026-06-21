@@ -78,5 +78,20 @@ local query = import 'custom/query.libsonnet';
       panel.table.new(title)
       + panel.table.withTargets([this.asTableTarget()])
       + panel.table.standardOptions.withUnit(this._unit),
+
+    // a Prometheus recording rule { record, expr } derived from this signal.
+    // `selector` replaces the dashboard filteringSelector (rules can't use
+    // dashboard $vars); `$__rate_interval` is replaced with `interval`.
+    asRecordingRule(record, selector='', interval='5m'):: {
+      record: record,
+      expr:
+        local raw = std.strReplace(
+          this._aggExpr(this._expr % { queriesSelector: selector, filteringSelector: selector }),
+          '$__rate_interval',
+          interval
+        );
+        // tidy the empty-selector case: '{mode="idle",}' -> '{mode="idle"}', '{}' -> ''
+        std.strReplace(std.strReplace(raw, ',}', '}'), '{}', ''),
+    },
   },
 }

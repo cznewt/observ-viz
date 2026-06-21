@@ -41,6 +41,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       load1: sig('Load 1m', 'node_load1{%(queriesSelector)s}', 'short'),
       load5: sig('Load 5m', 'node_load5{%(queriesSelector)s}', 'short'),
       load15: sig('Load 15m', 'node_load15{%(queriesSelector)s}', 'short'),
+      loadPerCpu: sig('Load per core', 'node_load1{%(queriesSelector)s} / count without (cpu, mode) (node_cpu_seconds_total{mode="idle",%(queriesSelector)s})', 'short'),
 
       // --- Memory ---
       memUsed: sig('Memory used', 'node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s}', 'bytes'),
@@ -50,6 +51,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       memBuffers: sig('Memory buffers', 'node_memory_Buffers_bytes{%(queriesSelector)s}', 'bytes'),
       memUsedRatio: sig('Memory used ratio', '1 - node_memory_MemAvailable_bytes{%(queriesSelector)s} / node_memory_MemTotal_bytes{%(queriesSelector)s}', 'percentunit'),
       swapUsed: sig('Swap used', 'node_memory_SwapTotal_bytes{%(queriesSelector)s} - node_memory_SwapFree_bytes{%(queriesSelector)s}', 'bytes'),
+      swapIoPages: sig('Swap IO pages', 'rate(node_vmstat_pgpgin{%(queriesSelector)s}[$__rate_interval]) + rate(node_vmstat_pgpgout{%(queriesSelector)s}[$__rate_interval])', 'short'),
 
       // --- Disk space / Filesystem ---
       fsUsed: sig('Filesystem used', '1 - node_filesystem_avail_bytes{fstype!="",%(queriesSelector)s} / node_filesystem_size_bytes{fstype!="",%(queriesSelector)s}', 'percentunit'),
@@ -63,7 +65,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       diskReadIops: sig('Disk read IOPS', 'rate(node_disk_reads_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops'),
       diskWriteIops: sig('Disk write IOPS', 'rate(node_disk_writes_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops'),
       diskIoLatency: sig('Disk IO latency', 'rate(node_disk_io_time_weighted_seconds_total{%(queriesSelector)s}[$__rate_interval])', 's'),
-      diskIo: sig('Disk IO time', 'rate(node_disk_io_time_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      diskIo: sig('Disk IO time', 'rate(node_disk_io_time_seconds_total{device!="",%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
 
       // --- Network ---
       netRx: sig('Network received', 'rate(node_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
@@ -72,6 +74,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       netTxErrs: sig('Network transmit errors', 'rate(node_network_transmit_errs_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
       netRxDrop: sig('Network receive drops', 'rate(node_network_receive_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
       netTxDrop: sig('Network transmit drops', 'rate(node_network_transmit_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
+      netRxExclLo: sig('Network received (excl lo)', 'sum without (device) (rate(node_network_receive_bytes_total{device!="lo",%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
+      netTxExclLo: sig('Network transmitted (excl lo)', 'sum without (device) (rate(node_network_transmit_bytes_total{device!="lo",%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
 
       // --- System ---
       uptime: sig('Uptime', 'time() - node_boot_time_seconds{%(queriesSelector)s}', 's'),
@@ -521,34 +525,13 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     ], [
       // recording rule group
       alert.rule.group('node.rules', [
-        alert.rule.record(
-          'instance:node_cpu_utilisation:rate5m',
-          '1 - avg without (cpu, mode) (rate(node_cpu_seconds_total{mode="idle"' + rsComma + '}[5m]))'
-        ),
-        alert.rule.record(
-          'instance:node_load1_per_cpu:ratio',
-          'node_load1' + rsBrace + '\n/ count without (cpu, mode) (node_cpu_seconds_total{mode="idle"' + rsComma + '})'
-        ),
-        alert.rule.record(
-          'instance:node_memory_utilisation:ratio',
-          '1 - node_memory_MemAvailable_bytes' + rsBrace + ' / node_memory_MemTotal_bytes' + rsBrace
-        ),
-        alert.rule.record(
-          'instance:node_memory_swap_io_pages:rate5m',
-          'rate(node_vmstat_pgpgin' + rsBrace + '[5m]) + rate(node_vmstat_pgpgout' + rsBrace + '[5m])'
-        ),
-        alert.rule.record(
-          'instance_device:node_disk_io_time_seconds:rate5m',
-          'rate(node_disk_io_time_seconds_total{device!=""' + rsComma + '}[5m])'
-        ),
-        alert.rule.record(
-          'instance:node_network_receive_bytes_excluding_lo:rate5m',
-          'sum without (device) (rate(node_network_receive_bytes_total{device!="lo"' + rsComma + '}[5m]))'
-        ),
-        alert.rule.record(
-          'instance:node_network_transmit_bytes_excluding_lo:rate5m',
-          'sum without (device) (rate(node_network_transmit_bytes_total{device!="lo"' + rsComma + '}[5m]))'
-        ),
+        signals.cpuBusy.asRecordingRule('instance:node_cpu_utilisation:rate5m', cfg.ruleSelector),
+        signals.loadPerCpu.asRecordingRule('instance:node_load1_per_cpu:ratio', cfg.ruleSelector),
+        signals.memUsedRatio.asRecordingRule('instance:node_memory_utilisation:ratio', cfg.ruleSelector),
+        signals.swapIoPages.asRecordingRule('instance:node_memory_swap_io_pages:rate5m', cfg.ruleSelector),
+        signals.diskIo.asRecordingRule('instance_device:node_disk_io_time_seconds:rate5m', cfg.ruleSelector),
+        signals.netRxExclLo.asRecordingRule('instance:node_network_receive_bytes_excluding_lo:rate5m', cfg.ruleSelector),
+        signals.netTxExclLo.asRecordingRule('instance:node_network_transmit_bytes_excluding_lo:rate5m', cfg.ruleSelector),
       ]),
     ]),
 }
