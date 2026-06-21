@@ -4,15 +4,17 @@ Dashboard uid `observ-viz-windows` · 7 signals · 4 alerts · 2 recording rules
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `cpuBusy` | percentunit | `1 - avg without(core)(rate(windows_cpu_time_total{mode="idle",job=~"$job"}[$__rate_interval]))` |
-| `diskFree` | bytes | `windows_logical_disk_free_bytes{job=~"$job"}` |
-| `memCommitted` | bytes | `windows_memory_committed_bytes{job=~"$job"}` |
-| `memFree` | bytes | `windows_os_physical_memory_free_bytes{job=~"$job"}` |
-| `netRecv` | Bps | `rate(windows_net_bytes_received_total{job=~"$job"}[$__rate_interval])` |
-| `netSent` | Bps | `rate(windows_net_bytes_sent_total{job=~"$job"}[$__rate_interval])` |
-| `serviceState` | short | `windows_service_state{job=~"$job"}` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `cpuBusy` | percentunit | `1 - avg without(core)(rate(windows_cpu_time_total{mode="idle",job=~"$job"}[$__rate_interval]))` | — |
+| `diskFree` | bytes | `windows_logical_disk_free_bytes{job=~"$job"}` | — |
+| `memCommitted` | bytes | `windows_memory_committed_bytes{job=~"$job"}` | — |
+| `memFree` | bytes | `windows_os_physical_memory_free_bytes{job=~"$job"}` | — |
+| `netRecv` | Bps | `rate(windows_net_bytes_received_total{job=~"$job"}[$__rate_interval])` | — |
+| `netSent` | Bps | `rate(windows_net_bytes_sent_total{job=~"$job"}[$__rate_interval])` | — |
+| `serviceState` | short | `windows_service_state{job=~"$job"}` | — |
 
 ## Dashboard
 

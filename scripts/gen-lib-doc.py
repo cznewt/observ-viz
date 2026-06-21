@@ -37,7 +37,8 @@ def lib_data(p):
         " title: l.config.dashboardTitle, uid: l.config.uid,"
         " signals: [{ n:k,"
         "   u: (local d=sig(k).asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; if std.objectHas(d,'unit') then d.unit else ''),"
-        "   e: sig(k).asTarget().spec.query.spec.expr } for k in std.objectFields(l.signals)],"
+        "   e: sig(k).asTarget().spec.query.spec.expr,"
+        "   re: sig(k).asRecordingRule('_', '', '5m').expr } for k in std.objectFields(l.signals)],"
         " groups: [{ t:g.title, els:std.objectFields(g.elements) } for g in (if std.objectHas(l.grafana,'groups') then l.grafana.groups else [])],"
         " alerts: [{ n:r.alert, sev:(if std.objectHas(r.labels,'severity') then r.labels.severity else ''),"
         "   f:r['for'], e:r.expr, url:(if std.objectHas(r.annotations,'runbook_url') then r.annotations.runbook_url else '') }"
@@ -55,9 +56,13 @@ def fence(e):
 def page(p, d):
     L = [f"# {d['title']}  (`g.libs.{p}`)", "",
          f"Dashboard uid `{d['uid']}` · {len(d['signals'])} signals · {len(d['alerts'])} alerts · {len(d['records'])} recording rules.", ""]
-    L += ["## Signals", "", "| Signal | Unit | Expression |", "|--------|------|------------|"]
+    recorded_by = {r["e"]: r["n"] for r in d["records"]}
+    L += ["## Signals", "",
+          "Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).", "",
+          "| Signal | Unit | Query | Recorded as |", "|--------|------|-------|-------------|"]
     for s in d["signals"]:
-        L.append(f"| `{s['n']}` | {s['u'] or '—'} | {fence(s['e'])} |")
+        rec = recorded_by.get(s.get("re"))
+        L.append(f"| `{s['n']}` | {s['u'] or '—'} | {fence(s['e'])} | {('`' + rec + '`') if rec else '—'} |")
     L += ["", "## Dashboard", ""]
     for g in d["groups"]:
         L.append(f"- **{g['t']}** — " + ", ".join(f"`{e}`" for e in g["els"]))

@@ -4,14 +4,16 @@ Dashboard uid `observ-viz-loki` · 6 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `bytes` | Bps | `sum(rate(loki_distributor_bytes_received_total{job=~"$job"}[$__rate_interval]))` |
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` |
-| `heap` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job"}` |
-| `lines` | short | `sum(rate(loki_distributor_lines_received_total{job=~"$job"}[$__rate_interval]))` |
-| `requestP99` | s | `histogram_quantile(0.99, sum by (le)(rate(loki_request_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` |
-| `streams` | short | `sum(loki_ingester_memory_streams{job=~"$job"})` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `bytes` | Bps | `sum(rate(loki_distributor_bytes_received_total{job=~"$job"}[$__rate_interval]))` | `instance:loki_bytes_received:rate5m` |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | — |
+| `heap` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job"}` | — |
+| `lines` | short | `sum(rate(loki_distributor_lines_received_total{job=~"$job"}[$__rate_interval]))` | `instance:loki_lines_received:rate5m` |
+| `requestP99` | s | `histogram_quantile(0.99, sum by (le)(rate(loki_request_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
+| `streams` | short | `sum(loki_ingester_memory_streams{job=~"$job"})` | — |
 
 ## Dashboard
 

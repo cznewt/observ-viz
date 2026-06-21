@@ -4,14 +4,16 @@ Dashboard uid `observ-viz-postgres` · 6 signals · 4 alerts · 2 recording rule
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `backends` | short | `sum by (datname)(pg_stat_database_numbackends{job=~"$job"})` |
-| `cacheHitRatio` | percentunit | `sum(rate(pg_stat_database_blks_hit{job=~"$job"}[$__rate_interval])) / (sum(rate(pg_stat_database_blks_hit{job=~"$job"}[$__rate_interval])) + sum(rate(pg_stat_database_blks_read{job=~"$job"}[$__rate_interval])))` |
-| `commits` | ops | `sum(rate(pg_stat_database_xact_commit{job=~"$job"}[$__rate_interval]))` |
-| `databaseSize` | bytes | `pg_database_size_bytes{job=~"$job"}` |
-| `deadlocks` | ops | `sum(rate(pg_stat_database_deadlocks{job=~"$job"}[$__rate_interval]))` |
-| `rollbacks` | ops | `sum(rate(pg_stat_database_xact_rollback{job=~"$job"}[$__rate_interval]))` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `backends` | short | `sum by (datname)(pg_stat_database_numbackends{job=~"$job"})` | — |
+| `cacheHitRatio` | percentunit | `sum(rate(pg_stat_database_blks_hit{job=~"$job"}[$__rate_interval])) / (sum(rate(pg_stat_database_blks_hit{job=~"$job"}[$__rate_interval])) + sum(rate(pg_stat_database_blks_read{job=~"$job"}[$__rate_interval])))` | — |
+| `commits` | ops | `sum(rate(pg_stat_database_xact_commit{job=~"$job"}[$__rate_interval]))` | — |
+| `databaseSize` | bytes | `pg_database_size_bytes{job=~"$job"}` | — |
+| `deadlocks` | ops | `sum(rate(pg_stat_database_deadlocks{job=~"$job"}[$__rate_interval]))` | — |
+| `rollbacks` | ops | `sum(rate(pg_stat_database_xact_rollback{job=~"$job"}[$__rate_interval]))` | — |
 
 ## Dashboard
 

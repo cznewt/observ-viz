@@ -4,14 +4,16 @@ Dashboard uid `observ-viz-redis` · 6 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `blockedClients` | short | `redis_blocked_clients{job=~"$job"}` |
-| `commands` | ops | `rate(redis_commands_processed_total{job=~"$job"}[$__rate_interval])` |
-| `connectedClients` | short | `redis_connected_clients{job=~"$job"}` |
-| `evictions` | short | `rate(redis_evicted_keys_total{job=~"$job"}[$__rate_interval])` |
-| `hitRatio` | percentunit | `sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) / (sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) + sum(rate(redis_keyspace_misses_total{job=~"$job"}[$__rate_interval])))` |
-| `memoryUsed` | bytes | `redis_memory_used_bytes{job=~"$job"}` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `blockedClients` | short | `redis_blocked_clients{job=~"$job"}` | — |
+| `commands` | ops | `rate(redis_commands_processed_total{job=~"$job"}[$__rate_interval])` | `instance:redis_commands:rate5m` |
+| `connectedClients` | short | `redis_connected_clients{job=~"$job"}` | — |
+| `evictions` | short | `rate(redis_evicted_keys_total{job=~"$job"}[$__rate_interval])` | — |
+| `hitRatio` | percentunit | `sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) / (sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) + sum(rate(redis_keyspace_misses_total{job=~"$job"}[$__rate_interval])))` | — |
+| `memoryUsed` | bytes | `redis_memory_used_bytes{job=~"$job"}` | — |
 
 ## Dashboard
 

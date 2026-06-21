@@ -4,18 +4,20 @@ Dashboard uid `observ-viz-alloy` · 10 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `appended` | short | `sum(rate(prometheus_remote_write_wal_samples_appended_total{job=~"$job"}[$__rate_interval]))` |
-| `controllerQueue` | short | `sum(alloy_component_controller_evaluating{job=~"$job"})` |
-| `cpu` | short | `rate(alloy_resources_process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` |
-| `evalP99` | s | `histogram_quantile(0.99, sum by (le)(rate(alloy_component_evaluation_seconds_bucket{job=~"$job"}[$__rate_interval])))` |
-| `evalRate` | ops | `sum(rate(alloy_component_evaluation_seconds_count{job=~"$job"}[$__rate_interval]))` |
-| `pending` | short | `sum(prometheus_remote_storage_samples_pending{job=~"$job"})` |
-| `rss` | bytes | `alloy_resources_process_resident_memory_bytes{job=~"$job"}` |
-| `running` | short | `sum(alloy_component_controller_running_components{job=~"$job"})` |
-| `sendFailed` | short | `sum(rate(prometheus_remote_storage_samples_failed_total{job=~"$job"}[$__rate_interval]))` |
-| `uptime` | s | `time() - alloy_resources_process_start_time_seconds{job=~"$job"}` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `appended` | short | `sum(rate(prometheus_remote_write_wal_samples_appended_total{job=~"$job"}[$__rate_interval]))` | — |
+| `controllerQueue` | short | `sum(alloy_component_controller_evaluating{job=~"$job"})` | — |
+| `cpu` | short | `rate(alloy_resources_process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | `instance:alloy_cpu_usage:rate5m` |
+| `evalP99` | s | `histogram_quantile(0.99, sum by (le)(rate(alloy_component_evaluation_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
+| `evalRate` | ops | `sum(rate(alloy_component_evaluation_seconds_count{job=~"$job"}[$__rate_interval]))` | — |
+| `pending` | short | `sum(prometheus_remote_storage_samples_pending{job=~"$job"})` | — |
+| `rss` | bytes | `alloy_resources_process_resident_memory_bytes{job=~"$job"}` | — |
+| `running` | short | `sum(alloy_component_controller_running_components{job=~"$job"})` | — |
+| `sendFailed` | short | `sum(rate(prometheus_remote_storage_samples_failed_total{job=~"$job"}[$__rate_interval]))` | — |
+| `uptime` | s | `time() - alloy_resources_process_start_time_seconds{job=~"$job"}` | — |
 
 ## Dashboard
 

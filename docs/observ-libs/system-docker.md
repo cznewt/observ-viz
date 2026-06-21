@@ -4,15 +4,17 @@ Dashboard uid `observ-viz-docker` · 7 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `cpu` | short | `sum by (name)(rate(container_cpu_usage_seconds_total{job=~"$job",name!=""}[$__rate_interval]))` |
-| `diskRead` | Bps | `rate(container_fs_reads_bytes_total{job=~"$job",name!=""}[$__rate_interval])` |
-| `diskWrite` | Bps | `rate(container_fs_writes_bytes_total{job=~"$job",name!=""}[$__rate_interval])` |
-| `memUsage` | bytes | `container_memory_usage_bytes{job=~"$job",name!=""}` |
-| `memWorkingSet` | bytes | `container_memory_working_set_bytes{job=~"$job",name!=""}` |
-| `netRx` | Bps | `rate(container_network_receive_bytes_total{job=~"$job",name!=""}[$__rate_interval])` |
-| `netTx` | Bps | `rate(container_network_transmit_bytes_total{job=~"$job",name!=""}[$__rate_interval])` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `cpu` | short | `sum by (name)(rate(container_cpu_usage_seconds_total{job=~"$job",name!=""}[$__rate_interval]))` | — |
+| `diskRead` | Bps | `rate(container_fs_reads_bytes_total{job=~"$job",name!=""}[$__rate_interval])` | — |
+| `diskWrite` | Bps | `rate(container_fs_writes_bytes_total{job=~"$job",name!=""}[$__rate_interval])` | — |
+| `memUsage` | bytes | `container_memory_usage_bytes{job=~"$job",name!=""}` | — |
+| `memWorkingSet` | bytes | `container_memory_working_set_bytes{job=~"$job",name!=""}` | — |
+| `netRx` | Bps | `rate(container_network_receive_bytes_total{job=~"$job",name!=""}[$__rate_interval])` | — |
+| `netTx` | Bps | `rate(container_network_transmit_bytes_total{job=~"$job",name!=""}[$__rate_interval])` | — |
 
 ## Dashboard
 

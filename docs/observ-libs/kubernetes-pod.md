@@ -4,14 +4,16 @@ Dashboard uid `observ-viz-kube-pod` · 6 signals · 4 alerts · 2 recording rule
 
 ## Signals
 
-| Signal | Unit | Expression |
-|--------|------|------------|
-| `cpuRequests` | short | `sum by (pod)(kube_pod_container_resource_requests{namespace=~"$namespace",resource="cpu"})` |
-| `cpuUsage` | short | `sum by (pod)(rate(container_cpu_usage_seconds_total{namespace=~"$namespace",container!=""}[$__rate_interval]))` |
-| `memLimits` | bytes | `sum by (pod)(kube_pod_container_resource_limits{namespace=~"$namespace",resource="memory"})` |
-| `memWorkingSet` | bytes | `sum by (pod)(container_memory_working_set_bytes{namespace=~"$namespace",container!=""})` |
-| `phase` | short | `sum by (pod,phase)(kube_pod_status_phase{namespace=~"$namespace"})` |
-| `restarts` | short | `sum by (pod)(kube_pod_container_status_restarts_total{namespace=~"$namespace"})` |
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `cpuRequests` | short | `sum by (pod)(kube_pod_container_resource_requests{namespace=~"$namespace",resource="cpu"})` | — |
+| `cpuUsage` | short | `sum by (pod)(rate(container_cpu_usage_seconds_total{namespace=~"$namespace",container!=""}[$__rate_interval]))` | — |
+| `memLimits` | bytes | `sum by (pod)(kube_pod_container_resource_limits{namespace=~"$namespace",resource="memory"})` | — |
+| `memWorkingSet` | bytes | `sum by (pod)(container_memory_working_set_bytes{namespace=~"$namespace",container!=""})` | — |
+| `phase` | short | `sum by (pod,phase)(kube_pod_status_phase{namespace=~"$namespace"})` | — |
+| `restarts` | short | `sum by (pod)(kube_pod_container_status_restarts_total{namespace=~"$namespace"})` | — |
 
 ## Dashboard
 
