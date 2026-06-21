@@ -34,6 +34,7 @@ local sig = import 'libs/common-lib/signals.libsonnet';
     dashboard.new(title)
     + (if uid != null then dashboard.withUid(uid) else {})
     + dashboard.withTags(['red', 'generated'])
+    + dashboard.withVariables([{ kind: 'DatasourceVariable', spec: { name: 'datasource', pluginId: 'prometheus', label: 'Data source' } }])
     + dashboard.cursorSync.withCrosshair()
     + dashboard.withElements(elements)
     + dashboard.withLayout(layout.rows.new() + layout.rows.withRows(rows)),

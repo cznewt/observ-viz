@@ -4,8 +4,9 @@
 local g = import 'g.libsonnet';
 local place = (import 'libs/reference-lib/_util.libsonnet').place;
 
-local td() = g.query.base('grafana-testdata-datasource', { scenarioId: 'random_walk' }) + g.query.withDatasource('testdata');
-local targets = [td(), td(), td()];
+// named testdata series (real-ish names instead of A/B/C).
+local td(alias) = g.query.base('grafana-testdata-datasource', { scenarioId: 'random_walk', alias: alias }) + g.query.withDatasource('testdata');
+local targets = [td('web-01'), td('web-02'), td('db-01')];
 
 local categories = ['generic', 'cpu', 'memory', 'disk', 'network', 'system', 'requests', 'hardware'];
 

@@ -36,6 +36,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     dashboard.new(title)
     + dashboard.withUid(uid)
     + dashboard.withTags(['alerts', 'generated'])
+    + dashboard.withVariables([{ kind: 'DatasourceVariable', spec: { name: 'datasource', pluginId: 'prometheus', label: 'Data source' } }])
     + dashboard.withElements(elements)
     + dashboard.withLayout(layout.rows.new() + layout.rows.withRows([summaryRow, detailRow])),
 }
