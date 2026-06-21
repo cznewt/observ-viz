@@ -47,22 +47,20 @@ local clusterVar(c) =
   + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
   + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
 
-// rows-of-grids layout (same shape as pack.build)
-local board(uid, title, tags, vars, groups) =
+// rows-of-grids (or tabs) layout (same shape as pack.build)
+local gridOf(g) =
+  layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(g.elements), g.width, g.height));
+local board(uid, title, tags, vars, groups, asTabs=false) =
   dashboard.new(title)
   + dashboard.withUid(uid)
   + dashboard.withTags(tags)
   + dashboard.withVariables(vars)
   + dashboard.withElements(std.foldl(function(acc, g) acc + g.elements, groups, {}))
   + dashboard.withLayout(
-    layout.rows.new()
-    + layout.rows.withRows([
-      layout.rows.row(
-        g.title,
-        layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(g.elements), g.width, g.height))
-      )
-      for g in groups
-    ])
+    if asTabs then
+      layout.tabs.new() + layout.tabs.withTabs([layout.tabs.tab(g.title, gridOf(g)) for g in groups])
+    else
+      layout.rows.new() + layout.rows.withRows([layout.rows.row(g.title, gridOf(g)) for g in groups])
   );
 
 // count-by table: two count() queries (A=count, B=alerts) joined into columns.
@@ -152,7 +150,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
         grafana: { dashboard: board(c.uidCluster, 'Base / Cluster', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
           { title: 'Servers', width: 24, height: 12, elements: { linuxServers: linuxServers } },
           { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
-        ]) },
+        ], asTabs=true) },
       },
   },
 
