@@ -15,7 +15,12 @@ local shared = {
   withDescription(value): { spec+: { description: value } },
   withLinks(value): { spec+: { links: value } },
   withTransparent(value=true): { spec+: { transparent: value } },
-  withTransformations(value): { spec+: { data+: { spec+: { transformations: value } } } },
+  // v2 wraps each transformation as { kind, spec: { id, options } }; accept the
+  // flat { id, options } form and wrap it (a bare flat form is silently dropped).
+  withTransformations(value): { spec+: { data+: { spec+: { transformations: [
+    { kind: t.id, spec: { id: t.id, options: (if std.objectHas(t, 'options') then t.options else {}) } }
+    for t in value
+  ] } } } },
   // withTargets auto-assigns refIds (A, B, C, ...) to queries that have none.
   withTargets(targets): { spec+: { data+: { spec+: { queries: util.resource.assignRefIds(targets) } } } },
   withTargetsMixin(targets): { spec+: { data+: { spec+: { queries+: targets } } } },
