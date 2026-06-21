@@ -16,8 +16,10 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTitle: 'Linux node',
       dashboardTags: ['linux', 'node'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // cluster -> instance cascading selection (vars built by pack.build).
+      selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'node_uname_info',
+      varLabels: ['cluster', 'instance'],
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       // runbook base; runbook_url = runbookBase + lower(name) -> the official
@@ -28,16 +30,16 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
     local runbook(name) = cfg.runbookBase + std.asciiLower(name);
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    // default legend carries cluster/instance; per-dimension signals (disk/net/fs/temp)
+    // append their device/mountpoint/sensor label.
+    local sig(name, expr, unit, legend='{{instance}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
 
     local signals = {
       // --- CPU / Load ---
       cpuBusy: sig('CPU busy', '1 - avg without(cpu,mode)(rate(node_cpu_seconds_total{mode="idle",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
-      cpuUser: sig('CPU user', 'avg without(cpu)(rate(node_cpu_seconds_total{mode="user",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
-      cpuSystem: sig('CPU system', 'avg without(cpu)(rate(node_cpu_seconds_total{mode="system",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
-      cpuIowait: sig('CPU iowait', 'avg without(cpu)(rate(node_cpu_seconds_total{mode="iowait",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
-      cpuSteal: sig('CPU steal', 'avg without(cpu)(rate(node_cpu_seconds_total{mode="steal",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
+      // one aggregate signal: usage per CPU mode (user/system/iowait/steal/...) — one series per mode, stacked.
+      cpuMode: sig('CPU by mode', 'avg without(cpu)(rate(node_cpu_seconds_total{mode!="idle",%(queriesSelector)s}[$__rate_interval]))', 'percentunit', '{{instance}} / {{mode}}'),
       load1: sig('Load 1m', 'node_load1{%(queriesSelector)s}', 'short'),
       load5: sig('Load 5m', 'node_load5{%(queriesSelector)s}', 'short'),
       load15: sig('Load 15m', 'node_load15{%(queriesSelector)s}', 'short'),
@@ -54,26 +56,26 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       swapIoPages: sig('Swap IO pages', 'rate(node_vmstat_pgpgin{%(queriesSelector)s}[$__rate_interval]) + rate(node_vmstat_pgpgout{%(queriesSelector)s}[$__rate_interval])', 'short'),
 
       // --- Disk space / Filesystem ---
-      fsUsed: sig('Filesystem used', '1 - node_filesystem_avail_bytes{fstype!="",%(queriesSelector)s} / node_filesystem_size_bytes{fstype!="",%(queriesSelector)s}', 'percentunit'),
-      fsAvail: sig('Filesystem available', 'node_filesystem_avail_bytes{fstype!="",%(queriesSelector)s}', 'bytes'),
-      fsSize: sig('Filesystem size', 'node_filesystem_size_bytes{fstype!="",%(queriesSelector)s}', 'bytes'),
-      inodesUsed: sig('Inodes used', '1 - node_filesystem_files_free{fstype!="",%(queriesSelector)s} / node_filesystem_files{fstype!="",%(queriesSelector)s}', 'percentunit'),
+      fsUsed: sig('Filesystem used', '1 - node_filesystem_avail_bytes{fstype!="",%(queriesSelector)s} / node_filesystem_size_bytes{fstype!="",%(queriesSelector)s}', 'percentunit', '{{instance}} / {{mountpoint}}'),
+      fsAvail: sig('Filesystem available', 'node_filesystem_avail_bytes{fstype!="",%(queriesSelector)s}', 'bytes', '{{instance}} / {{mountpoint}}'),
+      fsSize: sig('Filesystem size', 'node_filesystem_size_bytes{fstype!="",%(queriesSelector)s}', 'bytes', '{{instance}} / {{mountpoint}}'),
+      inodesUsed: sig('Inodes used', '1 - node_filesystem_files_free{fstype!="",%(queriesSelector)s} / node_filesystem_files{fstype!="",%(queriesSelector)s}', 'percentunit', '{{instance}} / {{mountpoint}}'),
 
       // --- Disk IO ---
-      diskReadBps: sig('Disk read', 'rate(node_disk_read_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
-      diskWriteBps: sig('Disk write', 'rate(node_disk_written_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
-      diskReadIops: sig('Disk read IOPS', 'rate(node_disk_reads_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops'),
-      diskWriteIops: sig('Disk write IOPS', 'rate(node_disk_writes_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops'),
-      diskIoLatency: sig('Disk IO latency', 'rate(node_disk_io_time_weighted_seconds_total{%(queriesSelector)s}[$__rate_interval])', 's'),
-      diskIo: sig('Disk IO time', 'rate(node_disk_io_time_seconds_total{device!="",%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      diskReadBps: sig('Disk read', 'rate(node_disk_read_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
+      diskWriteBps: sig('Disk write', 'rate(node_disk_written_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
+      diskReadIops: sig('Disk read IOPS', 'rate(node_disk_reads_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops', '{{instance}} / {{device}}'),
+      diskWriteIops: sig('Disk write IOPS', 'rate(node_disk_writes_completed_total{%(queriesSelector)s}[$__rate_interval])', 'iops', '{{instance}} / {{device}}'),
+      diskIoLatency: sig('Disk IO latency', 'rate(node_disk_io_time_weighted_seconds_total{%(queriesSelector)s}[$__rate_interval])', 's', '{{instance}} / {{device}}'),
+      diskIo: sig('Disk IO time', 'rate(node_disk_io_time_seconds_total{device!="",%(queriesSelector)s}[$__rate_interval])', 'percentunit', '{{instance}} / {{device}}'),
 
       // --- Network ---
-      netRx: sig('Network received', 'rate(node_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
-      netTx: sig('Network transmitted', 'rate(node_network_transmit_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
-      netRxErrs: sig('Network receive errors', 'rate(node_network_receive_errs_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
-      netTxErrs: sig('Network transmit errors', 'rate(node_network_transmit_errs_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
-      netRxDrop: sig('Network receive drops', 'rate(node_network_receive_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
-      netTxDrop: sig('Network transmit drops', 'rate(node_network_transmit_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps'),
+      netRx: sig('Network received', 'rate(node_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
+      netTx: sig('Network transmitted', 'rate(node_network_transmit_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
+      netRxErrs: sig('Network receive errors', 'rate(node_network_receive_errs_total{%(queriesSelector)s}[$__rate_interval])', 'pps', '{{instance}} / {{device}}'),
+      netTxErrs: sig('Network transmit errors', 'rate(node_network_transmit_errs_total{%(queriesSelector)s}[$__rate_interval])', 'pps', '{{instance}} / {{device}}'),
+      netRxDrop: sig('Network receive drops', 'rate(node_network_receive_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps', '{{instance}} / {{device}}'),
+      netTxDrop: sig('Network transmit drops', 'rate(node_network_transmit_drop_total{%(queriesSelector)s}[$__rate_interval])', 'pps', '{{instance}} / {{device}}'),
       netRxExclLo: sig('Network received (excl lo)', 'sum without (device) (rate(node_network_receive_bytes_total{device!="lo",%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
       netTxExclLo: sig('Network transmitted (excl lo)', 'sum without (device) (rate(node_network_transmit_bytes_total{device!="lo",%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
 
@@ -86,8 +88,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       conntrackMax: sig('Conntrack max', 'node_nf_conntrack_entries_limit{%(queriesSelector)s}', 'short'),
 
       // --- Temperature (hardware) ---
-      tempCelsius: sig('Temperature', 'node_hwmon_temp_celsius{%(queriesSelector)s}', 'celsius'),
-      thermalZone: sig('Thermal zone', 'node_thermal_zone_temp{%(queriesSelector)s}', 'celsius'),
+      tempCelsius: sig('Temperature', 'node_hwmon_temp_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{chip}} {{sensor}}'),
+      thermalZone: sig('Thermal zone', 'node_thermal_zone_temp{%(queriesSelector)s}', 'celsius', '{{instance}} / {{type}}'),
     };
 
     pack.build(cfg, signals, [
@@ -96,11 +98,10 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         width: 12,
         height: 7,
         elements: {
-          cpuBusy: signals.cpuBusy.asTimeSeries('CPU busy'),
-          cpuUser: signals.cpuUser.asTimeSeries('CPU user'),
-          cpuSystem: signals.cpuSystem.asTimeSeries('CPU system'),
-          cpuIowait: signals.cpuIowait.asTimeSeries('CPU iowait'),
-          cpuSteal: signals.cpuSteal.asTimeSeries('CPU steal'),
+          // single aggregate CPU chart: all modes stacked.
+          cpuMode: signals.cpuMode.asTimeSeries('CPU usage by mode')
+                   + { spec+: { vizConfig+: { spec+: { fieldConfig+: { defaults+: { custom+: { stacking: { mode: 'normal', group: 'A' }, fillOpacity: 30 } } } } } } },
+          cpuBusy: signals.cpuBusy.asStat('CPU busy'),
           load1: signals.load1.asTimeSeries('Load 1m'),
           load5: signals.load5.asTimeSeries('Load 5m'),
           load15: signals.load15.asTimeSeries('Load 15m'),

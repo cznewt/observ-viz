@@ -43,6 +43,13 @@ local variable =
 
       dashboard:
         local varMetric = if std.objectHas(config, 'varMetric') then config.varMetric else 'up';
+        // optional cascading filter variables (e.g. ['cluster', 'instance']):
+        // each is a label_values() query scoped by job and the variables before it.
+        local varLabels = if std.objectHas(config, 'varLabels') then config.varLabels else [];
+        local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
+        // default multi/includeAll vars to "All" so the initial view isn't pinned
+        // to the first (often sparse) value.
+        local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
@@ -53,7 +60,19 @@ local variable =
           + variable.query.withLabel('Job')
           + variable.query.withLabelValues('job', varMetric)
           + variable.query.withMulti()
-          + variable.query.withIncludeAll(),
+          + variable.query.withIncludeAll()
+          + allCurrent,
+        ] + [
+          variable.query.new(varLabels[i])
+          + variable.query.withLabel(cap(varLabels[i]))
+          + variable.query.withLabelValues(
+            varLabels[i],
+            varMetric + '{' + std.join(', ', ['job=~"$job"'] + [varLabels[j] + '=~"$' + varLabels[j] + '"' for j in std.range(0, i - 1)]) + '}'
+          )
+          + variable.query.withMulti()
+          + variable.query.withIncludeAll()
+          + allCurrent
+          for i in std.range(0, std.length(varLabels) - 1)
         ])
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
