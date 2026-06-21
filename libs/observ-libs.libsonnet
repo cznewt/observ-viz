@@ -42,6 +42,7 @@
   },
   networking: {
     wireguard: import 'libs/wg-easy-observ-lib/main.libsonnet',
+    unifi: import 'libs/unifi-observ-lib/main.libsonnet',
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',

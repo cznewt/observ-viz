@@ -20,7 +20,7 @@ GROUPS = {
     "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd"],
     "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope"],
     "Collector": ["collector.alloy"],
-    "Networking": ["networking.wireguard"],
+    "Networking": ["networking.wireguard", "networking.unifi"],
     "Applications": ["applications.syncthing"],
     "Cross-cutting": ["alerts", "logs"],
 }
