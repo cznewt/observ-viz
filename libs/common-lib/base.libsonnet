@@ -17,7 +17,8 @@ local variable =
 local defaults = {
   clusterLabel: 'cluster',
   nodeLabel: 'instance',
-  appLabel: 'app_part_of',
+  appLabel: 'app_part_of',  // workload grouping label (e.g. app_part_of / app / namespace)
+  nodeMetric: 'node_uname_info',  // an info metric every node_exporter exports (node count + release)
   selector: '',  // optional base label filter, e.g. 'job=~".+"'
   datasource: '${datasource}',
   uidHome: 'base-home',
@@ -43,7 +44,7 @@ local dsVar =
 local clusterVar(c) =
   variable.query.new('cluster')
   + variable.query.withLabel('Cluster')
-  + variable.query.withLabelValues(c.clusterLabel, 'node_uname_info' + selBrace(c))
+  + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
   + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
 
 // rows-of-grids layout (same shape as pack.build)
@@ -69,6 +70,8 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
   panel.table.new(title)
   + panel.table.withTargets([tq(c, countExpr), tq(c, alertExpr)])
   + panel.table.withTransformations([
+    // prometheus instant frames keep labels as metadata, not columns -> promote them
+    { id: 'labelsToFields' },
     { id: 'filterFieldsByName', options: { include: { names: [byLabel, 'Value #A', 'Value #B'] } } },
     { id: 'seriesToColumns', options: { byField: byLabel } },
     { id: 'organize', options: {
@@ -86,7 +89,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       local clusters =
         countTable(
           c, 'Clusters', c.clusterLabel,
-          'count(node_uname_info' + selBrace(c) + ') by (' + c.clusterLabel + ')',
+          'count(' + c.nodeMetric + selBrace(c) + ') by (' + c.clusterLabel + ')',
           'count(ALERTS{alertstate="firing"' + selComma(c) + '}) by (' + c.clusterLabel + ')',
           ['Cluster', 'Nodes', 'Alerts']
         )
@@ -123,12 +126,13 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       local linuxServers =
         panel.table.new('Linux servers')
         + panel.table.withTargets([
-          tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', release) (node_uname_info{' + s + '})'),
+          tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', release) (' + c.nodeMetric + '{' + s + '})'),
           tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100'),
           tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemAvailable_bytes{' + s + '}) / avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemTotal_bytes{' + s + '})) * 100'),
           tq(c, 'max by (' + c.clusterLabel + ', ' + nl + ') (time() - node_boot_time_seconds{' + s + '})'),
         ])
         + panel.table.withTransformations([
+          { id: 'labelsToFields' },
           { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, nl, 'release', 'Value #B', 'Value #C', 'Value #D'] } } },
           { id: 'seriesToColumns', options: { byField: nl } },
           { id: 'organize', options: {
