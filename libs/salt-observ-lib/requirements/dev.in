@@ -1,0 +1,12 @@
+-r tests.in
+-r lint.in
+-r tempo.in
+-r docs.in
+
+pre-commit==2.20.0
+
+twine==4.0.1
+build==0.9.0
+
+pip-compile-multi==2.4.6
+pip-tools==6.9.0

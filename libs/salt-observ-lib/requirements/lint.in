@@ -1,0 +1,6 @@
+pylint==2.15.5
+SaltPyLint==2020.9.28
+
+# extra pins for older Python versions
+platformdirs==2.4.0
+tomli==1.2.3

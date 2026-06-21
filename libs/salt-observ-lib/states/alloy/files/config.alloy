@@ -1,0 +1,81 @@
+// salt-observ-lib — Alloy pipeline for Salt observability.
+//
+// Receives enriched Salt events from the alloy salt-engine (saltext.alloy) over
+// the Loki push protocol, turns event fields into labels, derives the salt job
+// metrics the dashboards expect (salt_duration / salt_success), and ships logs to
+// Loki and metrics to Prometheus. Sinks are env-configured (set in /etc/default/alloy
+// by states/alloy/agent.sls); no secrets live in this file.
+//
+//   LOKI_URL / LOKI_TENANT          Loki push URL + X-Scope-OrgID
+//   PROM_URL / PROM_TENANT          Prometheus/Mimir push URL + X-Scope-OrgID
+
+logging {
+  level = "info"
+}
+
+// 1) receive enriched salt events from the engine (loki push on :9000)
+loki.source.api "salt" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port    = 9000
+  }
+  forward_to = [loki.process.salt.receiver]
+}
+
+// 2) extract event fields and derive per-job metrics
+loki.process "salt" {
+  stage.json {
+    expressions = {
+      job_name = "job_name",
+      saltenv  = "saltenv",
+      id       = "id",
+      success  = "success",
+      duration = "duration",
+    }
+  }
+
+  // salt_duration{job_name,...} and salt_success{job_name,...}; labels are
+  // carried from the stream labels the engine set (job/job_name/saltenv/id).
+  stage.metrics {
+    metric.gauge "salt_duration" {
+      description = "Salt highstate/orchestrate run duration in seconds"
+      source      = "duration"
+      action      = "set"
+    }
+    metric.gauge "salt_success" {
+      description = "Salt job success (1) or failure (0)"
+      source      = "success"
+      action      = "set"
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// 3) ship logs to Loki
+loki.write "default" {
+  endpoint {
+    url       = sys.env("LOKI_URL")
+    tenant_id = sys.env("LOKI_TENANT")
+    // basic_auth { username = sys.env("LOKI_USER") password = sys.env("LOKI_PASS") }
+  }
+}
+
+// 4) export the derived salt_* metrics (alloy self-scrape) to Prometheus
+prometheus.exporter.self "alloy" {}
+
+prometheus.scrape "self" {
+  targets         = prometheus.exporter.self.alloy.targets
+  forward_to      = [prometheus.remote_write.default.receiver]
+  scrape_interval = "15s"
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = sys.env("PROM_URL")
+    headers = {
+      "X-Scope-OrgID" = sys.env("PROM_TENANT"),
+    }
+    // basic_auth { username = sys.env("PROM_USER") password = sys.env("PROM_PASS") }
+  }
+}

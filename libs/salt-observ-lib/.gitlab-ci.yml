@@ -1,0 +1,105 @@
+---
+test-vector-config:
+  image: python:3.9
+  script:
+    - pip install --no-deps -r requirements/dev.txt
+    - nox -e vector
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+  #   - changes:
+  #       - vector-engine/etc
+  #       - vector-engine/tests/test_vector.toml
+
+tests:
+  image: python:3.9
+  script:
+    - pip install --no-deps -r requirements/dev.txt
+    - nox -e tests-3.9
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+  #   - changes:
+  #       - vector-engine/src
+  #       - vector-engine/tests/*.py
+  #       - tempo-relay/src
+  #       - tempo-relay/tests/*.py
+
+build-docs-html:
+  image: python:3.9
+  script:
+    - apt update && apt install python3-enchant -y
+    - pip install --no-deps -r requirements/dev.txt
+    - nox -e docs
+    - mv docs/_build/html artifacts/html
+  artifacts:
+    paths:
+      - artifacts
+    expire_in: 30 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - changes:
+        - docs/*
+        - vector-engine/*
+
+pages:
+  needs:
+    - build-docs-html
+  image: debian:bullseye-slim
+  script:
+    - mv artifacts/html public
+    - 'echo "Gitlab Pages available at: ${CI_PAGES_URL}"'
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - docs/*
+        - vector-engine/*
+
+publish-vector-engine:
+  needs:
+    - tests
+  image: python:3.9
+  variables:
+    TWINE_USERNAME: __token__
+    TWINE_PASSWORD: $PYPI_TOKEN
+  script:
+    - pip install --no-deps -r requirements/dev.txt
+    - cd vector-engine
+    - python -m build
+    - twine upload dist/*
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      # changes:
+      #   - vector-engine/*
+
+publish-tempo-relay:
+  needs:
+    - tests
+  image: python:3.9
+  variables:
+    TWINE_USERNAME: __token__
+    TWINE_PASSWORD: $PYPI_TOKEN
+  script:
+    - pip install --no-deps -r requirements/dev.txt
+    - cd tempo-relay
+    - python -m build
+    - twine upload dist/*
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      # changes:
+      #   - tempo-relay/*

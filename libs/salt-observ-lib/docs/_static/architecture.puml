@@ -1,0 +1,46 @@
+@startuml
+skinparam nodesep 50
+skinparam ranksep 100
+
+package "Salt Master VM" {
+  [Salt Master]
+  [Vector Engine]
+  [PG JSONB Job Cache]
+}
+
+package "Agents VM" {
+  [Vector]
+  [Tempo Relay]
+  [Grafana Agent]
+}
+
+database "PostgreSQL" {
+  [Job Cache DB]
+}
+
+cloud "Grafana Cloud" {
+  [Grafana]
+  [Loki]
+  [Prometheus]
+  [Tempo]
+}
+
+[Salt Master] --> [Vector Engine] : events
+[Salt Master] --> [PG JSONB Job Cache] : jobs
+
+[Vector Engine] --> [Vector] : events
+[PG JSONB Job Cache] -r-> [Job Cache DB] : jobs
+
+[Vector] -u-> [Loki] : summarized\nevents
+[Vector] -u-> [Prometheus] : metrics
+[Vector] -l-> [Tempo Relay] : events with traceID
+
+[Tempo Relay] -l-> [Grafana Agent] : traces
+[Grafana Agent] -l-> [Tempo] : traces
+
+[Grafana] -u-> [Job Cache DB] : jobs
+[Grafana] --> [Loki] : summarized\nevents
+[Grafana] --> [Prometheus] : metrics
+[Grafana] --> [Tempo] : traces
+
+@enduml

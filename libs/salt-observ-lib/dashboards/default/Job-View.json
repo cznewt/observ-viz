@@ -1,0 +1,549 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_POSTGRESQL",
+      "label": "PostgreSQL",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    },
+    {
+      "name": "DS_GRAFANACLOUD-SALTOBS-PROM",
+      "label": "grafanacloud-saltobs-prom",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    },
+    {
+      "name": "DS_GRAFANACLOUD-SALTOBS-TRACES",
+      "label": "grafanacloud-saltobs-traces",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "tempo",
+      "pluginName": "Tempo"
+    },
+    {
+      "name": "DS_GRAFANACLOUD-SALTOBS-LOGS",
+      "label": "grafanacloud-saltobs-logs",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    },
+    {
+      "name": "VAR_JID",
+      "type": "constant",
+      "label": "JID",
+      "value": "jid",
+      "description": ""
+    },
+    {
+      "name": "VAR_NAME",
+      "type": "constant",
+      "label": "Name",
+      "value": "name",
+      "description": ""
+    },
+    {
+      "name": "VAR_TRACEID",
+      "type": "constant",
+      "label": "traceID",
+      "value": "traceID",
+      "description": ""
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "gapit-htmlgraphics-panel",
+      "name": "HTML graphics",
+      "version": "2.1.1"
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "9.3.2-45041"
+    },
+    {
+      "type": "datasource",
+      "id": "loki",
+      "name": "Loki",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "pgillich-tree-panel",
+      "name": "Tree View",
+      "version": "0.1.9"
+    },
+    {
+      "type": "datasource",
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "tempo",
+      "name": "Tempo",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "traces",
+      "name": "Traces",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "${DS_GRAFANACLOUD-SALTOBS-LOGS}"
+        },
+        "enable": false,
+        "expr": "{job_name=\"$Name\"} | json",
+        "hide": true,
+        "iconColor": "yellow",
+        "instant": false,
+        "name": "JID",
+        "tagKeys": "jid, job_name",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "textFormat": "",
+        "titleFormat": "{{job_name}}"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "${DS_POSTGRESQL}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 14,
+      "options": {
+        "expandLevel": 2,
+        "orderLevels": "asc",
+        "rootName": "all",
+        "serieColumn": "serieColumn",
+        "showItemCount": true,
+        "treeFieldTemplateEngine": "handlebars",
+        "treeFields": "{{status}}\n{{id}}\n{{state}}\n{{return}}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "${DS_POSTGRESQL}"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n    id,\n    CASE WHEN (result IS true AND changes IS false) THEN 'unchanged'\n    WHEN (result IS false) THEN 'failed'\n    WHEN (result IS true AND changes IS true) THEN 'changed'\n    END status,\n    state,\n    jsonb_pretty(return::jsonb) AS return\nFROM states\nWHERE jid='$JID';\n",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "SORTED JOB STATES",
+      "transformations": [],
+      "type": "pgillich-tree-panel"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "description": "Display the duration of all job runs with the same name to understand the job duration over time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 9,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.axisLabel",
+                "value": "Duration (s)"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "timezone": [
+          ""
+        ],
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.1.5-0100a6a",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_GRAFANACLOUD-SALTOBS-PROM}"
+          },
+          "editorMode": "builder",
+          "expr": "salt_duration{job_name=\"$Name\"}",
+          "format": "time_series",
+          "hide": false,
+          "legendFormat": "{{job_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "JOB DURATION TIME ",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_GRAFANACLOUD-SALTOBS-TRACES}"
+      },
+      "description": "",
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 12,
+      "pluginVersion": "9.2.2-eb6f0ffe76",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_GRAFANACLOUD-SALTOBS-TRACES}"
+          },
+          "query": "$traceID",
+          "queryType": "traceId",
+          "refId": "A",
+          "search": "jid=$JID"
+        }
+      ],
+      "title": "TRACE VIEW",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Duration": true,
+              "Start time": true,
+              "Trace name": true
+            },
+            "indexByName": {},
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "traces"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "description": "Display a complete JSON message returned by the corresponding Salt job. You can expand or collapse JSON sections.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 28,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 10,
+      "options": {
+        "SVGBaseFix": true,
+        "add100Percentage": true,
+        "calcsMutation": "none",
+        "centerAlignContent": true,
+        "codeData": "{\n  \"text\": \"Random text\"\n}",
+        "css": "a {\n    color:white;\n    font-weight: normal;\n    font-family: monospace;\n}\n\ninput[type=search] {  \n    padding: 3px;  \n    margin-top: 8px;\n    color: black;\n    font-size: 17px;  \n    border: none;\n    border-radius: 6px;\n}\n\nbutton[type=submit] {\n    height: 28px;\n    text-align: center;\n    background-color: #F8F8F8;\n    border-radius: 6px;\n    color: black;\n    border-color: #E8E8E8;  \n}\n\n.box_search {\n    text-align: center;\n    color: black;\n}\n\npre {\n    margin: 0;\n    padding: 8px;\n    font-family: monospace;\n    font-size: 16px;\n}\n\n.disclosure {\n    font-weight: normal;\n    font-family: monospace;\n    color: white;\n}\n\n.key {\n    color:royalblue;\n    font-weight: bold;\n}\n\n.string {\n    color: Lime;\n    font-weight: normal;\n    font-family: monospace;\n}\n\n.number {\n    color: white;\n    font-weight: normal;\n    font-family: monospace;\n}\n\n.boolean {\n    color: white;\n    font-weight: normal;\n    font-family: monospace;\n}\n\n.null {\n    color: magenta;\n    font-weight: normal;\n    font-family: monospace;\n}\n",
+        "dynamicData": false,
+        "dynamicFieldDisplayValues": false,
+        "dynamicHtmlGraphics": false,
+        "dynamicProps": false,
+        "html": "<div class=\"container-fluid\">\n    <pre id=\"container_data\"></pre>\n</div>",
+        "onInit": "// Copyright © 2013-2017 David Caldwell <david@porkrind.org>\n//\n// Permission to use, copy, modify, and/or distribute this software for any\n// purpose with or without fee is hereby granted, provided that the above\n// copyright notice and this permission notice appear in all copies.\n//\n// THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\n// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\n// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY\n// SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\n// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION\n// OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN\n// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n\n// Usage\n// -----\n// The module exports one entry point, the `renderjson()` function. It takes in\n// the JSON you want to render as a single argument and returns an HTML\n// element.\n//\n// Options\n// -------\n// renderjson.set_icons(\"+\", \"-\")\n//   This Allows you to override the disclosure icons.\n//\n// renderjson.set_show_to_level(level)\n//   Pass the number of levels to expand when rendering. The default is 0, which\n//   starts with everything collapsed. As a special case, if level is the string\n//   \"all\" then it will start with everything expanded.\n//\n// renderjson.set_max_string_length(length)\n//   Strings will be truncated and made expandable if they are longer than\n//   `length`. As a special case, if `length` is the string \"none\" then\n//   there will be no truncation. The default is \"none\".\n//\n// renderjson.set_sort_objects(sort_bool)\n//   Sort objects by key (default: false)\n//\n// renderjson.set_replacer(replacer_function)\n//   Equivalent of JSON.stringify() `replacer` argument when it's a function\n//\n// renderjson.set_collapse_msg(collapse_function)\n//   Accepts a function (len:number):string => {} where len is the length of the\n//   object collapsed.  Function should return the message displayed when a\n//   object is collapsed.  The default message is \"X items\"\n//\n// renderjson.set_property_list(property_list)\n//   Equivalent of JSON.stringify() `replacer` argument when it's an array\n//\n// Theming\n// -------\n// The HTML output uses a number of classes so that you can theme it the way\n// you'd like:\n//     .disclosure    (\"⊕\", \"⊖\")\n//     .syntax        (\",\", \":\", \"{\", \"}\", \"[\", \"]\")\n//     .string        (includes quotes)\n//     .number\n//     .boolean\n//     .key           (object key)\n//     .keyword       (\"null\", \"undefined\")\n//     .object.syntax (\"{\", \"}\")\n//     .array.syntax  (\"[\", \"]\")\n\nvar module, window, define, renderjson=(function() {\n    var themetext = function(/* [class, text]+ */) {\n        var spans = [];\n        while (arguments.length)\n            spans.push(append(span(Array.prototype.shift.call(arguments)),\n                              text(Array.prototype.shift.call(arguments))));\n        return spans;\n    };\n    var append = function(/* el, ... */) {\n        var el = Array.prototype.shift.call(arguments);\n        for (var a=0; a<arguments.length; a++)\n            if (arguments[a].constructor == Array)\n                append.apply(this, [el].concat(arguments[a]));\n            else\n                el.appendChild(arguments[a]);\n        return el;\n    };\n    var prepend = function(el, child) {\n        el.insertBefore(child, el.firstChild);\n        return el;\n    }\n    var isempty = function(obj, pl) { var keys = pl || Object.keys(obj);\n                                      for (var i in keys) if (Object.hasOwnProperty.call(obj, keys[i])) return false;\n                                      return true; }\n    var text = function(txt) { return document.createTextNode(txt) };\n    var div = function() { return document.createElement(\"div\") };\n    var span = function(classname) { var s = document.createElement(\"span\");\n                                     if (classname) s.className = classname;\n                                     return s; };\n    var A = function A(txt, classname, callback) { var a = document.createElement(\"a\");\n                                                   if (classname) a.className = classname;\n                                                   a.appendChild(text(txt));\n                                                   a.href = '#';\n                                                   a.onclick = function(e) { callback(); if (e) e.stopPropagation(); return false; };\n                                                   return a; };\n\n    function _renderjson(json, indent, dont_indent, show_level, options) {\n        var my_indent = dont_indent ? \"\" : indent;\n\n        var disclosure = function(open, placeholder, close, type, builder) {\n            var content;\n            var empty = span(type);\n            var show = function() { if (!content) append(empty.parentNode,\n                                                         content = prepend(builder(),\n                                                                           A(options.hide, \"disclosure\",\n                                                                             function() { content.style.display=\"none\";\n                                                                                          empty.style.display=\"inline\"; } )));\n                                    content.style.display=\"inline\";\n                                    empty.style.display=\"none\"; };\n            append(empty,\n                   A(options.show, \"disclosure\", show),\n                   themetext(type+ \" syntax\", open),\n                   A(placeholder, null, show),\n                   themetext(type+ \" syntax\", close));\n\n            var el = append(span(), text(my_indent.slice(0,-1)), empty);\n            if (show_level > 0 && type != \"string\")\n                show();\n            return el;\n        };\n\n        if (json === null) return themetext(null, my_indent, \"keyword\", \"null\");\n        if (json === void 0) return themetext(null, my_indent, \"keyword\", \"undefined\");\n\n        if (typeof(json) == \"string\" && json.length > options.max_string_length)\n            return disclosure('\"', json.substr(0,options.max_string_length)+\" ...\", '\"', \"string\", function () {\n                return append(span(\"string\"), themetext(null, my_indent, \"string\", JSON.stringify(json)));\n            });\n\n        if (typeof(json) != \"object\" || [Number, String, Boolean, Date].indexOf(json.constructor) >= 0) // Strings, numbers and bools\n            return themetext(null, my_indent, typeof(json), JSON.stringify(json));\n\n        if (json.constructor == Array) {\n            if (json.length == 0) return themetext(null, my_indent, \"array syntax\", \"[]\");\n\n            return disclosure(\"[\", options.collapse_msg(json.length), \"]\", \"array\", function () {\n                var as = append(span(\"array\"), themetext(\"array syntax\", \"[\", null, \"\\n\"));\n                for (var i=0; i<json.length; i++)\n                    append(as,\n                           _renderjson(options.replacer.call(json, i, json[i]), indent+\"    \", false, show_level-1, options),\n                           i != json.length-1 ? themetext(\"syntax\", \",\") : [],\n                           text(\"\\n\"));\n                append(as, themetext(null, indent, \"array syntax\", \"]\"));\n                return as;\n            });\n        }\n\n        // object\n        if (isempty(json, options.property_list))\n            return themetext(null, my_indent, \"object syntax\", \"{}\");\n\n        return disclosure(\"{\", options.collapse_msg(Object.keys(json).length), \"}\", \"object\", function () {\n            var os = append(span(\"object\"), themetext(\"object syntax\", \"{\", null, \"\\n\"));\n            for (var k in json) var last = k;\n            var keys = options.property_list || Object.keys(json);\n            if (options.sort_objects)\n                keys = keys.sort();\n            for (var i in keys) {\n                var k = keys[i];\n                if (!(k in json)) continue;\n                append(os, themetext(null, indent+\"    \", \"key\", '\"'+k+'\"', \"object syntax\", ': '),\n                       _renderjson(options.replacer.call(json, k, json[k]), indent+\"    \", true, show_level-1, options),\n                       k != last ? themetext(\"syntax\", \",\") : [],\n                       text(\"\\n\"));\n            }\n            append(os, themetext(null, indent, \"object syntax\", \"}\"));\n            return os;\n        });\n    }\n\n    var renderjson = function renderjson(json)\n    {\n        var options = new Object(renderjson.options);\n        options.replacer = typeof(options.replacer) == \"function\" ? options.replacer : function(k,v) { return v; };\n        var pre = append(document.createElement(\"pre\"), _renderjson(json, \"\", false, options.show_to_level, options));\n        pre.className = \"renderjson\";\n        return pre;\n    }\n    renderjson.set_icons = function(show, hide) { renderjson.options.show = show;\n                                                  renderjson.options.hide = hide;\n                                                  return renderjson; };\n    renderjson.set_show_to_level = function(level) { renderjson.options.show_to_level = typeof level == \"string\" &&\n                                                                                        level.toLowerCase() === \"all\" ? Number.MAX_VALUE\n                                                                                                                      : level;\n                                                     return renderjson; };\n    renderjson.set_max_string_length = function(length) { renderjson.options.max_string_length = typeof length == \"string\" &&\n                                                                                                 length.toLowerCase() === \"none\" ? Number.MAX_VALUE\n                                                                                                                                 : length;\n                                                          return renderjson; };\n    renderjson.set_sort_objects = function(sort_bool) { renderjson.options.sort_objects = sort_bool;\n                                                        return renderjson; };\n    renderjson.set_replacer = function(replacer) { renderjson.options.replacer = replacer;\n                                                   return renderjson; };\n    renderjson.set_collapse_msg = function(collapse_msg) { renderjson.options.collapse_msg = collapse_msg;\n                                                           return renderjson; };\n    renderjson.set_property_list = function(prop_list) { renderjson.options.property_list = prop_list;\n                                                         return renderjson; };\n    // Backwards compatiblity. Use set_show_to_level() for new code.\n    renderjson.set_show_by_default = function(show) { renderjson.options.show_to_level = show ? Number.MAX_VALUE : 0;\n                                                      return renderjson; };\n    renderjson.options = {};\n    renderjson.set_icons('⊕', '⊖');\n    renderjson.set_show_by_default(false);\n    renderjson.set_sort_objects(false);\n    renderjson.set_max_string_length(\"none\");\n    renderjson.set_replacer(void 0);\n    renderjson.set_property_list(void 0);\n    renderjson.set_collapse_msg(function(len) { return len + \" item\" + (len==1 ? \"\" : \"s\") })\n    return renderjson;\n})();\n\nif (define) define({renderjson:renderjson})\nelse (module||{}).exports = (window||{}).renderjson = renderjson;\n\nvar json = JSON.parse(data.series[0]?.fields[0].values.get(0));\nrenderjson.set_show_to_level(5);\nhtmlNode.getElementById('container_data').appendChild(renderjson(json));\n",
+        "onInitOnResize": false,
+        "onRender": "",
+        "overflow": "visible",
+        "panelupdateOnMount": true,
+        "reduceOptions": {
+          "calcs": []
+        },
+        "renderOnMount": true,
+        "rootCSS": "",
+        "useGrafanaScrollbar": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "${DS_POSTGRESQL}"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT jsonb_pretty(full_ret::jsonb) AS full_ret\nFROM salt_returns\nWHERE jid = '$JID'",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "JOB CACHE DATA",
+      "type": "gapit-htmlgraphics-panel"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "hide": 2,
+        "label": "",
+        "name": "JID",
+        "query": "${VAR_JID}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_JID}",
+          "text": "${VAR_JID}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_JID}",
+            "text": "${VAR_JID}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "hide": 2,
+        "name": "Name",
+        "query": "${VAR_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_NAME}",
+          "text": "${VAR_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_NAME}",
+            "text": "${VAR_NAME}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "hide": 2,
+        "name": "traceID",
+        "query": "${VAR_TRACEID}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_TRACEID}",
+          "text": "${VAR_TRACEID}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_TRACEID}",
+            "text": "${VAR_TRACEID}",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Job view",
+  "uid": "r2SoS8iVkk",
+  "version": 34,
+  "weekStart": ""
+}

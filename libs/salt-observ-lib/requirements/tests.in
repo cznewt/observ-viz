@@ -1,0 +1,12 @@
+nox==2022.1.7
+pytest==7.0.1
+pytest-cov==4.0.0
+pytest-salt-factories==0.912.2
+pytest-flask==1.2.0
+
+# extra pins for older Python versions
+coverage[toml]==6.2
+exceptiongroup==1.0.4; python_version >= "3.7"
+filelock==3.4.1
+platformdirs==2.4.0
+tomli==1.2.3
