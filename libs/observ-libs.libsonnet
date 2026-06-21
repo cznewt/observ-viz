@@ -38,6 +38,12 @@
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',
   },
+  networking: {
+    wireguard: import 'libs/wg-easy-observ-lib/main.libsonnet',
+  },
+  applications: {
+    syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
+  },
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',
