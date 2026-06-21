@@ -43,7 +43,7 @@ local variable =
         if std.length(optionalTabs) > 0 then
           layout.tabs.new()
           + layout.tabs.withTabs(
-            [layout.tabs.tab(config.dashboardTitle, rowsLayout)]
+            [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
             + [layout.tabs.tab(t.title, gridOf(t)) + layout.showIfData() for t in optionalTabs]
           )
         else rowsLayout,
@@ -57,6 +57,10 @@ local variable =
         // default multi/includeAll vars to "All" so the initial view isn't pinned
         // to the first (often sparse) value.
         local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
+        // varMulti=false makes the cascading vars single-select (one cluster / one
+        // node) — needed for per-node correlation (e.g. proxmox node=~"$instance").
+        local varMulti = if std.objectHas(config, 'varMulti') then config.varMulti else true;
+        local multiMods = if varMulti then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {};
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
@@ -76,11 +80,11 @@ local variable =
             varLabels[i],
             varMetric + '{' + std.join(', ', ['job=~"$job"'] + [varLabels[j] + '=~"$' + varLabels[j] + '"' for j in std.range(0, i - 1)]) + '}'
           )
-          + variable.query.withMulti()
-          + variable.query.withIncludeAll()
-          + allCurrent
+          + multiMods
           for i in std.range(0, std.length(varLabels) - 1)
-        ])
+        ] + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
+          variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
+        ] else []))
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
 

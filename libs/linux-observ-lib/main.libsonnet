@@ -8,6 +8,7 @@
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
 
 {
   new(config={}):
@@ -23,6 +24,13 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // proxmox-exporter metrics key on the PVE node name; assume it matches the
       // node_exporter instance (override if your PVE node names differ).
       proxmoxSelector: 'node=~"$instance"',
+      // per-node board: single cluster/instance + a "System" primary tab, plus
+      // optional exporter tabs (docker/batocera/services/logs) that show via showIfData.
+      primaryTabTitle: 'System',
+      varMulti: false,
+      lokiDatasource: true,
+      dockerSelector: 'instance=~"$instance", container!=""',
+      logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       // runbook base; runbook_url = runbookBase + lower(name) -> the official
@@ -40,6 +48,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     // proxmox VE signals use the proxmox node correlation selector.
     local psig(name, expr, unit, legend='{{node}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.proxmoxSelector).withLegendFormat(legend);
+    // docker/container signals (cadvisor, by node) + loki journal signals.
+    local dsig(name, expr, unit, legend='{{pod}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.dockerSelector).withLegendFormat(legend);
+    local lsig(name, expr) =
+      signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
 
     local signals = {
       // --- CPU / Load ---
@@ -101,9 +114,36 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       pveUp: psig('PVE node up', 'proxmox_node_up{%(queriesSelector)s}', 'short'),
       pveCpusAllocated: psig('vCPUs allocated', 'proxmox_node_cpus_allocated{%(queriesSelector)s}', 'short'),
       pveMemAllocated: psig('Memory allocated', 'proxmox_node_memory_allocated_bytes{%(queriesSelector)s}', 'bytes'),
+
+      // --- Docker / containers (optional tab; cadvisor, by node) ---
+      dockerContainers: dsig('Containers', 'count(container_last_seen{%(queriesSelector)s})', 'short', 'containers'),
+      dockerCpu: dsig('Container CPU', 'sum by (pod) (rate(container_cpu_usage_seconds_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
+      dockerMem: dsig('Container memory', 'sum by (pod) (container_memory_usage_bytes{%(queriesSelector)s})', 'bytes'),
+
+      // --- Services (optional tab; node_exporter systemd collector) ---
+      servicesActive: sig('Active services', 'sum(node_systemd_unit_state{state="active",%(queriesSelector)s})', 'short', 'active'),
+      servicesFailed: sig('Failed services', 'node_systemd_unit_state{state="failed",%(queriesSelector)s} == 1', 'short', '{{name}}'),
+
+      // --- Batocera (optional tab; gated on node_os_info id=batocera) ---
+      batoceraOs: signal.new('Batocera', 'prometheus', cfg.datasource, 'node_os_info{id=~"batocera", instance=~"$instance"}', 'short').withLegendFormat('{{instance}} {{pretty_name}}'),
+      batoceraTemp: signal.new('Batocera temperature', 'prometheus', cfg.datasource, 'node_hwmon_temp_celsius{instance=~"$instance"} and on (instance) node_os_info{id=~"batocera"}', 'celsius').withLegendFormat('{{instance}} / {{chip}}'),
+
+      // --- Logs (optional tab; loki journal for the node) ---
+      nodeLogs: lsig('Journal', '{%(queriesSelector)s}'),
     };
 
     pack.build(cfg, signals, [
+      {
+        title: 'System',
+        width: 12,
+        height: 7,
+        elements: {
+          uptime: signals.uptime.asStat('Uptime'),
+          contextSwitches: signals.contextSwitches.asTimeSeries('Context switches'),
+          fdUsed: signals.fdUsed.asTimeSeries('File descriptors used'),
+          conntrackUsed: signals.conntrackUsed.asTimeSeries('Conntrack used'),
+        },
+      },
       {
         title: 'CPU / Load',
         width: 12,
@@ -176,17 +216,6 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         elements: {
           tempCelsius: signals.tempCelsius.asTimeSeries('Hardware temperature'),
           thermalZone: signals.thermalZone.asTimeSeries('Thermal zone'),
-        },
-      },
-      {
-        title: 'System',
-        width: 12,
-        height: 7,
-        elements: {
-          uptime: signals.uptime.asStat('Uptime'),
-          contextSwitches: signals.contextSwitches.asTimeSeries('Context switches'),
-          fdUsed: signals.fdUsed.asTimeSeries('File descriptors used'),
-          conntrackUsed: signals.conntrackUsed.asTimeSeries('Conntrack used'),
         },
       },
     ], [
@@ -546,7 +575,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         signals.netTxExclLo.asRecordingRule('instance:node_network_transmit_bytes_excluding_lo:rate5m', cfg.ruleSelector),
       ]),
     ], [
-      // optional Proxmox VE tab — renders only on PVE hosts (showIfData).
+      // optional exporter tabs — each renders only when its queries return data.
       {
         title: 'Proxmox',
         width: 8,
@@ -555,6 +584,42 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
           pveUp: signals.pveUp.asStat('PVE node up'),
           pveCpusAllocated: signals.pveCpusAllocated.asStat('vCPUs allocated'),
           pveMemAllocated: signals.pveMemAllocated.asStat('Memory allocated'),
+        },
+      },
+      {
+        title: 'Docker',
+        width: 12,
+        height: 7,
+        elements: {
+          dockerContainers: signals.dockerContainers.asStat('Containers'),
+          dockerCpu: signals.dockerCpu.asTimeSeries('Container CPU'),
+          dockerMem: signals.dockerMem.asTimeSeries('Container memory'),
+        },
+      },
+      {
+        title: 'Batocera',
+        width: 12,
+        height: 7,
+        elements: {
+          batoceraOs: signals.batoceraOs.asTable('Batocera OS'),
+          batoceraTemp: signals.batoceraTemp.asTimeSeries('Temperature'),
+        },
+      },
+      {
+        title: 'Services',
+        width: 12,
+        height: 7,
+        elements: {
+          servicesActive: signals.servicesActive.asStat('Active services'),
+          servicesFailed: signals.servicesFailed.asTable('Failed services'),
+        },
+      },
+      {
+        title: 'Logs',
+        width: 24,
+        height: 10,
+        elements: {
+          journal: panel.logs.new('Journal') + panel.logs.withTargets([signals.nodeLogs.asTarget()]),
         },
       },
     ]),
