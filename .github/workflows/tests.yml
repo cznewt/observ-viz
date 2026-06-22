@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: install
+        run: pip install --quiet jsonnet jsonschema
+      - name: compile examples (+ structural checks)
+        run: python3 tests/compile.py
+      - name: render observ-lib packs
+        run: python3 tests/packs.py
+      - name: build common presets + variation boards
+        run: python3 tests/panels.py
+      - name: schema-validate boards (foundation-sdk v2beta1)
+        run: python3 tests/test_schema.py
+      - name: generator parity + schema cross-check
+        run: PYTHONPATH=generator python3 -m observ_viz_gen --check
