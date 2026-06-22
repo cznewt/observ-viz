@@ -20,7 +20,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux node | 8 | 8 |
+| `system.linux` | Linux node | 51 | 45 |
 | `system.docker` | Docker containers | 7 | 7 |
 | `system.windows` | Windows host | 7 | 7 |
 

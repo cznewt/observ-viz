@@ -9,7 +9,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`runtimes.python`](runtimes-python.md) | 6 | 4 | 2 |
 | [`runtimes.dotnet`](runtimes-dotnet.md) | 8 | 4 | 2 |
 | [`runtimes.nodejs`](runtimes-nodejs.md) | 8 | 4 | 2 |
-| [`system.linux`](system-linux.md) | 43 | 26 | 7 |
+| [`system.linux`](system-linux.md) | 51 | 26 | 7 |
 | [`system.docker`](system-docker.md) | 7 | 4 | 2 |
 | [`system.windows`](system-windows.md) | 7 | 4 | 2 |
 | [`kubernetes.pod`](kubernetes-pod.md) | 6 | 4 | 2 |
@@ -25,4 +25,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`monitoring.tempo`](monitoring-tempo.md) | 9 | 4 | 2 |
 | [`monitoring.pyroscope`](monitoring-pyroscope.md) | 8 | 4 | 2 |
 | [`collector.alloy`](collector-alloy.md) | 10 | 4 | 2 |
+| [`networking.wireguard`](networking-wireguard.md) | 6 | 1 | 0 |
+| [`networking.unifi`](networking-unifi.md) | 16 | 2 | 0 |
+| [`applications.syncthing`](applications-syncthing.md) | 7 | 1 | 0 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |
