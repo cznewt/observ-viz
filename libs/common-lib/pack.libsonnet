@@ -36,6 +36,23 @@ local variable =
         layout.rows.new()
         + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) for grp in groups]),
 
+      // optional tabs gate on an explicit marker metric (a hidden presence
+      // variable) when given, else on whether their own queries return data.
+      local slug(s) = std.asciiLower(std.strReplace(s, ' ', '_')),
+      local presenceVars = [
+        variable.query.new('has_' + slug(t.title))
+        + variable.query.withLabelValues(t.presence.label, t.presence.query)
+        + variable.query.withHide(2)
+        for t in optionalTabs
+        if std.objectHas(t, 'presence')
+      ],
+      local tabGate(t) =
+        if std.objectHas(t, 'presence') then
+          layout.withConditionalRendering(layout.conditional.group([
+            layout.conditional.variable('has_' + slug(t.title), '', 'notEquals'),
+          ]))
+        else layout.showIfData(),
+
       // default: one RowsLayout row per group. With optionalTabs, wrap the main
       // board in a primary tab and append each optional tab with showIfData(), so
       // it renders only on targets that actually have those metrics.
@@ -44,7 +61,7 @@ local variable =
           layout.tabs.new()
           + layout.tabs.withTabs(
             [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
-            + [layout.tabs.tab(t.title, gridOf(t)) + layout.showIfData() for t in optionalTabs]
+            + [layout.tabs.tab(t.title, gridOf(t)) + tabGate(t) for t in optionalTabs]
           )
         else rowsLayout,
 
@@ -84,7 +101,7 @@ local variable =
           for i in std.range(0, std.length(varLabels) - 1)
         ] + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
           variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
-        ] else []))
+        ] else []) + presenceVars)
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
 

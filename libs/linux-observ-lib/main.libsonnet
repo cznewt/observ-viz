@@ -580,6 +580,7 @@ local panel = import 'custom/panel.libsonnet';
         title: 'Proxmox',
         width: 8,
         height: 6,
+        presence: { query: 'proxmox_node_up{node=~"$instance"}', label: 'node' },
         elements: {
           pveUp: signals.pveUp.asStat('PVE node up'),
           pveCpusAllocated: signals.pveCpusAllocated.asStat('vCPUs allocated'),
@@ -590,6 +591,7 @@ local panel = import 'custom/panel.libsonnet';
         title: 'Docker',
         width: 12,
         height: 7,
+        presence: { query: 'container_last_seen{instance=~"$instance"}', label: 'instance' },
         elements: {
           dockerContainers: signals.dockerContainers.asStat('Containers'),
           dockerCpu: signals.dockerCpu.asTimeSeries('Container CPU'),
@@ -600,6 +602,7 @@ local panel = import 'custom/panel.libsonnet';
         title: 'Batocera',
         width: 12,
         height: 7,
+        presence: { query: 'node_os_info{id=~"batocera", instance=~"$instance"}', label: 'instance' },
         elements: {
           batoceraOs: signals.batoceraOs.asTable('Batocera OS'),
           batoceraTemp: signals.batoceraTemp.asTimeSeries('Temperature'),
@@ -609,6 +612,7 @@ local panel = import 'custom/panel.libsonnet';
         title: 'Services',
         width: 12,
         height: 7,
+        presence: { query: 'node_systemd_unit_state{instance=~"$instance"}', label: 'instance' },
         elements: {
           servicesActive: signals.servicesActive.asStat('Active services'),
           servicesFailed: signals.servicesFailed.asTable('Failed services'),
