@@ -30,6 +30,10 @@ packs:
 panels:
     python3 tests/panels.py
 
+# validate every rendered board against the foundation-sdk v2beta1 JSON schema
+schema:
+    python3 tests/test_schema.py
+
 # regenerate docs/panels.md from the chart definitions
 docs-panels:
     python3 scripts/gen-panel-docs.py
@@ -39,7 +43,7 @@ docs-libs:
     python3 scripts/gen-libs-docs.py
 
 # full local test suite
-test: compile packs panels
+test: compile packs panels schema gen-check
 
 # format all jsonnet (docker)
 fmt:
