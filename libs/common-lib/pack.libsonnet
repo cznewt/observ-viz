@@ -42,7 +42,7 @@ local variable =
       local presenceVars = [
         variable.query.new('has_' + slug(t.title))
         + variable.query.withLabelValues(t.presence.label, t.presence.query)
-        + variable.query.withHide(2)
+        + variable.query.withHide('hideVariable')
         for t in optionalTabs
         if std.objectHas(t, 'presence')
       ],
