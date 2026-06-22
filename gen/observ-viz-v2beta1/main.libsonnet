@@ -7,4 +7,6 @@
   panel: import 'gen/observ-viz-v2beta1/panel/main.libsonnet',
   query: import 'gen/observ-viz-v2beta1/query/main.libsonnet',
   variable: import 'gen/observ-viz-v2beta1/variable/main.libsonnet',
+  layout: import 'gen/observ-viz-v2beta1/layout/main.libsonnet',
+  conditionalRendering: import 'gen/observ-viz-v2beta1/conditionalRendering.libsonnet',
 }

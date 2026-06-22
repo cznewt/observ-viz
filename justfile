@@ -14,6 +14,14 @@ default:
 compile:
     python3 tests/compile.py
 
+# regenerate gen/ from the declarative manifest (generator/observ_viz_gen)
+gen:
+    cd generator && python3 -m observ_viz_gen all
+
+# verify gen/ matches the manifest without writing (CI guard)
+gen-check:
+    cd generator && python3 -m observ_viz_gen all --check
+
 # render every pack end-to-end (no docker)
 packs:
     python3 tests/packs.py

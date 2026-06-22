@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "observ-viz-gen"
+version = "0.1.0"
+description = "Code generator for the observ-viz v2beta1 libsonnet builders"
+readme = "schemas/SOURCES.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+authors = [{ name = "observ-viz" }]
+
+[project.scripts]
+observ-viz-gen = "observ_viz_gen.cli:main"
+
+[tool.setuptools]
+packages = ["observ_viz_gen"]
