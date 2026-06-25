@@ -32,6 +32,10 @@ local defaults = {
 local selBrace(c) = '{' + c.selector + '}';
 local selComma(c) = if c.selector != '' then ', ' + c.selector else '';
 local clComma(c) = c.selector + (if c.selector != '' then ', ' else '') + c.clusterLabel + '=~"$cluster"';
+// require a non-empty cluster label (+ base selector) so rows without a cluster
+// label are dropped: clBrace -> whole selector, clAnd -> trailing matcher.
+local clBrace(c) = '{' + c.clusterLabel + '=~".+"' + selComma(c) + '}';
+local clAnd(c) = ', ' + c.clusterLabel + '=~".+"' + selComma(c);
 
 local tq(c, expr) =
   query.prometheus.new(c.datasource, expr)
@@ -92,12 +96,12 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       local clusters =
         panel.table.new('Clusters')
         + panel.table.withTargets([
-          tq(c, 'count(' + c.nodeMetric + selBrace(c) + ') by (' + c.clusterLabel + ')'),
-          tq(c, 'count(ALERTS{alertstate="firing"' + selComma(c) + '}) by (' + c.clusterLabel + ')'),
-          tq(c, 'count(node_cpu_seconds_total{mode="idle"' + selComma(c) + '}) by (' + c.clusterLabel + ')'),
-          tq(c, 'sum(node_memory_MemTotal_bytes' + selBrace(c) + ') by (' + c.clusterLabel + ')'),
-          tq(c, '(1 - avg by (' + c.clusterLabel + ') (rate(node_cpu_seconds_total{mode="idle"' + selComma(c) + '}[5m]))) * 100'),
-          tq(c, '(1 - sum by (' + c.clusterLabel + ') (node_memory_MemAvailable_bytes' + selBrace(c) + ') / sum by (' + c.clusterLabel + ') (node_memory_MemTotal_bytes' + selBrace(c) + ')) * 100'),
+          tq(c, 'count(' + c.nodeMetric + clBrace(c) + ') by (' + c.clusterLabel + ')'),
+          tq(c, 'count(ALERTS{alertstate="firing"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
+          tq(c, 'count(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
+          tq(c, 'sum(node_memory_MemTotal_bytes' + clBrace(c) + ') by (' + c.clusterLabel + ')'),
+          tq(c, '(1 - avg by (' + c.clusterLabel + ') (rate(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}[5m]))) * 100'),
+          tq(c, '(1 - sum by (' + c.clusterLabel + ') (node_memory_MemAvailable_bytes' + clBrace(c) + ') / sum by (' + c.clusterLabel + ') (node_memory_MemTotal_bytes' + clBrace(c) + ')) * 100'),
         ])
         + panel.table.withTransformations([
           { id: 'labelsToFields' },
