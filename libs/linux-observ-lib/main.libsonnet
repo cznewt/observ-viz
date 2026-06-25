@@ -124,7 +124,7 @@ local panel = import 'custom/panel.libsonnet';
       servicesActive: sig('Active services', 'sum(node_systemd_unit_state{state="active",%(queriesSelector)s})', 'short', 'active'),
       servicesFailed: sig('Failed services', 'node_systemd_unit_state{state="failed",%(queriesSelector)s} == 1', 'short', '{{name}}'),
 
-      // --- Batocera (optional tab; gated on node_os_info id=batocera) ---
+      // --- Batocera (optional tab; gated on presence of batocera_* metrics) ---
       batoceraOs: signal.new('Batocera', 'prometheus', cfg.datasource, 'node_os_info{id=~"batocera", instance=~"$instance"}', 'short').withLegendFormat('{{instance}} {{pretty_name}}'),
       batoceraTemp: signal.new('Batocera temperature', 'prometheus', cfg.datasource, 'node_hwmon_temp_celsius{instance=~"$instance"} and on (instance) node_os_info{id=~"batocera"}', 'celsius').withLegendFormat('{{instance}} / {{chip}}'),
 
@@ -602,7 +602,9 @@ local panel = import 'custom/panel.libsonnet';
         title: 'Batocera',
         width: 12,
         height: 7,
-        presence: { query: 'node_os_info{id=~"batocera", instance=~"$instance"}', label: 'instance' },
+        // gate on the presence of any batocera_*-prefixed series for this node
+        // (a custom batocera exporter), not just the node_os_info OS marker.
+        presence: { query: '{__name__=~"batocera_.+", instance=~"$instance"}', label: 'instance' },
         elements: {
           batoceraOs: signals.batoceraOs.asTable('Batocera OS'),
           batoceraTemp: signals.batoceraTemp.asTimeSeries('Temperature'),
