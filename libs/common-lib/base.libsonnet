@@ -9,6 +9,7 @@ local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
@@ -84,16 +85,36 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
   home:: {
     new(config={}):
       local c = defaults + config;
+      // Clusters table: nodes + total CPUs + cluster CPU% gauge + total memory +
+      // cluster Mem% gauge + firing alerts, joined per cluster (count node_cpu idle
+      // series = cores; sum MemTotal = RAM bytes; CPU%/Mem% aggregated like the
+      // per-node Servers table, but averaged/summed across the whole cluster).
       local clusters =
-        countTable(
-          c, 'Clusters', c.clusterLabel,
-          'count(' + c.nodeMetric + selBrace(c) + ') by (' + c.clusterLabel + ')',
-          'count(ALERTS{alertstate="firing"' + selComma(c) + '}) by (' + c.clusterLabel + ')',
-          ['Cluster', 'Nodes', 'Alerts']
-        )
+        panel.table.new('Clusters')
+        + panel.table.withTargets([
+          tq(c, 'count(' + c.nodeMetric + selBrace(c) + ') by (' + c.clusterLabel + ')'),
+          tq(c, 'count(ALERTS{alertstate="firing"' + selComma(c) + '}) by (' + c.clusterLabel + ')'),
+          tq(c, 'count(node_cpu_seconds_total{mode="idle"' + selComma(c) + '}) by (' + c.clusterLabel + ')'),
+          tq(c, 'sum(node_memory_MemTotal_bytes' + selBrace(c) + ') by (' + c.clusterLabel + ')'),
+          tq(c, '(1 - avg by (' + c.clusterLabel + ') (rate(node_cpu_seconds_total{mode="idle"' + selComma(c) + '}[5m]))) * 100'),
+          tq(c, '(1 - sum by (' + c.clusterLabel + ') (node_memory_MemAvailable_bytes' + selBrace(c) + ') / sum by (' + c.clusterLabel + ') (node_memory_MemTotal_bytes' + selBrace(c) + ')) * 100'),
+        ])
+        + panel.table.withTransformations([
+          { id: 'labelsToFields' },
+          { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F'] } } },
+          { id: 'seriesToColumns', options: { byField: c.clusterLabel } },
+          { id: 'organize', options: {
+            indexByName: { [c.clusterLabel]: 0, 'Value #A': 1, 'Value #C': 2, 'Value #E': 3, 'Value #D': 4, 'Value #F': 5, 'Value #B': 6 },
+            renameByName: { [c.clusterLabel]: 'Cluster', 'Value #A': 'Nodes', 'Value #B': 'Alerts', 'Value #C': 'CPUs', 'Value #D': 'Memory', 'Value #E': 'CPU %', 'Value #F': 'Mem %' },
+          } },
+        ])
         + panel.table.withOverrides([
           ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidCluster + '?var-cluster=${__value.raw}' }] }]),
+          ov('Memory', [{ id: 'unit', value: 'bytes' }]),
+          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
         ]);
+      // env-wide firing/pending alert instances (its own tab).
+      local alerts = alertPanels.list('Alerts', groupMode='custom', groupBy=[c.clusterLabel]);
       local apps =
         countTable(
           c, 'Applications', c.appLabel,
@@ -101,11 +122,16 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+"' + selComma(c) + '}) by (' + c.appLabel + ')',
           ['App', 'Workloads', 'Alerts']
         );
+      // tables split into their own tabs (Clusters first), Clusters full height.
+      local dash = board(c.uidHome, 'Base / Home', c.tags + ['env-level'], [dsVar], [
+        { title: 'Clusters', width: 24, height: 24, elements: { clusters: clusters } },
+        { title: 'Alerts', width: 24, height: 24, elements: { alerts: alerts } },
+        { title: 'Applications', width: 24, height: 12, elements: { apps: apps } },
+      ], asTabs=true);
       {
         config: c,
-        grafana: { dashboard: board(c.uidHome, 'Base / Home', c.tags + ['env-level'], [dsVar], [
-          { title: 'Overview', width: 12, height: 12, elements: { clusters: clusters, apps: apps } },
-        ]) },
+        // expose a dashboards map (uid-keyed) so render-lib can render base boards.
+        grafana: { dashboard: dash, dashboards: { [c.uidHome + '.json']: dash } },
       },
   },
 
@@ -145,12 +171,13 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
           ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
         ]);
+      local dash = board(c.uidCluster, 'Base / Cluster', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
+        { title: 'Servers', width: 24, height: 12, elements: { linuxServers: linuxServers } },
+        { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
+      ], asTabs=true);
       {
         config: c,
-        grafana: { dashboard: board(c.uidCluster, 'Base / Cluster', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
-          { title: 'Servers', width: 24, height: 12, elements: { linuxServers: linuxServers } },
-          { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
-        ], asTabs=true) },
+        grafana: { dashboard: dash, dashboards: { [c.uidCluster + '.json']: dash } },
       },
   },
 
