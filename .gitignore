@@ -1,6 +1,9 @@
 vendor/
 build/
 *.tmp.json
+# local deploy creds (Grafana endpoint + token) — see justfile dotenv-load
+.env
+.env.*
 # python
 __pycache__/
 *.pyc

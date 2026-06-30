@@ -1,7 +1,12 @@
 // observ-viz Windows host pack (hand-written).
-// Signals from windows_exporter, emitted as native v2 elements. Usage:
+// Comprehensive windows_exporter host observability: system/uptime, CPU, memory
+// (total/used/free/committed + used ratio), logical disk (free + used ratio),
+// network, and service states, plus windows_exporter alerting/recording rules.
+// Emitted as native v2 elements. Usage:
 //   g.libs.system.windows.new({ selector: 'job="windows"' }).grafana.dashboard
 //   g.libs.system.windows.new({...}).grafana.elements   // reuse in a board
+// Per-node board (cluster -> instance cascading selection), mirroring system.linux,
+// so the Base / Cluster Servers table can drill straight to a single host.
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
@@ -13,35 +18,63 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTitle: 'Windows host',
       dashboardTags: ['windows'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // cluster -> instance cascading selection (vars built by pack.build), so a
+      // per-node drill (e.g. from Base / Cluster) lands on a single host.
+      selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'windows_os_info',
+      varLabels: ['cluster', 'instance'],
+      varMulti: false,
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    // default legend carries the instance; per-dimension signals (disk/net/service)
+    // append their volume/nic/name label.
+    local sig(name, expr, unit, legend='{{instance}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
 
     local signals = {
-      cpuBusy: sig(
-        'CPU utilisation',
-        '1 - avg without(core)(rate(windows_cpu_time_total{mode="idle",%(queriesSelector)s}[$__rate_interval]))',
-        'percentunit'
-      ),
+      // --- System ---
+      uptime: sig('Uptime', 'time() - windows_system_system_up_time{%(queriesSelector)s}', 's'),
+
+      // --- CPU ---
+      cpuBusy: sig('CPU utilisation', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
+
+      // --- Memory ---
+      memTotal: sig('Physical memory total', 'windows_os_visible_memory_bytes{%(queriesSelector)s}', 'bytes'),
       memFree: sig('Physical memory free', 'windows_os_physical_memory_free_bytes{%(queriesSelector)s}', 'bytes'),
+      memUsed: sig('Physical memory used', 'windows_os_visible_memory_bytes{%(queriesSelector)s} - windows_os_physical_memory_free_bytes{%(queriesSelector)s}', 'bytes'),
+      memUsedRatio: sig('Memory used ratio', '1 - windows_os_physical_memory_free_bytes{%(queriesSelector)s} / windows_os_visible_memory_bytes{%(queriesSelector)s}', 'percentunit'),
       memCommitted: sig('Committed memory', 'windows_memory_committed_bytes{%(queriesSelector)s}', 'bytes'),
-      diskFree: sig('Logical disk free', 'windows_logical_disk_free_bytes{%(queriesSelector)s}', 'bytes'),
-      serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short'),
-      netRecv: sig('Network received', 'rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
-      netSent: sig('Network sent', 'rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])', 'Bps'),
+
+      // --- Disk ---
+      diskFree: sig('Logical disk free', 'windows_logical_disk_free_bytes{%(queriesSelector)s}', 'bytes', '{{instance}} / {{volume}}'),
+      diskUsedRatio: sig('Logical disk used ratio', '1 - windows_logical_disk_free_bytes{%(queriesSelector)s} / windows_logical_disk_size_bytes{%(queriesSelector)s}', 'percentunit', '{{instance}} / {{volume}}'),
+
+      // --- Network ---
+      netRecv: sig('Network received', 'rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
+      netSent: sig('Network sent', 'rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
+
+      // --- Services ---
+      serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
     };
 
     pack.build(cfg, signals, [
       {
+        title: 'System',
+        width: 8,
+        height: 6,
+        elements: {
+          uptime: signals.uptime.asStat('Uptime'),
+          cpu: signals.cpuBusy.asStat('CPU utilisation'),
+          memRatio: signals.memUsedRatio.asStat('Memory used ratio'),
+        },
+      },
+      {
         title: 'CPU',
-        width: 12,
+        width: 24,
         height: 7,
         elements: {
           cpuBusy: signals.cpuBusy.asTimeSeries('CPU utilisation'),
@@ -52,7 +85,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         width: 12,
         height: 7,
         elements: {
+          memUsed: signals.memUsed.asTimeSeries('Physical memory used'),
           memFree: signals.memFree.asTimeSeries('Physical memory free'),
+          memTotal: signals.memTotal.asTimeSeries('Physical memory total'),
           memCommitted: signals.memCommitted.asTimeSeries('Committed memory'),
         },
       },
@@ -61,8 +96,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         width: 12,
         height: 7,
         elements: {
+          diskUsedRatio: signals.diskUsedRatio.asTable('Logical disk used ratio'),
           diskFree: signals.diskFree.asTimeSeries('Logical disk free'),
-          serviceState: signals.serviceState.asTable('Service states'),
         },
       },
       {
@@ -72,6 +107,14 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         elements: {
           netRecv: signals.netRecv.asTimeSeries('Network received'),
           netSent: signals.netSent.asTimeSeries('Network sent'),
+        },
+      },
+      {
+        title: 'Services',
+        width: 24,
+        height: 8,
+        elements: {
+          serviceState: signals.serviceState.asTable('Service states'),
         },
       },
     ], [
@@ -88,10 +131,10 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
           { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
-          'WindowsHighCommittedMemory',
-          'windows_memory_committed_bytes' + rsBrace + ' > 1e10',
+          'WindowsHighMemory',
+          '1 - windows_os_physical_memory_free_bytes' + rsBrace + ' / windows_os_visible_memory_bytes' + rsBrace + ' > 0.9',
           '15m', 'warning', {},
-          { summary: 'Committed memory on {{ $labels.instance }} is above 10GB.' }
+          { summary: 'Physical memory on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'WindowsLowDiskSpace',
@@ -104,6 +147,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // recording rule group
       alert.rule.group('windows.rules', [
         alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
+        alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_os_physical_memory_free_bytes' + rsBrace + ' / windows_os_visible_memory_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
       ]),
     ]),

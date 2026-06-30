@@ -2,6 +2,10 @@
 # Local steps use the Python _jsonnet binding; full render/vendor/lint use the
 # monitor-tools docker image (jb, jsonnet, jrsonnet, grizzly, dashboard-linter).
 
+# auto-load .env (gitignored) so deploy/load recipes pick up GRAFANA_URL / GRAFANA_TOKEN.
+# missing .env is a no-op (CI etc.), so this is safe everywhere.
+set dotenv-load := true
+
 IMAGE := "ghcr.io/cznewt/monitor-tools:latest"
 
 # list targets

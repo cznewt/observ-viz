@@ -20,11 +20,13 @@ local defaults = {
   nodeLabel: 'instance',
   appLabel: 'app_part_of',  // workload grouping label (e.g. app_part_of / app / namespace)
   nodeMetric: 'node_uname_info',  // an info metric every node_exporter exports (node count + release)
+  windowsNodeMetric: 'windows_os_info',  // windows_exporter OS info (node count + version)
   selector: '',  // optional base label filter, e.g. 'job=~".+"'
   datasource: '${datasource}',
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
-  nodeUid: 'observ-viz-linux',  // per-node board for node drill-through
+  nodeUid: 'observ-viz-linux',  // per-node board for Linux node drill-through
+  windowsNodeUid: 'observ-viz-windows',  // per-node board for Windows node drill-through
   tags: ['base'],
 };
 
@@ -96,12 +98,12 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       local clusters =
         panel.table.new('Clusters')
         + panel.table.withTargets([
-          tq(c, 'count(' + c.nodeMetric + clBrace(c) + ') by (' + c.clusterLabel + ')'),
+          tq(c, 'count((' + c.nodeMetric + clBrace(c) + ') or (' + c.windowsNodeMetric + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
           tq(c, 'count(ALERTS{alertstate="firing"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
-          tq(c, 'count(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
-          tq(c, 'sum(node_memory_MemTotal_bytes' + clBrace(c) + ') by (' + c.clusterLabel + ')'),
-          tq(c, '(1 - avg by (' + c.clusterLabel + ') (rate(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}[5m]))) * 100'),
-          tq(c, '(1 - sum by (' + c.clusterLabel + ') (node_memory_MemAvailable_bytes' + clBrace(c) + ') / sum by (' + c.clusterLabel + ') (node_memory_MemTotal_bytes' + clBrace(c) + ')) * 100'),
+          tq(c, 'count((node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}) or (windows_cpu_time_total{mode="idle"' + clAnd(c) + '})) by (' + c.clusterLabel + ')'),
+          tq(c, 'sum((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_os_visible_memory_bytes' + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
+          tq(c, '(1 - avg by (' + c.clusterLabel + ') ((rate(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}[5m])) or (rate(windows_cpu_time_total{mode="idle"' + clAnd(c) + '}[5m])))) * 100'),
+          tq(c, '(1 - sum by (' + c.clusterLabel + ') ((node_memory_MemAvailable_bytes' + clBrace(c) + ') or (windows_os_physical_memory_free_bytes' + clBrace(c) + ')) / sum by (' + c.clusterLabel + ') ((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_os_visible_memory_bytes' + clBrace(c) + '))) * 100'),
         ])
         + panel.table.withTransformations([
           { id: 'labelsToFields' },
@@ -143,7 +145,9 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
     new(config={}):
       local c = defaults + config;
       local nl = c.nodeLabel;
+      local cl = c.clusterLabel;
       local s = clComma(c);  // base selector + cluster=~"$cluster"
+      local byNode = 'by (' + cl + ', ' + nl + ')';
       local workload =
         countTable(
           c, 'Workload', c.appLabel,
@@ -151,32 +155,46 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           ['App', 'Pods', 'Alerts']
         );
-      local linuxServers =
+      // Servers table unions Linux (node_exporter) and Windows (windows_exporter)
+      // hosts: every target is `<linux> or <windows>`, joined per node into one
+      // row. Windows labels are normalised into the shared columns via
+      // label_replace (product -> pretty_name OS, version -> release Release).
+      // A hidden `board` column (the per-node board uid, stamped per OS family)
+      // drives the Node drill link so Windows rows open the Windows board and
+      // Linux rows the Linux board. Requires Windows hosts to carry the cluster
+      // label, like Linux hosts (else they drop out of this per-cluster board).
+      local servers =
         panel.table.new('Servers')
         + panel.table.withTargets([
-          tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', release) (' + c.nodeMetric + '{' + s + '})'),
-          tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100'),
-          tq(c, '(1 - avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemAvailable_bytes{' + s + '}) / avg by (' + c.clusterLabel + ', ' + nl + ') (node_memory_MemTotal_bytes{' + s + '})) * 100'),
-          tq(c, 'max by (' + c.clusterLabel + ', ' + nl + ') (time() - node_boot_time_seconds{' + s + '})'),
-          tq(c, 'sum by (' + c.clusterLabel + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})'),
+          tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
+              + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))'),
+          tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
+              + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
+          tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
+              + '((1 - avg ' + byNode + ' (windows_os_physical_memory_free_bytes{' + s + '}) / avg ' + byNode + ' (windows_os_visible_memory_bytes{' + s + '})) * 100)'),
+          tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
+              + '(max ' + byNode + ' (time() - windows_system_system_up_time{' + s + '}))'),
+          tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
+              + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))'),
         ])
         + panel.table.withTransformations([
           { id: 'labelsToFields' },
-          { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, nl, 'pretty_name', 'release', 'Value #B', 'Value #C', 'Value #D'] } } },
+          { id: 'filterFieldsByName', options: { include: { names: [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D'] } } },
           { id: 'seriesToColumns', options: { byField: nl } },
           { id: 'organize', options: {
-            excludeByName: { 'Value #A': true, 'Value #E': true, [c.clusterLabel + ' 2']: true, [c.clusterLabel + ' 3']: true, [c.clusterLabel + ' 4']: true, [c.clusterLabel + ' 5']: true },
-            indexByName: { [c.clusterLabel]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6 },
-            renameByName: { [c.clusterLabel]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime' },
+            excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
+            indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
+            renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
           } },
         ])
         + panel.table.withOverrides([
-          ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.nodeUid + '?var-cluster=${cluster}&var-instance=${__value.raw}' }] }]),
+          ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${cluster}&var-instance=${__value.raw}' }] }]),
           ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
           ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+          ov('Board', [{ id: 'custom.hidden', value: true }]),
         ]);
       local dash = board(c.uidCluster, 'Base / Cluster', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
-        { title: 'Servers', width: 24, height: 12, elements: { linuxServers: linuxServers } },
+        { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
       {
