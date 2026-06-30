@@ -11,7 +11,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`runtimes.nodejs`](runtimes-nodejs.md) | 8 | 4 | 2 |
 | [`system.linux`](system-linux.md) | 51 | 26 | 7 |
 | [`system.docker`](system-docker.md) | 7 | 4 | 2 |
-| [`system.windows`](system-windows.md) | 12 | 4 | 3 |
+| [`system.windows`](system-windows.md) | 13 | 4 | 3 |
 | [`kubernetes.pod`](kubernetes-pod.md) | 6 | 4 | 2 |
 | [`kubernetes.cadvisor`](kubernetes-cadvisor.md) | 8 | 4 | 2 |
 | [`databases.sql.postgres`](databases-sql-postgres.md) | 6 | 4 | 2 |

@@ -37,16 +37,17 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
 
     local signals = {
       // --- System ---
-      uptime: sig('Uptime', 'time() - windows_system_system_up_time{%(queriesSelector)s}', 's'),
+      uptime: sig('Uptime', 'time() - windows_system_boot_time_timestamp{%(queriesSelector)s}', 's'),
 
       // --- CPU ---
       cpuBusy: sig('CPU utilisation', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
 
-      // --- Memory ---
-      memTotal: sig('Physical memory total', 'windows_os_visible_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      memFree: sig('Physical memory free', 'windows_os_physical_memory_free_bytes{%(queriesSelector)s}', 'bytes'),
-      memUsed: sig('Physical memory used', 'windows_os_visible_memory_bytes{%(queriesSelector)s} - windows_os_physical_memory_free_bytes{%(queriesSelector)s}', 'bytes'),
-      memUsedRatio: sig('Memory used ratio', '1 - windows_os_physical_memory_free_bytes{%(queriesSelector)s} / windows_os_visible_memory_bytes{%(queriesSelector)s}', 'percentunit'),
+      // --- Memory (windows_exporter memory collector; `available` ~ Linux MemAvailable) ---
+      memTotal: sig('Physical memory total', 'windows_memory_physical_total_bytes{%(queriesSelector)s}', 'bytes'),
+      memAvailable: sig('Physical memory available', 'windows_memory_available_bytes{%(queriesSelector)s}', 'bytes'),
+      memFree: sig('Physical memory free', 'windows_memory_physical_free_bytes{%(queriesSelector)s}', 'bytes'),
+      memUsed: sig('Physical memory used', 'windows_memory_physical_total_bytes{%(queriesSelector)s} - windows_memory_available_bytes{%(queriesSelector)s}', 'bytes'),
+      memUsedRatio: sig('Memory used ratio', '1 - windows_memory_available_bytes{%(queriesSelector)s} / windows_memory_physical_total_bytes{%(queriesSelector)s}', 'percentunit'),
       memCommitted: sig('Committed memory', 'windows_memory_committed_bytes{%(queriesSelector)s}', 'bytes'),
 
       // --- Disk ---
@@ -86,6 +87,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         height: 7,
         elements: {
           memUsed: signals.memUsed.asTimeSeries('Physical memory used'),
+          memAvailable: signals.memAvailable.asTimeSeries('Physical memory available'),
           memFree: signals.memFree.asTimeSeries('Physical memory free'),
           memTotal: signals.memTotal.asTimeSeries('Physical memory total'),
           memCommitted: signals.memCommitted.asTimeSeries('Committed memory'),
@@ -132,7 +134,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         ),
         alert.rule.new(
           'WindowsHighMemory',
-          '1 - windows_os_physical_memory_free_bytes' + rsBrace + ' / windows_os_visible_memory_bytes' + rsBrace + ' > 0.9',
+          '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace + ' > 0.9',
           '15m', 'warning', {},
           { summary: 'Physical memory on {{ $labels.instance }} is above 90%.' }
         ),
@@ -147,7 +149,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // recording rule group
       alert.rule.group('windows.rules', [
         alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
-        alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_os_physical_memory_free_bytes' + rsBrace + ' / windows_os_visible_memory_bytes' + rsBrace),
+        alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
       ]),
     ]),

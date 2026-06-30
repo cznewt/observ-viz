@@ -1,6 +1,6 @@
 # Windows host  (`g.libs.system.windows`)
 
-Dashboard uid `observ-viz-windows` · 12 signals · 4 alerts · 3 recording rules.
+Dashboard uid `observ-viz-windows` · 13 signals · 4 alerts · 3 recording rules.
 
 ## Signals
 
@@ -11,21 +11,22 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `cpuBusy` | percentunit | `1 - avg without (core) (rate(windows_cpu_time_total{mode="idle",job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | `instance:windows_cpu_utilisation:rate5m` |
 | `diskFree` | bytes | `windows_logical_disk_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `diskUsedRatio` | percentunit | `1 - windows_logical_disk_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} / windows_logical_disk_size_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `memAvailable` | bytes | `windows_memory_available_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `memCommitted` | bytes | `windows_memory_committed_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
-| `memFree` | bytes | `windows_os_physical_memory_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
-| `memTotal` | bytes | `windows_os_visible_memory_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
-| `memUsed` | bytes | `windows_os_visible_memory_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} - windows_os_physical_memory_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
-| `memUsedRatio` | percentunit | `1 - windows_os_physical_memory_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} / windows_os_visible_memory_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | `instance:windows_memory_utilisation:ratio` |
+| `memFree` | bytes | `windows_memory_physical_free_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `memTotal` | bytes | `windows_memory_physical_total_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `memUsed` | bytes | `windows_memory_physical_total_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} - windows_memory_available_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `memUsedRatio` | percentunit | `1 - windows_memory_available_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} / windows_memory_physical_total_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | `instance:windows_memory_utilisation:ratio` |
 | `netRecv` | Bps | `rate(windows_net_bytes_received_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `netSent` | Bps | `rate(windows_net_bytes_sent_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `serviceState` | short | `windows_service_state{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
-| `uptime` | s | `time() - windows_system_system_up_time{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `uptime` | s | `time() - windows_system_boot_time_timestamp{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 
 ## Dashboard
 
 - **System** — `cpu`, `memRatio`, `uptime`
 - **CPU** — `cpuBusy`
-- **Memory** — `memCommitted`, `memFree`, `memTotal`, `memUsed`
+- **Memory** — `memAvailable`, `memCommitted`, `memFree`, `memTotal`, `memUsed`
 - **Disk** — `diskFree`, `diskUsedRatio`
 - **Network** — `netRecv`, `netSent`
 - **Services** — `serviceState`
@@ -44,5 +45,5 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | Record | Expression |
 |--------|------------|
 | `instance:windows_cpu_utilisation:rate5m` | `1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"}[5m]))` |
-| `instance:windows_memory_utilisation:ratio` | `1 - windows_os_physical_memory_free_bytes / windows_os_visible_memory_bytes` |
+| `instance:windows_memory_utilisation:ratio` | `1 - windows_memory_available_bytes / windows_memory_physical_total_bytes` |
 | `instance:windows_logical_disk_free_bytes:sum` | `sum without (volume) (windows_logical_disk_free_bytes)` |

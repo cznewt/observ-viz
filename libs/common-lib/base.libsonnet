@@ -101,9 +101,9 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           tq(c, 'count((' + c.nodeMetric + clBrace(c) + ') or (' + c.windowsNodeMetric + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
           tq(c, 'count(ALERTS{alertstate="firing"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
           tq(c, 'count((node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}) or (windows_cpu_time_total{mode="idle"' + clAnd(c) + '})) by (' + c.clusterLabel + ')'),
-          tq(c, 'sum((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_os_visible_memory_bytes' + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
+          tq(c, 'sum((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_memory_physical_total_bytes' + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
           tq(c, '(1 - avg by (' + c.clusterLabel + ') ((rate(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}[5m])) or (rate(windows_cpu_time_total{mode="idle"' + clAnd(c) + '}[5m])))) * 100'),
-          tq(c, '(1 - sum by (' + c.clusterLabel + ') ((node_memory_MemAvailable_bytes' + clBrace(c) + ') or (windows_os_physical_memory_free_bytes' + clBrace(c) + ')) / sum by (' + c.clusterLabel + ') ((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_os_visible_memory_bytes' + clBrace(c) + '))) * 100'),
+          tq(c, '(1 - sum by (' + c.clusterLabel + ') ((node_memory_MemAvailable_bytes' + clBrace(c) + ') or (windows_memory_available_bytes' + clBrace(c) + ')) / sum by (' + c.clusterLabel + ') ((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_memory_physical_total_bytes' + clBrace(c) + '))) * 100'),
         ])
         + panel.table.withTransformations([
           { id: 'labelsToFields' },
@@ -171,9 +171,9 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
               + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
           tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
-              + '((1 - avg ' + byNode + ' (windows_os_physical_memory_free_bytes{' + s + '}) / avg ' + byNode + ' (windows_os_visible_memory_bytes{' + s + '})) * 100)'),
+              + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)'),
           tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
-              + '(max ' + byNode + ' (time() - windows_system_system_up_time{' + s + '}))'),
+              + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))'),
           tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
               + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))'),
         ])
