@@ -1,6 +1,6 @@
 # Windows host  (`g.libs.system.windows`)
 
-Dashboard uid `observ-viz-windows` · 13 signals · 4 alerts · 3 recording rules.
+Dashboard uid `node-windows` · 13 signals · 4 alerts · 3 recording rules.
 
 ## Signals
 

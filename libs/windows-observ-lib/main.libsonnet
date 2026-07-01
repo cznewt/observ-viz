@@ -14,7 +14,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'observ-viz-windows',
+      uid: 'node-windows',
       dashboardTitle: 'Windows host',
       dashboardTags: ['windows'],
       datasource: '${datasource}',

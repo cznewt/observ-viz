@@ -25,8 +25,8 @@ local defaults = {
   datasource: '${datasource}',
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
-  nodeUid: 'observ-viz-linux',  // per-node board for Linux node drill-through
-  windowsNodeUid: 'observ-viz-windows',  // per-node board for Windows node drill-through
+  nodeUid: 'node-linux',  // per-node board for Linux node drill-through
+  windowsNodeUid: 'node-windows',  // per-node board for Windows node drill-through
   tags: ['base'],
 };
 

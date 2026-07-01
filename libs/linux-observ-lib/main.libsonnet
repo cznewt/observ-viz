@@ -13,7 +13,7 @@ local panel = import 'custom/panel.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'observ-viz-linux',
+      uid: 'node-linux',
       dashboardTitle: 'Linux node',
       dashboardTags: ['linux', 'node'],
       datasource: '${datasource}',
