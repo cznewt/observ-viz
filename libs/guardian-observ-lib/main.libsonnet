@@ -35,6 +35,16 @@ local panel = import 'custom/panel.libsonnet';
     local lsig(name, expr) =
       signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
 
+    // click a kid's row (user column) -> the per-kid drill-down board, pre-filled.
+    local kidUid = cfg.uid + '-kid';
+    local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+    local kidLink = panel.table.withOverrides([
+      ov('^user$', [{ id: 'links', value: [{
+        title: 'Drill into ${__value.raw}',
+        url: '/d/' + kidUid + '?var-instance=${__data.fields["instance"]}&var-user=${__value.raw}&${datasource:queryparam}',
+      }] }]),
+    ]);
+
     local signals = {
       // KNOW — inventory
       appsTotal: sig('Installed apps', 'sum by (instance)(guardian_installed_apps{%(queriesSelector)s})', 'short'),
@@ -85,8 +95,8 @@ local panel = import 'custom/panel.libsonnet';
         width: 12,
         height: 8,
         elements: {
-          foregroundByApp: signals.foregroundByApp.asTable('Screen time today by app (focused)'),
-          runningByApp: signals.runningByApp.asTable('Running time today by app'),
+          foregroundByApp: signals.foregroundByApp.asTable('Screen time today by app (focused)') + kidLink,
+          runningByApp: signals.runningByApp.asTable('Running time today by app') + kidLink,
         },
       },
       {
@@ -95,7 +105,7 @@ local panel = import 'custom/panel.libsonnet';
         height: 7,
         elements: {
           appsRunning: signals.appsRunning.asTimeSeries('Apps running at once, per user'),
-          foregroundNow: signals.foregroundNow.asTable('Currently on screen (app = 1)'),
+          foregroundNow: signals.foregroundNow.asTable('Currently on screen (app = 1)') + kidLink,
         },
       },
       {
@@ -136,7 +146,7 @@ local panel = import 'custom/panel.libsonnet';
 
     // ── per-kid drill-down board (instance -> user cascade, activity only) ──
     local kidCfg = cfg {
-      uid: cfg.uid + '-kid',
+      uid: kidUid,
       dashboardTitle: 'Guardian — kid drill-down',
       dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown'],
       // guardian_app_running_seconds carries job + instance + user, so it drives

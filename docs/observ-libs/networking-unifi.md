@@ -28,8 +28,9 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 ## Dashboard
 
 - **Overview** — `clientCount`, `controllerUptime`, `deviceCount`, `updateAvailable`
+- **Clients** — `clientsTable`
 - **Devices** — `deviceCpu`, `deviceLoad`, `deviceMem`, `deviceRx`, `deviceTemp`, `deviceTx`, `uplinkLatency`
-- **Clients** — `clientRssi`, `clientRx`, `clientSatisfaction`, `clientSignal`, `clientTx`
+- **Client trends** — `clientRssi`, `clientRx`, `clientSatisfaction`, `clientSignal`, `clientTx`
 
 ## Alerts
 

@@ -6,6 +6,8 @@
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
+local query = import 'custom/query.libsonnet';
 
 {
   new(config={}):
@@ -47,6 +49,38 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       clientSatisfaction: sig('Client satisfaction', 'unpoller_client_satisfaction_ratio{%(queriesSelector)s}', 'percentunit'),
     };
 
+    // Per-client overview table (like the UniFi client list): identity from the
+    // uptime series, other metrics summed by mac so only the join key survives (no
+    // duplicate label columns). Wired clients simply have blank RSSI/SSID.
+    local tq(expr) =
+      query.prometheus.new(cfg.datasource, expr)
+      + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
+    local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+    local clientsTable =
+      panel.table.new('Clients')
+      + panel.table.withTargets([
+        tq('unpoller_client_uptime_seconds{' + cfg.selector + '}'),                     // A: identity + Uptime
+        tq('sum by (mac) (unpoller_client_receive_bytes_total{' + cfg.selector + '})'),   // B: Down (rx)
+        tq('sum by (mac) (unpoller_client_transmit_bytes_total{' + cfg.selector + '})'),  // C: Up (tx)
+        tq('sum by (mac) (unpoller_client_rssi_db{' + cfg.selector + '})'),               // D: RSSI (wireless)
+        tq('sum by (mac) (unpoller_client_satisfaction_ratio{' + cfg.selector + '})'),    // E: Satisfaction
+      ])
+      + panel.table.withTransformations([
+        { id: 'labelsToFields' },
+        { id: 'filterFieldsByName', options: { include: { names: ['mac', 'name', 'ip', 'ap_name', 'essid', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E'] } } },
+        { id: 'seriesToColumns', options: { byField: 'mac' } },
+        { id: 'organize', options: {
+          excludeByName: { mac: true },
+          indexByName: { name: 0, ip: 1, ap_name: 2, essid: 3, 'Value #D': 4, 'Value #E': 5, 'Value #B': 6, 'Value #C': 7, 'Value #A': 8 },
+          renameByName: { name: 'Client', ip: 'IP', ap_name: 'AP', essid: 'SSID', 'Value #A': 'Uptime', 'Value #B': 'Down', 'Value #C': 'Up', 'Value #D': 'RSSI', 'Value #E': 'Satisfaction' },
+        } },
+      ])
+      + panel.table.withOverrides([
+        ov('Down|Up', [{ id: 'unit', value: 'bytes' }]),
+        ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
+        ov('Satisfaction', [{ id: 'unit', value: 'percentunit' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 1 }]),
+      ]);
+
     pack.build(cfg, signals, [
       {
         title: 'Overview',
@@ -57,6 +91,14 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
           clientCount: signals.clientCount.asStat('Clients'),
           controllerUptime: signals.controllerUptime.asStat('Controller uptime'),
           updateAvailable: signals.updateAvailable.asStat('Update available'),
+        },
+      },
+      {
+        title: 'Clients',
+        width: 24,
+        height: 9,
+        elements: {
+          clientsTable: clientsTable,
         },
       },
       {
@@ -74,7 +116,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         },
       },
       {
-        title: 'Clients',
+        title: 'Client trends',
         width: 12,
         height: 7,
         elements: {
