@@ -50,11 +50,11 @@ local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
 
 local dsVar =
   variable.datasource.new('datasource', 'prometheus') + variable.datasource.withLabel('Data source');
-local clusterVar(c) =
+local clusterVar(c, multi=true) =
   variable.query.new('cluster')
   + variable.query.withLabel('Cluster')
   + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
-  + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
+  + (if multi then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {});
 
 // rows-of-grids (or tabs) layout (same shape as pack.build)
 local gridOf(g) =
@@ -227,7 +227,7 @@ local serversTable(c) =
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
       local storageUsed = tsig('Storage used', '(sum ' + byNode + ' (node_filesystem_size_bytes{fstype!="", %(queriesSelector)s} - node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_size_bytes{%(queriesSelector)s} - windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage used');
       local storageFree = tsig('Storage free', '(sum ' + byNode + ' (node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage free');
-      local dash = board(c.uidClusterDetail, 'Cluster detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false)], [
         { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c) } },
         { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
         { title: 'Storage', width: 12, height: 8, elements: { storageUsed: storageUsed, storageFree: storageFree } },
