@@ -52,20 +52,26 @@ local query = import 'custom/query.libsonnet';
         tq('wireguard_received_bytes{' + cfg.selector + '}'),         // A: In
         tq('wireguard_sent_bytes{' + cfg.selector + '}'),             // B: Out
         tq('wireguard_latest_handshake_seconds{' + cfg.selector + '}'),  // C: Handshake age
+        // D: Active = handshaked within the last 3m (0/1 per peer; 0=never/stale)
+        tq('sum by (name) ((wireguard_latest_handshake_seconds{' + cfg.selector + '} > bool 0) * (wireguard_latest_handshake_seconds{' + cfg.selector + '} < bool 180))'),
       ])
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
-        { id: 'filterFieldsByName', options: { include: { names: ['name', 'ipv4Address', 'enabled', 'Value #A', 'Value #B', 'Value #C'] } } },
+        { id: 'filterFieldsByName', options: { include: { names: ['name', 'ipv4Address', 'enabled', 'Value #A', 'Value #B', 'Value #C', 'Value #D'] } } },
         { id: 'seriesToColumns', options: { byField: 'name' } },
         { id: 'organize', options: {
           excludeByName: { 'ipv4Address 2': true, 'ipv4Address 3': true, 'enabled 2': true, 'enabled 3': true },
-          indexByName: { name: 0, ipv4Address: 1, 'Value #A': 2, 'Value #B': 3, 'Value #C': 4, enabled: 5 },
-          renameByName: { name: 'Peer', ipv4Address: 'Address', enabled: 'Enabled', 'Value #A': 'In', 'Value #B': 'Out', 'Value #C': 'Handshake' },
+          indexByName: { name: 0, ipv4Address: 1, 'Value #D': 2, 'Value #A': 3, 'Value #B': 4, 'Value #C': 5, enabled: 6 },
+          renameByName: { name: 'Peer', ipv4Address: 'Address', enabled: 'Enabled', 'Value #A': 'In', 'Value #B': 'Out', 'Value #C': 'Handshake', 'Value #D': 'Active' },
         } },
       ])
       + panel.table.withOverrides([
         ov('In|Out', [{ id: 'unit', value: 'bytes' }]),
         ov('Handshake', [{ id: 'unit', value: 's' }]),
+        ov('Active', [
+          { id: 'mappings', value: [{ type: 'value', options: { '1': { text: 'true', color: 'green', index: 0 }, '0': { text: 'false', color: 'red', index: 1 } } }] },
+          { id: 'custom.cellOptions', value: { type: 'color-text' } },
+        ]),
       ]);
 
     pack.build(cfg, signals, [
