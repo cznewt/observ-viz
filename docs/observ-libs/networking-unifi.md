@@ -1,4 +1,4 @@
-# UniFi (UnPoller)  (`g.libs.networking.unifi`)
+# Unifi Controller  (`g.libs.networking.unifi`)
 
 Dashboard uid `observ-viz-unifi` · 16 signals · 2 alerts · 0 recording rules.
 
