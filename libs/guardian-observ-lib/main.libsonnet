@@ -67,6 +67,9 @@ local panel = import 'custom/panel.libsonnet';
       // KNOW — self-integrity + Windows Security events
       integrity: sig('Integrity', 'min by (instance, check)(guardian_integrity{%(queriesSelector)s})', 'short'),
       securityEvents: signal.new('Security events', 'loki', '${loki_datasource}', '{%(queriesSelector)s}', 'short').filteringSelector('service_name="windows", channel="Security"'),
+      // KNOW — input odometer (count only, never which keys)
+      inputKeys: sig('Keystrokes', 'sum by (instance, user)(guardian_input_keys{%(queriesSelector)s})', 'short'),
+      inputClicks: sig('Mouse clicks', 'sum by (instance, user)(guardian_input_clicks{%(queriesSelector)s})', 'short'),
       // CONTROL — usage (empty until the control half is enabled)
       usageMinutes: sig('Daily usage', 'max by (instance, user)(guardian_usage_minutes{%(queriesSelector)s})', 'm'),
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
@@ -153,6 +156,15 @@ local panel = import 'custom/panel.libsonnet';
         },
       },
       {
+        title: 'Input odometer — count only (not a keylogger)',
+        width: 12,
+        height: 7,
+        elements: {
+          keys: signals.inputKeys.asTable('Keystrokes today') + kidLink,
+          clicks: signals.inputClicks.asTable('Mouse clicks today') + kidLink,
+        },
+      },
+      {
         title: 'Usage — CONTROL half (empty unless enabled)',
         width: 12,
         height: 7,
@@ -207,6 +219,10 @@ local panel = import 'custom/panel.libsonnet';
       kActive: ksig('Active', 'max(guardian_active_seconds{%(queriesSelector)s})', 's'),
       kWebByDomain: ksig('Top domains', 'sum by (domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
       kWebTitles: klsig('Web visits', '{%(queriesSelector)s} | json | kind="web" | user="$user" | line_format "{{.domain}} / {{.title}}"'),
+      kInputKeys: ksig('Keystrokes', 'sum(guardian_input_keys{%(queriesSelector)s})', 'short'),
+      kInputClicks: ksig('Clicks', 'sum(guardian_input_clicks{%(queriesSelector)s})', 'short'),
+      kInputScroll: ksig('Scroll', 'sum(guardian_input_scroll{%(queriesSelector)s})', 'short'),
+      kInputMouse: ksig('Mouse travel', 'sum(guardian_input_mouse_pixels{%(queriesSelector)s})', 'short'),
     };
     local kid = pack.build(kidCfg, kidSignals, [
       {
@@ -218,6 +234,17 @@ local panel = import 'custom/panel.libsonnet';
           total: kidSignals.kTotal.asStat('Screen time today'),
           active: kidSignals.kActive.asStat('Active today'),
           focus: kidSignals.kFocusNow.asTable('On screen now'),
+        },
+      },
+      {
+        title: 'Input odometer (this kid) — count only',
+        width: 6,
+        height: 6,
+        elements: {
+          keys: kidSignals.kInputKeys.asStat('Keystrokes today'),
+          clicks: kidSignals.kInputClicks.asStat('Clicks today'),
+          scroll: kidSignals.kInputScroll.asStat('Scroll today'),
+          mouse: kidSignals.kInputMouse.asStat('Mouse travel (px)'),
         },
       },
       {
