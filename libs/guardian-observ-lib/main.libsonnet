@@ -58,6 +58,15 @@ local panel = import 'custom/panel.libsonnet';
       foregroundNow: sig('On screen now', 'max by (instance, user, app)(guardian_foreground_app{%(queriesSelector)s})', 'short'),
       // KNOW — on-screen window titles (the actual content) via Loki
       foregroundTitles: lsig('On screen — window titles', '{%(queriesSelector)s} | json | kind="activity" | foreground_title != "" | line_format "{{.user}} / {{.foreground_app}} / {{.foreground_title}} ({{.running_count}} running)"'),
+      // KNOW — web/browsing
+      webByDomain: sig('Top domains', 'sum by (instance, user, domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
+      webTitles: lsig('Web visits', '{%(queriesSelector)s} | json | kind="web" | line_format "{{.user}} / {{.domain}} / {{.title}}"'),
+      // KNOW — attention (idle vs active)
+      activeSeconds: sig('Active', 'max by (instance, user)(guardian_active_seconds{%(queriesSelector)s})', 's'),
+      idleSeconds: sig('Idle', 'max by (instance, user)(guardian_idle_seconds{%(queriesSelector)s})', 's'),
+      // KNOW — self-integrity + Windows Security events
+      integrity: sig('Integrity', 'min by (instance, check)(guardian_integrity{%(queriesSelector)s})', 'short'),
+      securityEvents: signal.new('Security events', 'loki', '${loki_datasource}', '{%(queriesSelector)s}', 'short').filteringSelector('service_name="windows", channel="Security"'),
       // CONTROL — usage (empty until the control half is enabled)
       usageMinutes: sig('Daily usage', 'max by (instance, user)(guardian_usage_minutes{%(queriesSelector)s})', 'm'),
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
@@ -117,6 +126,33 @@ local panel = import 'custom/panel.libsonnet';
         },
       },
       {
+        title: 'Web / browsing',
+        width: 12,
+        height: 8,
+        elements: {
+          domains: signals.webByDomain.asTable('Top domains today (visits)') + kidLink,
+          visits: panel.logs.new('Recent web visits (URL / title)') + panel.logs.withTargets([signals.webTitles.asTarget()]),
+        },
+      },
+      {
+        title: 'Attention (active vs idle)',
+        width: 12,
+        height: 7,
+        elements: {
+          active: signals.activeSeconds.asTimeSeries('Active seconds today'),
+          idle: signals.idleSeconds.asTimeSeries('Idle seconds today'),
+        },
+      },
+      {
+        title: 'Security & circumvention',
+        width: 12,
+        height: 8,
+        elements: {
+          integrity: signals.integrity.asTable('Guardian integrity (1 = ok)'),
+          events: panel.logs.new('Windows Security events (logons / admin / clock / log-cleared)') + panel.logs.withTargets([signals.securityEvents.asTarget()]),
+        },
+      },
+      {
         title: 'Usage — CONTROL half (empty unless enabled)',
         width: 12,
         height: 7,
@@ -168,6 +204,9 @@ local panel = import 'custom/panel.libsonnet';
       kRuntimeByApp: ksig('Runtime by app', 'sum by (app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
       kFocusNow: ksig('On screen now', 'guardian_foreground_app{%(queriesSelector)s} == 1', 'short'),
       kTitles: klsig('On-screen titles', '{%(queriesSelector)s} | json | kind="activity" | user="$user" | line_format "{{.foreground_app}} - {{.foreground_title}}"'),
+      kActive: ksig('Active', 'max(guardian_active_seconds{%(queriesSelector)s})', 's'),
+      kWebByDomain: ksig('Top domains', 'sum by (domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
+      kWebTitles: klsig('Web visits', '{%(queriesSelector)s} | json | kind="web" | user="$user" | line_format "{{.domain}} / {{.title}}"'),
     };
     local kid = pack.build(kidCfg, kidSignals, [
       {
@@ -177,6 +216,7 @@ local panel = import 'custom/panel.libsonnet';
         elements: {
           apps: kidSignals.kApps.asStat('Apps running now'),
           total: kidSignals.kTotal.asStat('Screen time today'),
+          active: kidSignals.kActive.asStat('Active today'),
           focus: kidSignals.kFocusNow.asTable('On screen now'),
         },
       },
@@ -196,6 +236,15 @@ local panel = import 'custom/panel.libsonnet';
         elements: {
           screen: kidSignals.kScreenByApp.asTimeSeries('Foreground seconds by app'),
           apps: kidSignals.kApps.asTimeSeries('Apps running at once'),
+        },
+      },
+      {
+        title: 'Web / browsing (this kid)',
+        width: 12,
+        height: 8,
+        elements: {
+          domains: kidSignals.kWebByDomain.asTable('Top domains today'),
+          visits: panel.logs.new('Recent web visits') + panel.logs.withTargets([kidSignals.kWebTitles.asTarget()]),
         },
       },
       {
