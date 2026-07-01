@@ -9,6 +9,7 @@ local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
@@ -25,6 +26,7 @@ local defaults = {
   datasource: '${datasource}',
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
+  uidClusterDetail: 'cluster-detail',
   nodeUid: 'compute-linux-overview',  // per-node board for Linux node drill-through
   windowsNodeUid: 'compute-windows-overview',  // per-node board for Windows node drill-through
   tags: ['base'],
@@ -83,6 +85,43 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       indexByName: { [byLabel]: 0, 'Value #A': 1, 'Value #B': 2 },
       renameByName: { [byLabel]: names[0], 'Value #A': names[1], 'Value #B': names[2] },
     } },
+  ]);
+
+// per-node Servers table: Linux (node_exporter) + Windows (windows_exporter) unioned,
+// per-OS drill link via a hidden board column. Shared by cluster + clusterDetail.
+local serversTable(c) =
+  local nl = c.nodeLabel;
+  local cl = c.clusterLabel;
+  local s = clComma(c);
+  local byNode = 'by (' + cl + ', ' + nl + ')';
+  panel.table.new('Servers')
+  + panel.table.withTargets([
+    tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
+        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))'),
+    tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
+        + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
+    tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
+        + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)'),
+    tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
+        + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))'),
+    tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
+        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D'] } } },
+    { id: 'seriesToColumns', options: { byField: nl } },
+    { id: 'organize', options: {
+      excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
+      indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
+      renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
+    } },
+  ])
+  + panel.table.withOverrides([
+    ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }]),
+    ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
+    ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Board', [{ id: 'custom.hidden', value: true }]),
   ]);
 
 {
@@ -155,44 +194,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           ['App', 'Pods', 'Alerts']
         );
-      // Servers table unions Linux (node_exporter) and Windows (windows_exporter)
-      // hosts: every target is `<linux> or <windows>`, joined per node into one
-      // row. Windows labels are normalised into the shared columns via
-      // label_replace (product -> pretty_name OS, version -> release Release).
-      // A hidden `board` column (the per-node board uid, stamped per OS family)
-      // drives the Node drill link so Windows rows open the Windows board and
-      // Linux rows the Linux board. Requires Windows hosts to carry the cluster
-      // label, like Linux hosts (else they drop out of this per-cluster board).
-      local servers =
-        panel.table.new('Servers')
-        + panel.table.withTargets([
-          tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
-              + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))'),
-          tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
-              + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
-          tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
-              + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)'),
-          tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
-              + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))'),
-          tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
-              + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))'),
-        ])
-        + panel.table.withTransformations([
-          { id: 'labelsToFields' },
-          { id: 'filterFieldsByName', options: { include: { names: [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D'] } } },
-          { id: 'seriesToColumns', options: { byField: nl } },
-          { id: 'organize', options: {
-            excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-            indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
-            renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
-          } },
-        ])
-        + panel.table.withOverrides([
-          ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }]),
-          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
-          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-          ov('Board', [{ id: 'custom.hidden', value: true }]),
-        ]);
+      local servers = serversTable(c);
       local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
@@ -200,6 +202,40 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidCluster + '.json']: dash } },
+      },
+  },
+
+  // per-cluster detail: a tabbed copy of the overview split into Compute / Network /
+  // Storage / Applications (Linux + Windows unioned, cluster-scoped).
+  clusterDetail:: {
+    new(config={}):
+      local c = defaults + config;
+      local cl = c.clusterLabel;
+      local nl = c.nodeLabel;
+      local s = clComma(c);
+      local byNode = 'by (' + cl + ', ' + nl + ')';
+      local tsig(name, expr, unit) =
+        signal.new(name, 'prometheus', c.datasource, expr, unit).filteringSelector(s).withLegendFormat('{{' + nl + '}}');
+      local workload =
+        countTable(
+          c, 'Workload', c.appLabel,
+          'count(up{' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
+          'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
+          ['App', 'Pods', 'Alerts']
+        );
+      local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
+      local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
+      local storageUsed = tsig('Storage used', '(sum ' + byNode + ' (node_filesystem_size_bytes{fstype!="", %(queriesSelector)s} - node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_size_bytes{%(queriesSelector)s} - windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage used');
+      local storageFree = tsig('Storage free', '(sum ' + byNode + ' (node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage free');
+      local dash = board(c.uidClusterDetail, 'Cluster detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
+        { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c) } },
+        { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
+        { title: 'Storage', width: 12, height: 8, elements: { storageUsed: storageUsed, storageFree: storageFree } },
+        { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
+      ], asTabs=true);
+      {
+        config: c,
+        grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },
       },
   },
 

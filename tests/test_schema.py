@@ -54,7 +54,7 @@ LIBS = [
     "collector.alloy",
     "networking.wireguard", "networking.unifi",
     "applications.syncthing",
-    "base.home", "base.cluster",
+    "base.home", "base.cluster", "base.clusterDetail",
 ]
 
 
