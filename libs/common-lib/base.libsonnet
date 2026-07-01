@@ -188,7 +188,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           } },
         ])
         + panel.table.withOverrides([
-          ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${cluster}&var-instance=${__value.raw}' }] }]),
+          ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }]),
           ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
           ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
           ov('Board', [{ id: 'custom.hidden', value: true }]),
