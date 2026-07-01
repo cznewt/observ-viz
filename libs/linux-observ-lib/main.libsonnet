@@ -13,7 +13,7 @@ local panel = import 'custom/panel.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'node-linux',
+      uid: 'compute-linux-overview',
       dashboardTitle: 'Linux Server',
       dashboardTags: ['linux', 'node'],
       datasource: '${datasource}',

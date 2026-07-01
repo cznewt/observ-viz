@@ -1,6 +1,6 @@
 # Linux Server  (`g.libs.system.linux`)
 
-Dashboard uid `node-linux` · 51 signals · 26 alerts · 7 recording rules.
+Dashboard uid `compute-linux-overview` · 51 signals · 26 alerts · 7 recording rules.
 
 ## Signals
 

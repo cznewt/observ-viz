@@ -25,8 +25,8 @@ local defaults = {
   datasource: '${datasource}',
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
-  nodeUid: 'node-linux',  // per-node board for Linux node drill-through
-  windowsNodeUid: 'node-windows',  // per-node board for Windows node drill-through
+  nodeUid: 'compute-linux-overview',  // per-node board for Linux node drill-through
+  windowsNodeUid: 'compute-windows-overview',  // per-node board for Windows node drill-through
   tags: ['base'],
 };
 

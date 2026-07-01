@@ -1,6 +1,6 @@
 # Windows Server  (`g.libs.system.windows`)
 
-Dashboard uid `node-windows` · 16 signals · 4 alerts · 3 recording rules.
+Dashboard uid `compute-windows-overview` · 16 signals · 4 alerts · 3 recording rules.
 
 ## Signals
 

@@ -15,7 +15,7 @@ local panel = import 'custom/panel.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'node-windows',
+      uid: 'compute-windows-overview',
       dashboardTitle: 'Windows Server',
       dashboardTags: ['windows'],
       datasource: '${datasource}',
