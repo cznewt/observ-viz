@@ -14,7 +14,7 @@ local panel = import 'custom/panel.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'node-linux',
-      dashboardTitle: 'Linux node',
+      dashboardTitle: 'Linux Server',
       dashboardTags: ['linux', 'node'],
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build).

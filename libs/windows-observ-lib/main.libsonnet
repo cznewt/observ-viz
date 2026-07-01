@@ -15,7 +15,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'node-windows',
-      dashboardTitle: 'Windows host',
+      dashboardTitle: 'Windows Server',
       dashboardTags: ['windows'],
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build), so a

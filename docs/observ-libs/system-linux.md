@@ -1,4 +1,4 @@
-# Linux node  (`g.libs.system.linux`)
+# Linux Server  (`g.libs.system.linux`)
 
 Dashboard uid `node-linux` · 51 signals · 26 alerts · 7 recording rules.
 
