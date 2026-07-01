@@ -10,6 +10,7 @@
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
 
 {
   new(config={}):
@@ -23,11 +24,16 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       varMetric: 'guardian_installed_apps',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      // guardian JSONL -> Loki carries service_name="guardian" (activity titles + inventory).
+      lokiDatasource: true,
+      logsSelector: 'service_name="guardian"',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
 
     local sig(name, expr, unit) =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    local lsig(name, expr) =
+      signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
 
     local signals = {
       // KNOW — inventory
@@ -40,6 +46,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       runningByApp: sig('Running time by app', 'sum by (instance, user, app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
       appsRunning: sig('Apps running', 'max by (instance, user)(guardian_apps_running{%(queriesSelector)s})', 'short'),
       foregroundNow: sig('On screen now', 'max by (instance, user, app)(guardian_foreground_app{%(queriesSelector)s})', 'short'),
+      // KNOW — on-screen window titles (the actual content) via Loki
+      foregroundTitles: lsig('On screen — window titles', '{%(queriesSelector)s} | json | kind="activity" | foreground_title != "" | line_format "{{.user}} / {{.foreground_app}} / {{.foreground_title}} ({{.running_count}} running)"'),
       // CONTROL — usage (empty until the control half is enabled)
       usageMinutes: sig('Daily usage', 'max by (instance, user)(guardian_usage_minutes{%(queriesSelector)s})', 'm'),
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
@@ -88,6 +96,14 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         elements: {
           appsRunning: signals.appsRunning.asTimeSeries('Apps running at once, per user'),
           foregroundNow: signals.foregroundNow.asTable('Currently on screen (app = 1)'),
+        },
+      },
+      {
+        title: 'On screen — window titles (Loki)',
+        width: 24,
+        height: 9,
+        elements: {
+          titles: panel.logs.new('On-screen window titles (live, per user)') + panel.logs.withTargets([signals.foregroundTitles.asTarget()]),
         },
       },
       {
