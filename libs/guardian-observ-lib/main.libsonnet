@@ -53,7 +53,7 @@ local panel = import 'custom/panel.libsonnet';
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
     };
 
-    pack.build(cfg, signals, [
+    local main = pack.build(cfg, signals, [
       {
         title: 'Overview',
         width: 4,
@@ -132,5 +132,79 @@ local panel = import 'custom/panel.libsonnet';
       alert.rule.group('guardian.rules', [
         alert.rule.record('instance:guardian_installed_apps:sum', 'sum by (instance) (guardian_installed_apps' + rsBrace + ')'),
       ]),
-    ]),
+    ]);
+
+    // ── per-kid drill-down board (instance -> user cascade, activity only) ──
+    local kidCfg = cfg {
+      uid: cfg.uid + '-kid',
+      dashboardTitle: 'Guardian — kid drill-down',
+      dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown'],
+      // guardian_app_running_seconds carries job + instance + user, so it drives
+      // the $job/$instance/$user cascade; single-select to pin one kid + box.
+      varMetric: 'guardian_app_running_seconds',
+      varLabels: ['instance', 'user'],
+      varMulti: false,
+      selector: 'instance=~"$instance", user=~"$user"',
+      logsSelector: 'service_name="guardian", instance=~"$instance"',
+    };
+    local ksig(name, expr, unit) =
+      signal.new(name, 'prometheus', kidCfg.datasource, expr, unit).filteringSelector(kidCfg.selector);
+    local klsig(name, expr) =
+      signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(kidCfg.logsSelector);
+    local kidSignals = {
+      kApps: ksig('Apps running', 'max(guardian_apps_running{%(queriesSelector)s})', 'short'),
+      kTotal: ksig('Screen time today', 'sum(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
+      kScreenByApp: ksig('Screen time by app', 'sum by (app)(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
+      kRuntimeByApp: ksig('Runtime by app', 'sum by (app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
+      kFocusNow: ksig('On screen now', 'guardian_foreground_app{%(queriesSelector)s} == 1', 'short'),
+      kTitles: klsig('On-screen titles', '{%(queriesSelector)s} | json | kind="activity" | user="$user" | line_format "{{.foreground_app}} - {{.foreground_title}}"'),
+    };
+    local kid = pack.build(kidCfg, kidSignals, [
+      {
+        title: 'This kid — now',
+        width: 6,
+        height: 6,
+        elements: {
+          apps: kidSignals.kApps.asStat('Apps running now'),
+          total: kidSignals.kTotal.asStat('Screen time today'),
+          focus: kidSignals.kFocusNow.asTable('On screen now'),
+        },
+      },
+      {
+        title: 'Screen time & runtime by app',
+        width: 12,
+        height: 9,
+        elements: {
+          screen: kidSignals.kScreenByApp.asTable('Screen time today by app (focused)'),
+          runtime: kidSignals.kRuntimeByApp.asTable('Runtime today by app'),
+        },
+      },
+      {
+        title: 'Over time',
+        width: 12,
+        height: 7,
+        elements: {
+          screen: kidSignals.kScreenByApp.asTimeSeries('Foreground seconds by app'),
+          apps: kidSignals.kApps.asTimeSeries('Apps running at once'),
+        },
+      },
+      {
+        title: 'On screen — window titles (this kid)',
+        width: 24,
+        height: 10,
+        elements: {
+          titles: panel.logs.new('On-screen window titles') + panel.logs.withTargets([kidSignals.kTitles.asTarget()]),
+        },
+      },
+    ], [], []);
+
+    // expose both boards; render-lib emits every entry in grafana.dashboards.
+    main {
+      grafana+: {
+        dashboards: {
+          [cfg.uid + '.json']: main.grafana.dashboard,
+          [kidCfg.uid + '.json']: kid.grafana.dashboard,
+        },
+      },
+    },
 }
