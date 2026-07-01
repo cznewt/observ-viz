@@ -12,7 +12,7 @@ local query = import 'custom/query.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'observ-viz-unifi',
+      uid: 'network-unifi-control',
       dashboardTitle: 'Unifi Controller',
       dashboardTags: ['unifi', 'unpoller', 'network'],
       datasource: '${datasource}',
