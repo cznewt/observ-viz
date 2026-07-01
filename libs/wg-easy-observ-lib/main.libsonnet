@@ -33,7 +33,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       connectedPeers: sig('Connected peers', 'sum(wireguard_connected_peers{%(queriesSelector)s})', 'short'),
       sentBytes: sig('Sent', 'rate(wireguard_sent_bytes{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{name}}'),
       receivedBytes: sig('Received', 'rate(wireguard_received_bytes{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{name}}'),
-      handshakeAge: sig('Handshake age', 'time() - wireguard_latest_handshake_seconds{%(queriesSelector)s}', 's', '{{instance}} / {{name}}'),
+      // wg-easy already exports this as the AGE (seconds since last handshake),
+      // not a unix timestamp — so use it directly, no `time() -`. 0 = never handshaked.
+      handshakeAge: sig('Handshake age', 'wireguard_latest_handshake_seconds{%(queriesSelector)s}', 's', '{{instance}} / {{name}}'),
     };
 
     pack.build(cfg, signals, [
@@ -68,7 +70,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       alert.rule.group('wg-easy', [
         alert.rule.new(
           'WireguardPeerHandshakeStale',
-          '(time() - wireguard_latest_handshake_seconds' + rsBrace + ') > 600',
+          'wireguard_latest_handshake_seconds' + rsBrace + ' > 600',
           '10m',
           'warning',
           {},

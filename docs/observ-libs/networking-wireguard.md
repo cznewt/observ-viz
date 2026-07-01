@@ -11,7 +11,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `configuredPeers` | short | `sum(wireguard_configured_peers{job=~"$job", instance=~"$instance"})` | — |
 | `connectedPeers` | short | `sum(wireguard_connected_peers{job=~"$job", instance=~"$instance"})` | — |
 | `enabledPeers` | short | `sum(wireguard_enabled_peers{job=~"$job", instance=~"$instance"})` | — |
-| `handshakeAge` | s | `time() - wireguard_latest_handshake_seconds{job=~"$job", instance=~"$instance"}` | — |
+| `handshakeAge` | s | `wireguard_latest_handshake_seconds{job=~"$job", instance=~"$instance"}` | — |
 | `receivedBytes` | Bps | `rate(wireguard_received_bytes{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
 | `sentBytes` | Bps | `rate(wireguard_sent_bytes{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
 
