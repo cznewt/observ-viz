@@ -46,6 +46,7 @@
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
+    guardian: import 'libs/guardian-observ-lib/main.libsonnet',
   },
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
