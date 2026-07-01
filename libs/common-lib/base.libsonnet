@@ -193,7 +193,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
           ov('Board', [{ id: 'custom.hidden', value: true }]),
         ]);
-      local dash = board(c.uidCluster, 'Cluster Overview', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
