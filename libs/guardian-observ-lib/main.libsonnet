@@ -16,7 +16,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-guardian',
       dashboardTitle: 'Guardian — device supervision',
-      dashboardTags: ['guardian', 'parental-control', 'inventory'],
+      dashboardTags: ['guardian', 'parental-control', 'inventory', 'activity'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       // present on every guardian host, so it drives the $job/$instance vars.
@@ -35,6 +35,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       appsBySource: sig('Installed apps by source', 'sum by (instance, source)(guardian_installed_apps{%(queriesSelector)s})', 'short'),
       hosts: sig('Reporting hosts', 'count(group by (instance)(guardian_installed_apps{%(queriesSelector)s}))', 'short'),
       inventoryAge: sig('Inventory age', 'time() - max by (instance)(guardian_inventory_timestamp_seconds{%(queriesSelector)s})', 's'),
+      // KNOW — activity / on-screen (Windows usage tracker; empty until monitor.usage runs)
+      foregroundByApp: sig('Screen time by app', 'sum by (instance, user, app)(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
+      runningByApp: sig('Running time by app', 'sum by (instance, user, app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
+      appsRunning: sig('Apps running', 'max by (instance, user)(guardian_apps_running{%(queriesSelector)s})', 'short'),
+      foregroundNow: sig('On screen now', 'max by (instance, user, app)(guardian_foreground_app{%(queriesSelector)s})', 'short'),
       // CONTROL — usage (empty until the control half is enabled)
       usageMinutes: sig('Daily usage', 'max by (instance, user)(guardian_usage_minutes{%(queriesSelector)s})', 'm'),
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
@@ -65,6 +70,24 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         height: 7,
         elements: {
           inventoryAge: signals.inventoryAge.asTimeSeries('Time since last inventory run'),
+        },
+      },
+      {
+        title: 'On screen — activity (Windows)',
+        width: 12,
+        height: 8,
+        elements: {
+          foregroundByApp: signals.foregroundByApp.asTable('Screen time today by app (focused)'),
+          runningByApp: signals.runningByApp.asTable('Running time today by app'),
+        },
+      },
+      {
+        title: 'Concurrency & current focus',
+        width: 12,
+        height: 7,
+        elements: {
+          appsRunning: signals.appsRunning.asTimeSeries('Apps running at once, per user'),
+          foregroundNow: signals.foregroundNow.asTable('Currently on screen (app = 1)'),
         },
       },
       {

@@ -161,7 +161,7 @@ local panel = import 'custom/panel.libsonnet';
     ], [
       // optional tabs — render only when their metrics/logs are present.
       {
-        title: 'Applications',
+        title: 'Workload',
         width: 12,
         height: 7,
         presence: { query: 'windows_service_state{instance=~"$instance"}', label: 'instance' },
