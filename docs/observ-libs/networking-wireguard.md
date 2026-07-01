@@ -17,6 +17,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 ## Dashboard
 
+- **Peer overview** — `peersTable`
 - **Peers** — `configuredPeers`, `connectedPeers`, `enabledPeers`
 - **Traffic** — `receivedBytes`, `sentBytes`
 - **Handshakes** — `handshakeAge`

@@ -7,6 +7,8 @@
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
+local query = import 'custom/query.libsonnet';
 
 {
   new(config={}):
@@ -38,7 +40,43 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       handshakeAge: sig('Handshake age', 'wireguard_latest_handshake_seconds{%(queriesSelector)s}', 's', '{{instance}} / {{name}}'),
     };
 
+    // Per-peer overview table: In (received) / Out (sent) transfer totals + handshake
+    // age, joined by peer name via instant table queries + seriesToColumns.
+    local tq(expr) =
+      query.prometheus.new(cfg.datasource, expr)
+      + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
+    local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+    local peersTable =
+      panel.table.new('Peer overview')
+      + panel.table.withTargets([
+        tq('wireguard_received_bytes{' + cfg.selector + '}'),         // A: In
+        tq('wireguard_sent_bytes{' + cfg.selector + '}'),             // B: Out
+        tq('wireguard_latest_handshake_seconds{' + cfg.selector + '}'),  // C: Handshake age
+      ])
+      + panel.table.withTransformations([
+        { id: 'labelsToFields' },
+        { id: 'filterFieldsByName', options: { include: { names: ['name', 'ipv4Address', 'enabled', 'Value #A', 'Value #B', 'Value #C'] } } },
+        { id: 'seriesToColumns', options: { byField: 'name' } },
+        { id: 'organize', options: {
+          excludeByName: { 'ipv4Address 2': true, 'ipv4Address 3': true, 'enabled 2': true, 'enabled 3': true },
+          indexByName: { name: 0, ipv4Address: 1, 'Value #A': 2, 'Value #B': 3, 'Value #C': 4, enabled: 5 },
+          renameByName: { name: 'Peer', ipv4Address: 'Address', enabled: 'Enabled', 'Value #A': 'In', 'Value #B': 'Out', 'Value #C': 'Handshake' },
+        } },
+      ])
+      + panel.table.withOverrides([
+        ov('In|Out', [{ id: 'unit', value: 'bytes' }]),
+        ov('Handshake', [{ id: 'unit', value: 's' }]),
+      ]);
+
     pack.build(cfg, signals, [
+      {
+        title: 'Peer overview',
+        width: 24,
+        height: 9,
+        elements: {
+          peersTable: peersTable,
+        },
+      },
       {
         title: 'Peers',
         width: 12,
