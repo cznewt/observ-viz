@@ -1,15 +1,16 @@
 // observ-viz Windows host pack (hand-written).
-// Comprehensive windows_exporter host observability: system/uptime, CPU, memory
-// (total/used/free/committed + used ratio), logical disk (free + used ratio),
-// network, and service states, plus windows_exporter alerting/recording rules.
+// windows_exporter host observability laid out as tabs: System (uptime/CPU/memory/
+// disk/network), Applications (processes + Windows service states), and Logs
+// (Windows event log via Loki). Plus windows_exporter alerting/recording rules.
 // Emitted as native v2 elements. Usage:
 //   g.libs.system.windows.new({ selector: 'job="windows"' }).grafana.dashboard
 //   g.libs.system.windows.new({...}).grafana.elements   // reuse in a board
 // Per-node board (cluster -> instance cascading selection), mirroring system.linux,
-// so the Base / Cluster Servers table can drill straight to a single host.
+// so the Cluster Overview Servers table can drill straight to a single host.
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
 
 {
   new(config={}):
@@ -19,11 +20,16 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTags: ['windows'],
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build), so a
-      // per-node drill (e.g. from Base / Cluster) lands on a single host.
+      // per-node drill (e.g. from Cluster Overview) lands on a single host.
       selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'windows_os_info',
       varLabels: ['cluster', 'instance'],
       varMulti: false,
+      // System primary tab + Applications/Logs tabs (rendered via showIfData/presence).
+      primaryTabTitle: 'System',
+      lokiDatasource: true,
+      // Windows event logs shipped to Loki are labelled by instance (+ channel/level).
+      logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
     } + config;
@@ -34,6 +40,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     // append their volume/nic/name label.
     local sig(name, expr, unit, legend='{{instance}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
+    // Windows event log lines from Loki, scoped to the selected instance.
+    local lsig(name, expr) =
+      signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
 
     local signals = {
       // --- System ---
@@ -58,8 +67,13 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       netRecv: sig('Network received', 'rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
       netSent: sig('Network sent', 'rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
 
-      // --- Services ---
+      // --- Applications (processes + Windows services) ---
+      processes: sig('Processes', 'windows_system_processes{%(queriesSelector)s}', 'short'),
+      servicesRunning: sig('Running services', 'count(windows_service_state{state="running",%(queriesSelector)s} == 1)', 'short', 'running'),
       serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
+
+      // --- Logs (Windows event log via Loki) ---
+      winLogs: lsig('Windows event log', '{%(queriesSelector)s}'),
     };
 
     pack.build(cfg, signals, [
@@ -111,14 +125,6 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
           netSent: signals.netSent.asTimeSeries('Network sent'),
         },
       },
-      {
-        title: 'Services',
-        width: 24,
-        height: 8,
-        elements: {
-          serviceState: signals.serviceState.asTable('Service states'),
-        },
-      },
     ], [
       // alerting rule group
       alert.rule.group('windows', [
@@ -152,5 +158,26 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
       ]),
+    ], [
+      // optional tabs — render only when their metrics/logs are present.
+      {
+        title: 'Applications',
+        width: 12,
+        height: 7,
+        presence: { query: 'windows_service_state{instance=~"$instance"}', label: 'instance' },
+        elements: {
+          processes: signals.processes.asStat('Processes'),
+          servicesRunning: signals.servicesRunning.asStat('Running services'),
+          serviceState: signals.serviceState.asTable('Service states'),
+        },
+      },
+      {
+        title: 'Logs',
+        width: 24,
+        height: 12,
+        elements: {
+          winLogs: panel.logs.new('Windows event log') + panel.logs.withTargets([signals.winLogs.asTarget()]),
+        },
+      },
     ]),
 }

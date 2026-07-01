@@ -1,6 +1,6 @@
 # Windows Server  (`g.libs.system.windows`)
 
-Dashboard uid `node-windows` · 13 signals · 4 alerts · 3 recording rules.
+Dashboard uid `node-windows` · 16 signals · 4 alerts · 3 recording rules.
 
 ## Signals
 
@@ -19,8 +19,11 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `memUsedRatio` | percentunit | `1 - windows_memory_available_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} / windows_memory_physical_total_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | `instance:windows_memory_utilisation:ratio` |
 | `netRecv` | Bps | `rate(windows_net_bytes_received_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `netSent` | Bps | `rate(windows_net_bytes_sent_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `processes` | short | `windows_system_processes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `serviceState` | short | `windows_service_state{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `servicesRunning` | short | `count(windows_service_state{state="running",job=~"$job", cluster=~"$cluster", instance=~"$instance"} == 1)` | — |
 | `uptime` | s | `time() - windows_system_boot_time_timestamp{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `winLogs` | short | `{instance=~"$instance"}` | — |
 
 ## Dashboard
 
@@ -29,7 +32,6 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 - **Memory** — `memAvailable`, `memCommitted`, `memFree`, `memTotal`, `memUsed`
 - **Disk** — `diskFree`, `diskUsedRatio`
 - **Network** — `netRecv`, `netSent`
-- **Services** — `serviceState`
 
 ## Alerts
 
