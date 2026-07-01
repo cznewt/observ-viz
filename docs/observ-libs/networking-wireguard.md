@@ -1,6 +1,6 @@
-# WireGuard (wg-easy)  (`g.libs.networking.wireguard`)
+# Wireguard Controller  (`g.libs.networking.wireguard`)
 
-Dashboard uid `observ-viz-wg-easy` · 6 signals · 1 alerts · 0 recording rules.
+Dashboard uid `network-wireguard--wg-easy` · 6 signals · 1 alerts · 0 recording rules.
 
 ## Signals
 

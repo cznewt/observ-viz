@@ -13,8 +13,8 @@ local query = import 'custom/query.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'observ-viz-wg-easy',
-      dashboardTitle: 'WireGuard (wg-easy)',
+      uid: 'network-wireguard--wg-easy',
+      dashboardTitle: 'Wireguard Controller',
       dashboardTags: ['wireguard', 'wg-easy', 'vpn'],
       datasource: '${datasource}',
       selector: 'job=~"$job", instance=~"$instance"',
