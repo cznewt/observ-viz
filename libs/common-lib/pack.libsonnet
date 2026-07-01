@@ -6,6 +6,7 @@
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
 local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
+local panel = import 'custom/panel.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
@@ -26,8 +27,8 @@ local variable =
     grafana: {
       // the raw group structure (so consumers can re-lay-out, e.g. as tabs).
       groups: groups,
-      // flatten every group's (and optional tab's) elements into one elements map.
-      elements: std.foldl(function(acc, grp) acc + grp.elements, groups + optionalTabs, {}),
+      // flatten every group's (and optional/doc tab's) elements into one elements map.
+      elements: std.foldl(function(acc, grp) acc + grp.elements, groups + optionalTabs + docTabList, {}),
 
       local gridOf(grp) =
         layout.grid.new()
@@ -53,15 +54,37 @@ local variable =
           ]))
         else layout.showIfData(),
 
+      // Signals/Runbooks doc tabs (config.docTabs): a signals table + a runbooks
+      // markdown list, built from this pack's own signals + alerting rules.
+      local docTabsOn = std.objectHas(config, 'docTabs') && config.docTabs,
+      local mdEsc(s) = std.strReplace(std.strReplace(s, '\n', ' '), '|', '\\|'),
+      local sigExpr(sg) = sg.asTarget().spec.query.spec.expr,
+      local sigUnit(sg) = local d = sg.asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; if std.objectHas(d, 'unit') then d.unit else '',
+      local signalsMd =
+        'Signals this pack emits — dashboard query + unit.\n\n| Signal | Query | Unit |\n| --- | --- | --- |\n'
+        + std.join('\n', ['| ' + k + ' | `' + mdEsc(sigExpr(signals[k])) + '` | ' + (local u = sigUnit(signals[k]); if u != '' then u else '—') + ' |' for k in std.objectFields(signals)]),
+      local runbooksMd =
+        local items = ['- **' + r.alert + '**'
+                       + (if std.objectHas(r, 'labels') && std.objectHas(r.labels, 'severity') then ' `' + r.labels.severity + '`' else '')
+                       + (if std.objectHas(r, 'for') then ' · for ' + r['for'] else '')
+                       + (if std.objectHas(r, 'annotations') && std.objectHas(r.annotations, 'runbook_url') && r.annotations.runbook_url != '' then ' — [runbook](' + r.annotations.runbook_url + ')' else '')
+                       for grp in alerts for r in grp.rules];
+        if std.length(items) > 0 then 'Alerting rules and their runbooks.\n\n' + std.join('\n', items) else '_No alerting rules defined for this pack._',
+      local docTabList = if docTabsOn then [
+        { title: 'Signals', width: 24, height: 12, elements: { doc_signals: panel.text.new('Signals') + panel.text.withOptions({ mode: 'markdown', content: signalsMd }) } },
+        { title: 'Runbooks', width: 24, height: 12, elements: { doc_runbooks: panel.text.new('Runbooks') + panel.text.withOptions({ mode: 'markdown', content: runbooksMd }) } },
+      ] else [],
+
       // default: one RowsLayout row per group. With optionalTabs, wrap the main
       // board in a primary tab and append each optional tab with showIfData(), so
       // it renders only on targets that actually have those metrics.
       layout:
-        if std.length(optionalTabs) > 0 then
+        if std.length(optionalTabs) + std.length(docTabList) > 0 then
           layout.tabs.new()
           + layout.tabs.withTabs(
             [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
             + [layout.tabs.tab(t.title, gridOf(t)) + tabGate(t) for t in optionalTabs]
+            + [layout.tabs.tab(t.title, gridOf(t)) for t in docTabList]
           )
         else rowsLayout,
 

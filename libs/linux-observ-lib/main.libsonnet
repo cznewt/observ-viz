@@ -29,6 +29,7 @@ local panel = import 'custom/panel.libsonnet';
       primaryTabTitle: 'System',
       varMulti: false,
       lokiDatasource: true,
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       dockerSelector: 'instance=~"$instance", container!=""',
       logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
