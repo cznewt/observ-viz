@@ -85,8 +85,8 @@ local query = import 'custom/query.libsonnet';
       },
       {
         title: 'Peers',
-        width: 12,
-        height: 7,
+        width: 8,
+        height: 5,
         elements: {
           connectedPeers: signals.connectedPeers.asStat('Connected peers'),
           enabledPeers: signals.enabledPeers.asStat('Enabled peers'),
