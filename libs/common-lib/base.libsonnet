@@ -129,7 +129,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
           ['App', 'Workloads', 'Alerts']
         );
       // tables split into their own tabs (Clusters first), Clusters full height.
-      local dash = board(c.uidHome, 'Home Dashboard', c.tags + ['env-level'], [dsVar], [
+      local dash = board(c.uidHome, 'Clusters Overview', c.tags + ['env-level'], [dsVar], [
         { title: 'Clusters', width: 24, height: 24, elements: { clusters: clusters } },
         { title: 'Alerts', width: 24, height: 24, elements: { alerts: alerts } },
         { title: 'Applications', width: 24, height: 12, elements: { apps: apps } },
