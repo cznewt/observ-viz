@@ -19,9 +19,12 @@ local panel = import 'custom/panel.libsonnet';
       dashboardTitle: 'Guardian — device supervision',
       dashboardTags: ['guardian', 'parental-control', 'inventory', 'activity'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
-      // present on every guardian host, so it drives the $job/$instance vars.
+      // family/device identity vars (default All) let you group the fleet by
+      // household / device once the producer stamps guardian.identity labels.
+      selector: 'job=~"$job", family=~"$family", device=~"$device"',
+      // present on every guardian host, so it drives the $job/$family/$device vars.
       varMetric: 'guardian_installed_apps',
+      varLabels: ['family', 'device'],
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       // guardian JSONL -> Loki carries service_name="guardian" (activity titles + inventory).
