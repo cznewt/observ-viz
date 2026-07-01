@@ -53,7 +53,7 @@ LIBS = [
     "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope",
     "collector.alloy",
     "networking.wireguard", "networking.unifi",
-    "applications.syncthing",
+    "applications.syncthing", "applications.guardian",
     "base.home", "base.cluster", "base.clusterDetail",
 ]
 

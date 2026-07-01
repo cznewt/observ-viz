@@ -218,6 +218,7 @@ local panel = import 'custom/panel.libsonnet';
       kScreenByApp: ksig('Screen time by app', 'sum by (app)(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
       kRuntimeByApp: ksig('Runtime by app', 'sum by (app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
       kFocusNow: ksig('On screen now', 'guardian_foreground_app{%(queriesSelector)s} == 1', 'short'),
+      kFocusSeries: signal.new('Foreground app', 'prometheus', kidCfg.datasource, 'guardian_foreground_app{%(queriesSelector)s} == 1', 'short').filteringSelector(kidCfg.selector).withLegendFormat('{{app}}'),
       kTitles: klsig('On-screen titles', '{%(queriesSelector)s} | json | kind="activity" | user="$user" | line_format "{{.foreground_app}} - {{.foreground_title}}"'),
       kActive: ksig('Active', 'max(guardian_active_seconds{%(queriesSelector)s})', 's'),
       kWebByDomain: ksig('Top domains', 'sum by (domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
@@ -264,7 +265,11 @@ local panel = import 'custom/panel.libsonnet';
         width: 12,
         height: 7,
         elements: {
-          screen: kidSignals.kScreenByApp.asTimeSeries('Foreground seconds by app'),
+          // which app is on screen over time — a state timeline of guardian_foreground_app
+          // (one row per app, coloured while foregrounded), not cumulative seconds.
+          focusTimeline: panel.stateTimeline.new('Foreground app (on screen over time)')
+                         + panel.stateTimeline.withTargets([kidSignals.kFocusSeries.asTarget()])
+                         + panel.stateTimeline.withOptions({ showValue: 'never', mergeValues: true }),
           apps: kidSignals.kApps.asTimeSeries('Apps running at once'),
         },
       },
