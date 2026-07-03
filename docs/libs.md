@@ -20,42 +20,42 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux node | 51 | 45 |
-| `system.docker` | Docker containers | 7 | 7 |
-| `system.windows` | Windows host | 7 | 7 |
+| `system.linux` | Linux Server | 51 | 47 |
+| `system.docker` | Docker containers | 7 | 9 |
+| `system.windows` | Windows Server | 16 | 19 |
 
 ## Kubernetes
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `kubernetes.pod` | Kubernetes pod | 6 | 6 |
-| `kubernetes.cadvisor` | Container resources | 8 | 8 |
+| `kubernetes.pod` | Kubernetes pod | 6 | 8 |
+| `kubernetes.cadvisor` | Container resources | 8 | 10 |
 
 ## Databases
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `databases.sql.postgres` | PostgreSQL | 6 | 6 |
-| `databases.sql.mysql` | MySQL | 7 | 7 |
-| `databases.kv.redis` | Redis | 6 | 6 |
-| `databases.kv.memcached` | Memcached | 10 | 10 |
-| `databases.kv.etcd` | etcd | 6 | 6 |
+| `databases.sql.postgres` | PostgreSQL | 6 | 8 |
+| `databases.sql.mysql` | MySQL | 7 | 9 |
+| `databases.kv.redis` | Redis | 6 | 8 |
+| `databases.kv.memcached` | Memcached | 10 | 12 |
+| `databases.kv.etcd` | etcd | 6 | 8 |
 
 ## Monitoring
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `monitoring.prometheus` | Prometheus | 7 | 7 |
-| `monitoring.mimir` | Mimir | 6 | 6 |
-| `monitoring.loki` | Loki | 6 | 6 |
-| `monitoring.tempo` | Tempo | 9 | 9 |
-| `monitoring.pyroscope` | Pyroscope | 8 | 8 |
+| `monitoring.prometheus` | Prometheus | 7 | 9 |
+| `monitoring.mimir` | Mimir | 6 | 8 |
+| `monitoring.loki` | Loki | 6 | 8 |
+| `monitoring.tempo` | Tempo | 9 | 11 |
+| `monitoring.pyroscope` | Pyroscope | 8 | 10 |
 
 ## Collector
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `collector.alloy` | Alloy | 10 | 10 |
+| `collector.alloy` | Alloy | 10 | 12 |
 
 ## Cross-cutting
 

@@ -18,6 +18,12 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       varMetric: 'cadvisor_version_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
+      // deploy target: Software / Kubernetes (nested Grafana folders; loader creates both).
+      folderUid: 'software-kubernetes',
+      folderTitle: 'Kubernetes',
+      folderParentUid: 'software',
+      folderParentTitle: 'Software',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

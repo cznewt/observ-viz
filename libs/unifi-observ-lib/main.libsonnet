@@ -19,6 +19,7 @@ local query = import 'custom/query.libsonnet';
       selector: 'job=~"$job"',
       varMetric: 'unpoller_device_info',
       ruleSelector: '',
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
 

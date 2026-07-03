@@ -32,6 +32,7 @@ local panel = import 'custom/panel.libsonnet';
       logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

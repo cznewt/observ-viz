@@ -21,6 +21,7 @@ local query = import 'custom/query.libsonnet';
       varMetric: 'wireguard_configured_peers',
       varLabels: ['instance'],
       ruleSelector: '',
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
 

@@ -18,6 +18,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       varMetric: 'alloy_build_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
