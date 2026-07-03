@@ -101,9 +101,15 @@ local variable =
         // node) — needed for per-node correlation (e.g. proxmox node=~"$instance").
         local varMulti = if std.objectHas(config, 'varMulti') then config.varMulti else true;
         local multiMods = if varMulti then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {};
+        // optional Grafana folder placement (config.folderUid [+ folderTitle,
+        // folderParentUid/folderParentTitle for nesting]) — loader creates them.
+        local opt(k) = if std.objectHas(config, k) then config[k] else null;
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
+        + (if std.objectHas(config, 'folderUid') then
+             dashboard.withFolder(config.folderUid, opt('folderTitle'), opt('folderParentUid'), opt('folderParentTitle'))
+           else {})
         + dashboard.withVariables([
           variable.datasource.new('datasource', 'prometheus')
           + variable.datasource.withLabel('Data source'),
