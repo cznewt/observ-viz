@@ -11,13 +11,19 @@ local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
+local dashboard = import 'custom/dashboard.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'observ-viz-guardian',
-      dashboardTitle: 'Guardian — device supervision',
+      dashboardTitle: 'Personal Computer',
       dashboardTags: ['guardian', 'parental-control', 'inventory', 'activity'],
+      // both boards land in the existing "Parental Control" folder — same
+      // instance-specific uid the family-link-exporter (Android Device) board
+      // pins; override for a different Grafana.
+      folderUid: 'afqtbmnsbpb7ka',
+      folderTitle: 'Parental Control',
       datasource: '${datasource}',
       // family/device identity vars (default All) let you group the fleet by
       // household / device once the producer stamps guardian.identity labels.
@@ -198,7 +204,7 @@ local panel = import 'custom/panel.libsonnet';
     // ── per-kid drill-down board (instance -> user cascade, activity only) ──
     local kidCfg = cfg {
       uid: kidUid,
-      dashboardTitle: 'Guardian — kid drill-down',
+      dashboardTitle: 'Kid overview',
       dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown'],
       // guardian_app_running_seconds carries job + instance + user, so it drives
       // the $job/$instance/$user cascade; single-select to pin one kid + box.
@@ -293,11 +299,13 @@ local panel = import 'custom/panel.libsonnet';
     ], [], []);
 
     // expose both boards; render-lib emits every entry in grafana.dashboards.
+    local inFolder = dashboard.withFolder(cfg.folderUid, cfg.folderTitle);
     main {
       grafana+: {
+        dashboard+: inFolder,
         dashboards: {
-          [cfg.uid + '.json']: main.grafana.dashboard,
-          [kidCfg.uid + '.json']: kid.grafana.dashboard,
+          [cfg.uid + '.json']: main.grafana.dashboard + inFolder,
+          [kidCfg.uid + '.json']: kid.grafana.dashboard + inFolder,
         },
       },
     },

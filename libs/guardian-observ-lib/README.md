@@ -16,7 +16,7 @@ Registered as `g.libs.applications.guardian`.
 | `guardian_usage_minutes{user}` | CONTROL | watcher (Windows) | active-session minutes today, per user — present only when the control half is enabled |
 | `guardian_user_connect_minutes{user}` | CONTROL | acct (Debian) | login/connect minutes per user — control half only |
 
-## Dashboard — "Guardian — device supervision"
+## Dashboards — "Personal Computer" + "Kid overview" (folder: Parental Control)
 
 - **Overview** — reporting hosts, total installed apps, oldest inventory age (stats).
 - **Installed applications** — per-host / per-source table.
@@ -36,5 +36,7 @@ g.libs.applications.guardian.new({ selector: 'job=~"integrations/windows_exporte
 ```
 
 Config keys: `selector` (label filter), `datasource`, `uid`, `dashboardTitle`,
-`ruleSelector` (static filter for alerting/recording rules). Render with the
-generic observ-lib justfile (`just build`) or `render-lib applications.guardian`.
+`folderUid` / `folderTitle` (Grafana folder both boards land in, default
+Parental Control), `ruleSelector` (static filter for alerting/recording rules).
+Render with the generic observ-lib justfile (`just build`) or
+`render-lib applications.guardian`.
