@@ -44,13 +44,13 @@ local dashboard = import 'custom/dashboard.libsonnet';
     local lsig(name, expr) =
       signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
 
-    // click a kid's row (user column) -> the per-kid drill-down board, pre-filled.
+    // click a kid's row (child column) -> the per-kid drill-down board, pre-filled.
     local kidUid = cfg.uid + '-kid';
     local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
     local kidLink = panel.table.withOverrides([
-      ov('^user$', [{ id: 'links', value: [{
+      ov('^child$', [{ id: 'links', value: [{
         title: 'Drill into ${__value.raw}',
-        url: '/d/' + kidUid + '?var-instance=${__data.fields["instance"]}&var-user=${__value.raw}&${datasource:queryparam}',
+        url: '/d/' + kidUid + '?var-family=${__data.fields["family"]}&var-child=${__value.raw}&${datasource:queryparam}',
       }] }]),
     ]);
 
@@ -61,14 +61,14 @@ local dashboard = import 'custom/dashboard.libsonnet';
       hosts: sig('Reporting hosts', 'count(group by (instance)(guardian_installed_apps{%(queriesSelector)s}))', 'short'),
       inventoryAge: sig('Inventory age', 'time() - max by (instance)(guardian_inventory_timestamp_seconds{%(queriesSelector)s})', 's'),
       // KNOW — activity / on-screen (Windows usage tracker; empty until monitor.usage runs)
-      foregroundByApp: sig('Screen time by app', 'sum by (instance, user, app)(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
-      runningByApp: sig('Running time by app', 'sum by (instance, user, app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
+      foregroundByApp: sig('Screen time by app', 'sum by (instance, user, family, child, app)(guardian_app_foreground_seconds{%(queriesSelector)s})', 's'),
+      runningByApp: sig('Running time by app', 'sum by (instance, user, family, child, app)(guardian_app_running_seconds{%(queriesSelector)s})', 's'),
       appsRunning: sig('Apps running', 'max by (instance, user)(guardian_apps_running{%(queriesSelector)s})', 'short'),
-      foregroundNow: sig('On screen now', 'max by (instance, user, app)(guardian_foreground_app{%(queriesSelector)s})', 'short'),
+      foregroundNow: sig('On screen now', 'max by (instance, user, family, child, app)(guardian_foreground_app{%(queriesSelector)s})', 'short'),
       // KNOW — on-screen window titles (the actual content) via Loki
       foregroundTitles: lsig('On screen — window titles', '{%(queriesSelector)s} | json | kind="activity" | foreground_title != "" | line_format "{{.user}} / {{.foreground_app}} / {{.foreground_title}} ({{.running_count}} running)"'),
       // KNOW — web/browsing
-      webByDomain: sig('Top domains', 'sum by (instance, user, domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
+      webByDomain: sig('Top domains', 'sum by (instance, user, family, child, domain)(guardian_web_visits{%(queriesSelector)s})', 'short'),
       webTitles: lsig('Web visits', '{%(queriesSelector)s} | json | kind="web" | line_format "{{.user}} / {{.domain}} / {{.title}}"'),
       // KNOW — attention (idle vs active)
       activeSeconds: sig('Active', 'max by (instance, user)(guardian_active_seconds{%(queriesSelector)s})', 's'),
@@ -77,8 +77,8 @@ local dashboard = import 'custom/dashboard.libsonnet';
       integrity: sig('Integrity', 'min by (instance, check)(guardian_integrity{%(queriesSelector)s})', 'short'),
       securityEvents: signal.new('Security events', 'loki', '${loki_datasource}', '{%(queriesSelector)s}', 'short').filteringSelector('service_name="windows", channel="Security"'),
       // KNOW — input odometer (count only, never which keys)
-      inputKeys: sig('Keystrokes', 'sum by (instance, user)(guardian_input_keys{%(queriesSelector)s})', 'short'),
-      inputClicks: sig('Mouse clicks', 'sum by (instance, user)(guardian_input_clicks{%(queriesSelector)s})', 'short'),
+      inputKeys: sig('Keystrokes', 'sum by (instance, user, family, child)(guardian_input_keys{%(queriesSelector)s})', 'short'),
+      inputClicks: sig('Mouse clicks', 'sum by (instance, user, family, child)(guardian_input_clicks{%(queriesSelector)s})', 'short'),
       // CONTROL — usage (empty until the control half is enabled)
       usageMinutes: sig('Daily usage', 'max by (instance, user)(guardian_usage_minutes{%(queriesSelector)s})', 'm'),
       connectMinutes: sig('Connect minutes', 'max by (instance, user)(guardian_user_connect_minutes{%(queriesSelector)s})', 'm'),
@@ -206,12 +206,14 @@ local dashboard = import 'custom/dashboard.libsonnet';
       uid: kidUid,
       dashboardTitle: 'Kid overview',
       dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown'],
-      // guardian_app_running_seconds carries job + instance + user, so it drives
-      // the $job/$instance/$user cascade; single-select to pin one kid + box.
+      // guardian_app_running_seconds carries the stamped identity labels, so it
+      // drives a family -> child cascade (the kid, across devices); $user and
+      // $instance chain off the child for the Loki panels (log lines carry
+      // only raw user/host, no identity fields). Single-select pins one kid.
       varMetric: 'guardian_app_running_seconds',
-      varLabels: ['instance', 'user'],
+      varLabels: ['family', 'child', 'user', 'instance'],
       varMulti: false,
-      selector: 'instance=~"$instance", user=~"$user"',
+      selector: 'family=~"$family", child=~"$child"',
       logsSelector: 'service_name="guardian", instance=~"$instance"',
     };
     local ksig(name, expr, unit) =
