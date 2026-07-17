@@ -25,6 +25,12 @@ local query = import 'custom/query.libsonnet';
       // fleet board: every Windows host in the selected cluster(s) at once.
       fleetUid: 'compute-windows-fleet',
       fleetTitle: 'Windows Fleet Overview',
+      // both boards land in Infrastructure / Compute, beside Linux Server (the
+      // loader creates the nested folders). Shared by cfg + fleetCfg.
+      folderUid: 'observ-viz-compute',
+      folderTitle: 'Compute',
+      folderParentUid: 'observ-viz-infrastructure',
+      folderParentTitle: 'Infrastructure',
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build), so a
       // per-node drill (e.g. from Cluster Overview) lands on a single host.
