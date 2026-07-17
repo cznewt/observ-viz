@@ -45,8 +45,8 @@ local query = import 'custom/query.libsonnet';
       logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
-      // thermalzone alert thresholds (°C) — hardware-specific, so overridable.
-      // dormant until the thermalzone collector emits (metric absent -> no firing).
+      // CPU temperature alert thresholds (°C) — hardware-specific, so overridable.
+      // dormant until OhmGraphite emits ohm_cpu_celsius (metric absent -> no firing).
       tempWarnC: 85,
       tempCritC: 95,
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
@@ -61,6 +61,12 @@ local query = import 'custom/query.libsonnet';
     // Windows event log lines from Loki, scoped to the selected instance.
     local lsig(name, expr) =
       signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
+    // OhmGraphite temperature signals carry job="integrations/ohmgraphite" (a
+    // separate scrape from windows_exporter), so they filter on cluster+instance
+    // only — NOT the windows_exporter $job. Same host, different job label.
+    local ohmSelector = 'cluster=~"$cluster", instance=~"$instance"';
+    local osig(name, expr, unit, legend='{{instance}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(ohmSelector).withLegendFormat(legend);
 
     local signals = {
       // --- System ---
@@ -90,11 +96,16 @@ local query = import 'custom/query.libsonnet';
       servicesRunning: sig('Running services', 'count(windows_service_state{state="running",%(queriesSelector)s} == 1)', 'short', 'running'),
       serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
 
-      // --- Temperature (windows_exporter `thermalzone` collector; ACPI zones) ---
-      // disabled by default in windows_exporter and often empty on consumer/laptop
-      // hardware, so the Temperature tab is gated on data presence (showIfData).
-      tempMax: sig('Max temperature', 'max by (instance)(windows_thermalzone_temperature_celsius{%(queriesSelector)s})', 'celsius'),
-      tempByZone: sig('Temperature by zone', 'windows_thermalzone_temperature_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{name}}'),
+      // --- Temperature (OhmGraphite: LibreHardwareMonitor + PawnIO) ---
+      // windows_exporter's thermalzone collector reads ACPI WMI, which returns
+      // nothing on this fleet's laptops; OhmGraphite reads the chips directly and
+      // publishes ohm_<hardware>_celsius gauges (job="integrations/ohmgraphite"),
+      // labelled hardware/sensor/hw_instance. Gated on data presence (showIfData),
+      // so the tab stays hidden until a host opts into hardware_sensors (salt).
+      tempCpuMax: osig('Max CPU temperature', 'max by (instance)(ohm_cpu_celsius{%(queriesSelector)s})', 'celsius'),
+      tempCpu: osig('CPU temperature', 'ohm_cpu_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{sensor}}'),
+      // any component that reports a temperature (CPU package/cores, GPU, disks, battery).
+      tempAll: osig('Component temperatures', '{__name__=~"ohm_.+_celsius", %(queriesSelector)s}', 'celsius', '{{sensor}}'),
 
       // --- Logs (Windows event log via Loki) ---
       winLogs: lsig('Windows event log', '{%(queriesSelector)s}'),
@@ -174,19 +185,19 @@ local query = import 'custom/query.libsonnet';
           '15m', 'warning', {},
           { summary: 'Logical disk {{ $labels.volume }} on {{ $labels.instance }} has less than 5GB free.' }
         ),
-        // thermalzone temperature — warning + critical tiers. Both stay dormant
-        // until the collector emits (absent metric -> empty vector -> no firing).
+        // CPU temperature (OhmGraphite) — warning + critical tiers. Both stay
+        // dormant until ohm_cpu_celsius is emitted (absent metric -> no firing).
         alert.rule.new(
           'WindowsHighTemperature',
-          'windows_thermalzone_temperature_celsius' + rsBrace + ' > ' + cfg.tempWarnC,
+          'ohm_cpu_celsius' + rsBrace + ' > ' + cfg.tempWarnC,
           '10m', 'warning', {},
-          { summary: 'Thermal zone {{ $labels.name }} on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
+          { summary: 'CPU sensor {{ $labels.sensor }} on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
         ),
         alert.rule.new(
           'WindowsCriticalTemperature',
-          'windows_thermalzone_temperature_celsius' + rsBrace + ' > ' + cfg.tempCritC,
+          'ohm_cpu_celsius' + rsBrace + ' > ' + cfg.tempCritC,
           '5m', 'critical', {},
-          { summary: 'Thermal zone {{ $labels.name }} on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
+          { summary: 'CPU sensor {{ $labels.sensor }} on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
         ),
       ]),
     ], [
@@ -195,7 +206,7 @@ local query = import 'custom/query.libsonnet';
         alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
         alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
-        alert.rule.record('instance:windows_thermalzone_temperature_celsius:max', 'max without (name) (windows_thermalzone_temperature_celsius' + rsBrace + ')'),
+        alert.rule.record('instance:ohm_cpu_celsius:max', 'max without (sensor, hardware, hw_instance) (ohm_cpu_celsius' + rsBrace + ')'),
       ]),
     ], [
       // optional tabs — render only when their metrics/logs are present.
@@ -219,14 +230,15 @@ local query = import 'custom/query.libsonnet';
         },
       },
       {
-        // no `presence` -> showIfData(): the tab is hidden until the thermalzone
-        // collector actually emits a reading, then appears on its own.
+        // no `presence` -> showIfData(): hidden until OhmGraphite emits, then the
+        // tab appears on its own once a host opts into hardware_sensors (salt).
         title: 'Temperature',
         width: 12,
         height: 7,
         elements: {
-          tempMax: signals.tempMax.asStat('Max temperature'),
-          tempByZone: signals.tempByZone.asTimeSeries('Temperature by zone'),
+          tempCpuMax: signals.tempCpuMax.asStat('Max CPU temperature'),
+          tempCpu: signals.tempCpu.asTimeSeries('CPU temperature by sensor'),
+          tempAll: signals.tempAll.asTimeSeries('Component temperatures'),
         },
       },
     ]);
