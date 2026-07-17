@@ -45,6 +45,10 @@ local query = import 'custom/query.libsonnet';
       logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      // thermalzone alert thresholds (°C) — hardware-specific, so overridable.
+      // dormant until the thermalzone collector emits (metric absent -> no firing).
+      tempWarnC: 85,
+      tempCritC: 95,
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -85,6 +89,12 @@ local query = import 'custom/query.libsonnet';
       processes: sig('Processes', 'windows_system_processes{%(queriesSelector)s}', 'short'),
       servicesRunning: sig('Running services', 'count(windows_service_state{state="running",%(queriesSelector)s} == 1)', 'short', 'running'),
       serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
+
+      // --- Temperature (windows_exporter `thermalzone` collector; ACPI zones) ---
+      // disabled by default in windows_exporter and often empty on consumer/laptop
+      // hardware, so the Temperature tab is gated on data presence (showIfData).
+      tempMax: sig('Max temperature', 'max by (instance)(windows_thermalzone_temperature_celsius{%(queriesSelector)s})', 'celsius'),
+      tempByZone: sig('Temperature by zone', 'windows_thermalzone_temperature_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{name}}'),
 
       // --- Logs (Windows event log via Loki) ---
       winLogs: lsig('Windows event log', '{%(queriesSelector)s}'),
@@ -164,6 +174,20 @@ local query = import 'custom/query.libsonnet';
           '15m', 'warning', {},
           { summary: 'Logical disk {{ $labels.volume }} on {{ $labels.instance }} has less than 5GB free.' }
         ),
+        // thermalzone temperature — warning + critical tiers. Both stay dormant
+        // until the collector emits (absent metric -> empty vector -> no firing).
+        alert.rule.new(
+          'WindowsHighTemperature',
+          'windows_thermalzone_temperature_celsius' + rsBrace + ' > ' + cfg.tempWarnC,
+          '10m', 'warning', {},
+          { summary: 'Thermal zone {{ $labels.name }} on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
+        ),
+        alert.rule.new(
+          'WindowsCriticalTemperature',
+          'windows_thermalzone_temperature_celsius' + rsBrace + ' > ' + cfg.tempCritC,
+          '5m', 'critical', {},
+          { summary: 'Thermal zone {{ $labels.name }} on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
+        ),
       ]),
     ], [
       // recording rule group
@@ -171,6 +195,7 @@ local query = import 'custom/query.libsonnet';
         alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
         alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
+        alert.rule.record('instance:windows_thermalzone_temperature_celsius:max', 'max without (name) (windows_thermalzone_temperature_celsius' + rsBrace + ')'),
       ]),
     ], [
       // optional tabs — render only when their metrics/logs are present.
@@ -191,6 +216,17 @@ local query = import 'custom/query.libsonnet';
         height: 12,
         elements: {
           winLogs: panel.logs.new('Windows event log') + panel.logs.withTargets([signals.winLogs.asTarget()]),
+        },
+      },
+      {
+        // no `presence` -> showIfData(): the tab is hidden until the thermalzone
+        // collector actually emits a reading, then appears on its own.
+        title: 'Temperature',
+        width: 12,
+        height: 7,
+        elements: {
+          tempMax: signals.tempMax.asStat('Max temperature'),
+          tempByZone: signals.tempByZone.asTimeSeries('Temperature by zone'),
         },
       },
     ]);
