@@ -163,6 +163,23 @@ local panel = import 'custom/panel.libsonnet';
       batoceraOs: signal.new('Batocera', 'prometheus', cfg.datasource, 'node_os_info{id=~"batocera", instance=~"$instance"}', 'short').withLegendFormat('{{instance}} {{pretty_name}}'),
       batoceraTemp: signal.new('Batocera temperature', 'prometheus', cfg.datasource, 'node_hwmon_temp_celsius{instance=~"$instance"} and on (instance) node_os_info{id=~"batocera"}', 'celsius').withLegendFormat('{{instance}} / {{chip}}'),
 
+      // --- ZFS ARC (optional tab; zfs collector, gated on presence) ---
+      zfsArcSize: sig('ZFS ARC size', 'node_zfs_arc_size{%(queriesSelector)s}', 'bytes'),
+      zfsArcCMax: sig('ZFS ARC target max', 'node_zfs_arc_c_max{%(queriesSelector)s}', 'bytes'),
+      zfsArcHitRatio: sig('ZFS ARC hit ratio', 'rate(node_zfs_arc_hits{%(queriesSelector)s}[$__rate_interval]) / clamp_min(rate(node_zfs_arc_hits{%(queriesSelector)s}[$__rate_interval]) + rate(node_zfs_arc_misses{%(queriesSelector)s}[$__rate_interval]), 1)', 'percentunit'),
+      zfsArcHits: sig('ZFS ARC hits', 'rate(node_zfs_arc_hits{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      zfsArcMisses: sig('ZFS ARC misses', 'rate(node_zfs_arc_misses{%(queriesSelector)s}[$__rate_interval])', 'short'),
+
+      // --- NFS client (optional tab; nfs collector, gated on presence) ---
+      nfsRpcs: sig('NFS RPCs', 'rate(node_nfs_rpcs_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      nfsRetransmissions: sig('NFS RPC retransmissions', 'rate(node_nfs_rpc_retransmissions_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+
+      // --- Battery / power supply (optional tab; powersupplyclass collector, gated) ---
+      batteryCapacity: sig('Battery capacity', 'node_power_supply_capacity{%(queriesSelector)s}', 'percent', '{{instance}} / {{power_supply}}'),
+      batteryOnline: sig('AC online', 'node_power_supply_online{%(queriesSelector)s}', 'short', '{{instance}} / {{power_supply}}'),
+      batteryPower: sig('Power draw', 'node_power_supply_power_watt{%(queriesSelector)s}', 'watt', '{{instance}} / {{power_supply}}'),
+      batteryVoltage: sig('Battery voltage', 'node_power_supply_voltage_volt{%(queriesSelector)s}', 'volt', '{{instance}} / {{power_supply}}'),
+
       // --- Logs (optional tab; loki journal for the node) ---
       nodeLogs: lsig('Journal', '{%(queriesSelector)s}'),
     };
@@ -675,6 +692,41 @@ local panel = import 'custom/panel.libsonnet';
         elements: {
           batoceraOs: signals.batoceraOs.asTable('Batocera OS'),
           batoceraTemp: signals.batoceraTemp.asTimeSeries('Temperature'),
+        },
+      },
+      {
+        title: 'ZFS',
+        width: 12,
+        height: 7,
+        presence: { query: 'node_zfs_arc_size{instance=~"$instance"}', label: 'instance' },
+        elements: {
+          zfsArcSize: signals.zfsArcSize.asTimeSeries('ARC size'),
+          zfsArcCMax: signals.zfsArcCMax.asTimeSeries('ARC target max'),
+          zfsArcHitRatio: signals.zfsArcHitRatio.asTimeSeries('ARC hit ratio'),
+          zfsArcHits: signals.zfsArcHits.asTimeSeries('ARC hits'),
+          zfsArcMisses: signals.zfsArcMisses.asTimeSeries('ARC misses'),
+        },
+      },
+      {
+        title: 'NFS',
+        width: 12,
+        height: 7,
+        presence: { query: 'node_nfs_rpcs_total{instance=~"$instance"}', label: 'instance' },
+        elements: {
+          nfsRpcs: signals.nfsRpcs.asTimeSeries('NFS RPCs'),
+          nfsRetransmissions: signals.nfsRetransmissions.asTimeSeries('NFS RPC retransmissions'),
+        },
+      },
+      {
+        title: 'Battery',
+        width: 12,
+        height: 7,
+        presence: { query: 'node_power_supply_capacity{instance=~"$instance"}', label: 'instance' },
+        elements: {
+          batteryCapacity: signals.batteryCapacity.asStat('Battery capacity'),
+          batteryOnline: signals.batteryOnline.asStat('AC online'),
+          batteryPower: signals.batteryPower.asTimeSeries('Power draw'),
+          batteryVoltage: signals.batteryVoltage.asTimeSeries('Battery voltage'),
         },
       },
       {
