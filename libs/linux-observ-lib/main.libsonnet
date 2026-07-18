@@ -107,9 +107,43 @@ local panel = import 'custom/panel.libsonnet';
       conntrackUsed: sig('Conntrack used', 'node_nf_conntrack_entries{%(queriesSelector)s}', 'short'),
       conntrackMax: sig('Conntrack max', 'node_nf_conntrack_entries_limit{%(queriesSelector)s}', 'short'),
 
-      // --- Temperature (hardware) ---
+      // --- Temperature / power (hwmon, thermal_zone, rapl) ---
       tempCelsius: sig('Temperature', 'node_hwmon_temp_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{chip}} {{sensor}}'),
       thermalZone: sig('Thermal zone', 'node_thermal_zone_temp{%(queriesSelector)s}', 'celsius', '{{instance}} / {{type}}'),
+      raplPower: sig('CPU package power', 'sum without (index, path) (rate(node_rapl_package_joules_total{%(queriesSelector)s}[$__rate_interval]))', 'watt'),
+
+      // --- CPU frequency / scheduler (cpufreq, schedstat) ---
+      cpuFreq: sig('CPU frequency', 'avg without (cpu) (node_cpu_scaling_frequency_hertz{%(queriesSelector)s})', 'hertz'),
+      schedWait: sig('Scheduler wait time', 'sum without (cpu) (rate(node_schedstat_waiting_seconds_total{%(queriesSelector)s}[$__rate_interval]))', 's'),
+
+      // --- Paging / faults (vmstat) ---
+      pgFaults: sig('Page faults', 'rate(node_vmstat_pgfault{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      pgMajFaults: sig('Major page faults', 'rate(node_vmstat_pgmajfault{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      swapIn: sig('Swap in', 'rate(node_vmstat_pswpin{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      swapOut: sig('Swap out', 'rate(node_vmstat_pswpout{%(queriesSelector)s}[$__rate_interval])', 'short'),
+
+      // --- Processes / entropy (stat, entropy) ---
+      procsRunning: sig('Processes running', 'node_procs_running{%(queriesSelector)s}', 'short'),
+      procsBlocked: sig('Processes blocked (uninterruptible)', 'node_procs_blocked{%(queriesSelector)s}', 'short'),
+      entropy: sig('Entropy available', 'node_entropy_available_bits{%(queriesSelector)s}', 'short'),
+
+      // --- TCP / sockets / softnet (netstat, sockstat, softnet, udp_queues) ---
+      tcpEstablished: sig('TCP established', 'node_netstat_Tcp_CurrEstab{%(queriesSelector)s}', 'short'),
+      tcpActiveOpens: sig('TCP active opens', 'rate(node_netstat_Tcp_ActiveOpens{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      tcpRetrans: sig('TCP SYN retransmits', 'rate(node_netstat_TcpExt_TCPSynRetrans{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      tcpInErrs: sig('TCP in errors', 'rate(node_netstat_Tcp_InErrs{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      socketsTcp: sig('TCP sockets in use', 'node_sockstat_TCP_inuse{%(queriesSelector)s}', 'short'),
+      socketsMem: sig('TCP socket memory', 'node_sockstat_TCP_mem_bytes{%(queriesSelector)s}', 'bytes'),
+      softnetDropped: sig('Softnet dropped', 'sum without (cpu) (rate(node_softnet_dropped_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
+      softnetSqueezed: sig('Softnet times squeezed', 'sum without (cpu) (rate(node_softnet_times_squeezed_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
+      udpQueues: sig('UDP queue', 'node_udp_queues{%(queriesSelector)s}', 'bytes', '{{instance}} / {{queue}}'),
+
+      // --- Pressure stall information (collector: pressure / PSI) ---
+      psiCpu: sig('CPU pressure', 'rate(node_pressure_cpu_waiting_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      psiMem: sig('Memory pressure (some)', 'rate(node_pressure_memory_waiting_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      psiMemFull: sig('Memory pressure (full)', 'rate(node_pressure_memory_stalled_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      psiIo: sig('IO pressure (some)', 'rate(node_pressure_io_waiting_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
+      psiIoFull: sig('IO pressure (full)', 'rate(node_pressure_io_stalled_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit'),
 
       // --- Proxmox VE (optional tab; renders only on PVE hosts via showIfData) ---
       pveUp: psig('PVE node up', 'proxmox_node_up{%(queriesSelector)s}', 'short'),
@@ -140,9 +174,12 @@ local panel = import 'custom/panel.libsonnet';
         height: 7,
         elements: {
           uptime: signals.uptime.asStat('Uptime'),
+          procsRunning: signals.procsRunning.asStat('Processes running'),
+          procsBlocked: signals.procsBlocked.asStat('Processes blocked'),
           contextSwitches: signals.contextSwitches.asTimeSeries('Context switches'),
           fdUsed: signals.fdUsed.asTimeSeries('File descriptors used'),
           conntrackUsed: signals.conntrackUsed.asTimeSeries('Conntrack used'),
+          entropy: signals.entropy.asTimeSeries('Entropy available'),
         },
       },
       {
@@ -157,6 +194,9 @@ local panel = import 'custom/panel.libsonnet';
           load1: signals.load1.asTimeSeries('Load 1m'),
           load5: signals.load5.asTimeSeries('Load 5m'),
           load15: signals.load15.asTimeSeries('Load 15m'),
+          loadPerCpu: signals.loadPerCpu.asTimeSeries('Load per core'),
+          cpuFreq: signals.cpuFreq.asTimeSeries('CPU frequency'),
+          schedWait: signals.schedWait.asTimeSeries('Scheduler wait time'),
         },
       },
       {
@@ -171,6 +211,10 @@ local panel = import 'custom/panel.libsonnet';
           memBuffers: signals.memBuffers.asTimeSeries('Memory buffers'),
           memFree: signals.memFree.asTimeSeries('Memory free'),
           swapUsed: signals.swapUsed.asTimeSeries('Swap used'),
+          pgFaults: signals.pgFaults.asTimeSeries('Page faults'),
+          pgMajFaults: signals.pgMajFaults.asTimeSeries('Major page faults'),
+          swapIn: signals.swapIn.asTimeSeries('Swap in'),
+          swapOut: signals.swapOut.asTimeSeries('Swap out'),
         },
       },
       {
@@ -208,15 +252,37 @@ local panel = import 'custom/panel.libsonnet';
           netTxErrs: signals.netTxErrs.asTimeSeries('Network transmit errors'),
           netRxDrop: signals.netRxDrop.asTimeSeries('Network receive drops'),
           netTxDrop: signals.netTxDrop.asTimeSeries('Network transmit drops'),
+          tcpEstablished: signals.tcpEstablished.asTimeSeries('TCP established'),
+          tcpActiveOpens: signals.tcpActiveOpens.asTimeSeries('TCP active opens'),
+          tcpRetrans: signals.tcpRetrans.asTimeSeries('TCP SYN retransmits'),
+          tcpInErrs: signals.tcpInErrs.asTimeSeries('TCP in errors'),
+          socketsTcp: signals.socketsTcp.asTimeSeries('TCP sockets in use'),
+          socketsMem: signals.socketsMem.asTimeSeries('TCP socket memory'),
+          softnetDropped: signals.softnetDropped.asTimeSeries('Softnet dropped'),
+          softnetSqueezed: signals.softnetSqueezed.asTimeSeries('Softnet times squeezed'),
+          udpQueues: signals.udpQueues.asTimeSeries('UDP queue'),
         },
       },
       {
-        title: 'Temperature',
+        title: 'Temperature / power',
         width: 12,
         height: 7,
         elements: {
           tempCelsius: signals.tempCelsius.asTimeSeries('Hardware temperature'),
           thermalZone: signals.thermalZone.asTimeSeries('Thermal zone'),
+          raplPower: signals.raplPower.asTimeSeries('CPU package power'),
+        },
+      },
+      {
+        title: 'Pressure (PSI)',
+        width: 12,
+        height: 7,
+        elements: {
+          psiCpu: signals.psiCpu.asTimeSeries('CPU pressure'),
+          psiMem: signals.psiMem.asTimeSeries('Memory pressure (some)'),
+          psiMemFull: signals.psiMemFull.asTimeSeries('Memory pressure (full)'),
+          psiIo: signals.psiIo.asTimeSeries('IO pressure (some)'),
+          psiIoFull: signals.psiIoFull.asTimeSeries('IO pressure (full)'),
         },
       },
     ], [
