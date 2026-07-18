@@ -85,33 +85,82 @@ local query = import 'custom/query.libsonnet';
       '({__name__=~"ohm_.+_celsius"' + rsComma + '}'
       + ' or label_replace(windows_thermalzone_temperature_celsius' + rsBrace + ', "sensor", "$1", "name", "(.+)"))';
 
+    // per-dimension legend helpers keep the volume/nic/mode label on multi-series signals.
+    local byVol = '{{instance}} / {{volume}}';
+    local byNic = '{{instance}} / {{nic}}';
     local signals = {
-      // --- System ---
-      uptime: sig('Uptime', 'time() - windows_system_boot_time_timestamp{%(queriesSelector)s}', 's'),
-
-      // --- CPU ---
+      // ===== CPU (collector: cpu) =====
       cpuBusy: sig('CPU utilisation', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle",%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
+      cpuByMode: sig('CPU by mode', 'avg without (core) (rate(windows_cpu_time_total{%(queriesSelector)s}[$__rate_interval]))', 'percentunit', '{{instance}} / {{mode}}'),
+      cpuFreq: sig('CPU frequency', 'avg without (core) (windows_cpu_core_frequency_mhz{%(queriesSelector)s}) * 1e6', 'hertz'),
+      cpuInterrupts: sig('Interrupts', 'sum without (core) (rate(windows_cpu_interrupts_total{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{instance}} / interrupts'),
+      cpuDpcs: sig('DPCs', 'sum without (core) (rate(windows_cpu_dpcs_total{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{instance}} / DPCs'),
+      cpuCores: sig('Logical processors', 'count without (core) (windows_cpu_time_total{mode="idle",%(queriesSelector)s})', 'short'),
+      cpuCState: sig('CPU C-state residency', 'avg without (core) (rate(windows_cpu_cstate_seconds_total{%(queriesSelector)s}[$__rate_interval]))', 'percentunit', '{{instance}} / {{state}}'),
 
-      // --- Memory (windows_exporter memory collector; `available` ~ Linux MemAvailable) ---
+      // ===== Memory (collector: memory; `available` ~ Linux MemAvailable) =====
       memTotal: sig('Physical memory total', 'windows_memory_physical_total_bytes{%(queriesSelector)s}', 'bytes'),
       memAvailable: sig('Physical memory available', 'windows_memory_available_bytes{%(queriesSelector)s}', 'bytes'),
       memFree: sig('Physical memory free', 'windows_memory_physical_free_bytes{%(queriesSelector)s}', 'bytes'),
       memUsed: sig('Physical memory used', 'windows_memory_physical_total_bytes{%(queriesSelector)s} - windows_memory_available_bytes{%(queriesSelector)s}', 'bytes'),
       memUsedRatio: sig('Memory used ratio', '1 - windows_memory_available_bytes{%(queriesSelector)s} / windows_memory_physical_total_bytes{%(queriesSelector)s}', 'percentunit'),
       memCommitted: sig('Committed memory', 'windows_memory_committed_bytes{%(queriesSelector)s}', 'bytes'),
+      memCommitLimit: sig('Commit limit', 'windows_memory_commit_limit{%(queriesSelector)s}', 'bytes'),
+      memCache: sig('Cache', 'windows_memory_cache_bytes{%(queriesSelector)s}', 'bytes'),
+      memPoolPaged: sig('Paged pool', 'windows_memory_pool_paged_bytes{%(queriesSelector)s}', 'bytes'),
+      memPoolNonpaged: sig('Nonpaged pool', 'windows_memory_pool_nonpaged_bytes{%(queriesSelector)s}', 'bytes'),
+      memPageFaults: sig('Page faults', 'rate(windows_memory_page_faults_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      memSwapOps: sig('Swap page operations', 'rate(windows_memory_swap_page_operations_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
 
-      // --- Disk ---
-      diskFree: sig('Logical disk free', 'windows_logical_disk_free_bytes{%(queriesSelector)s}', 'bytes', '{{instance}} / {{volume}}'),
-      diskUsedRatio: sig('Logical disk used ratio', '1 - windows_logical_disk_free_bytes{%(queriesSelector)s} / windows_logical_disk_size_bytes{%(queriesSelector)s}', 'percentunit', '{{instance}} / {{volume}}'),
+      // ===== Disk (collector: logical_disk) =====
+      diskFree: sig('Logical disk free', 'windows_logical_disk_free_bytes{%(queriesSelector)s}', 'bytes', byVol),
+      diskSize: sig('Logical disk size', 'windows_logical_disk_size_bytes{%(queriesSelector)s}', 'bytes', byVol),
+      diskUsedRatio: sig('Logical disk used ratio', '1 - windows_logical_disk_free_bytes{%(queriesSelector)s} / windows_logical_disk_size_bytes{%(queriesSelector)s}', 'percentunit', byVol),
+      diskReadBytes: sig('Disk read', 'rate(windows_logical_disk_read_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', byVol),
+      diskWriteBytes: sig('Disk write', 'rate(windows_logical_disk_write_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', byVol),
+      diskReadIops: sig('Disk read IOPS', 'rate(windows_logical_disk_reads_total{%(queriesSelector)s}[$__rate_interval])', 'iops', byVol),
+      diskWriteIops: sig('Disk write IOPS', 'rate(windows_logical_disk_writes_total{%(queriesSelector)s}[$__rate_interval])', 'iops', byVol),
+      diskReadLatency: sig('Disk read latency', 'rate(windows_logical_disk_read_latency_seconds_total{%(queriesSelector)s}[$__rate_interval]) / rate(windows_logical_disk_reads_total{%(queriesSelector)s}[$__rate_interval])', 's', byVol),
+      diskWriteLatency: sig('Disk write latency', 'rate(windows_logical_disk_write_latency_seconds_total{%(queriesSelector)s}[$__rate_interval]) / rate(windows_logical_disk_writes_total{%(queriesSelector)s}[$__rate_interval])', 's', byVol),
+      diskQueue: sig('Disk queue length', 'windows_logical_disk_requests_queued{%(queriesSelector)s}', 'short', byVol),
+      diskActive: sig('Disk active time', '1 - rate(windows_logical_disk_idle_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'percentunit', byVol),
 
-      // --- Network ---
-      netRecv: sig('Network received', 'rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
-      netSent: sig('Network sent', 'rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{nic}}'),
+      // ===== Network (collector: net) =====
+      netRecv: sig('Network received', 'rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', byNic),
+      netSent: sig('Network sent', 'rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', byNic),
+      netBandwidth: sig('Link speed', 'windows_net_current_bandwidth_bytes{%(queriesSelector)s} * 8', 'bps', byNic),
+      netUtil: sig('Network utilisation', 'rate(windows_net_bytes_total{%(queriesSelector)s}[$__rate_interval]) * 8 / (windows_net_current_bandwidth_bytes{%(queriesSelector)s} * 8)', 'percentunit', byNic),
+      netPacketsRecv: sig('Packets received', 'rate(windows_net_packets_received_total{%(queriesSelector)s}[$__rate_interval])', 'pps', byNic),
+      netPacketsSent: sig('Packets sent', 'rate(windows_net_packets_sent_total{%(queriesSelector)s}[$__rate_interval])', 'pps', byNic),
+      netErrors: sig('Network errors', 'rate(windows_net_packets_received_errors_total{%(queriesSelector)s}[$__rate_interval]) + rate(windows_net_packets_outbound_errors_total{%(queriesSelector)s}[$__rate_interval])', 'short', byNic),
+      netDiscards: sig('Network discards', 'rate(windows_net_packets_received_discarded_total{%(queriesSelector)s}[$__rate_interval]) + rate(windows_net_packets_outbound_discarded_total{%(queriesSelector)s}[$__rate_interval])', 'short', byNic),
+      netQueue: sig('Output queue', 'windows_net_output_queue_length_packets{%(queriesSelector)s}', 'short', byNic),
 
-      // --- Applications (processes + Windows services) ---
+      // ===== System (collector: system) =====
+      uptime: sig('Uptime', 'time() - windows_system_boot_time_timestamp{%(queriesSelector)s}', 's'),
       processes: sig('Processes', 'windows_system_processes{%(queriesSelector)s}', 'short'),
+      threads: sig('Threads', 'windows_system_threads{%(queriesSelector)s}', 'short'),
+      contextSwitches: sig('Context switches', 'rate(windows_system_context_switches_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      systemCalls: sig('System calls', 'rate(windows_system_system_calls_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      exceptions: sig('Exception dispatches', 'rate(windows_system_exception_dispatches_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      procQueue: sig('Processor queue length', 'windows_system_processor_queue_length{%(queriesSelector)s}', 'short'),
+
+      // ===== OS (collector: os) =====
+      osInfo: sig('OS', 'windows_os_info{%(queriesSelector)s}', 'short', '{{instance}} / {{product}}'),
+
+      // ===== Services (collector: service) =====
       servicesRunning: sig('Running services', 'count(windows_service_state{state="running",%(queriesSelector)s} == 1)', 'short', 'running'),
+      servicesStopped: sig('Stopped services', 'count(windows_service_state{state="stopped",%(queriesSelector)s} == 1)', 'short', 'stopped'),
       serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
+
+      // ===== Time (collector: time) — NTP sync health =====
+      timeOffset: sig('Clock offset', 'windows_time_computed_time_offset_seconds{%(queriesSelector)s}', 's'),
+      ntpRoundTrip: sig('NTP round-trip delay', 'windows_time_ntp_round_trip_delay_seconds{%(queriesSelector)s}', 's'),
+
+      // ===== Scrape health (collector: exporter) =====
+      scrapeDuration: sig('Scrape duration', 'windows_exporter_scrape_duration_seconds{%(queriesSelector)s}', 's'),
+      collectorSuccess: sig('Collector success', 'windows_exporter_collector_success{%(queriesSelector)s}', 'short', '{{instance}} / {{collector}}'),
+      collectorDuration: sig('Collector duration', 'windows_exporter_collector_duration_seconds{%(queriesSelector)s}', 's', '{{instance}} / {{collector}}'),
 
       // --- Temperature (source-agnostic: OhmGraphite OR windows_exporter thermalzone) ---
       // One unified signal per host — ohm_<hw>_celsius (LibreHardwareMonitor +
@@ -127,51 +176,110 @@ local query = import 'custom/query.libsonnet';
 
     local main = pack.build(cfg, signals, [
       {
-        title: 'System',
-        width: 8,
-        height: 6,
+        // at-a-glance stats across the core collectors.
+        title: 'Overview',
+        width: 4,
+        height: 4,
         elements: {
           uptime: signals.uptime.asStat('Uptime'),
           cpu: signals.cpuBusy.asStat('CPU utilisation'),
           memRatio: signals.memUsedRatio.asStat('Memory used ratio'),
+          cores: signals.cpuCores.asStat('Logical processors'),
+          processes: signals.processes.asStat('Processes'),
+          threads: signals.threads.asStat('Threads'),
         },
       },
       {
-        title: 'CPU',
-        width: 24,
+        title: 'CPU',  // collector: cpu
+        width: 12,
         height: 7,
         elements: {
           cpuBusy: signals.cpuBusy.asTimeSeries('CPU utilisation'),
+          cpuByMode: signals.cpuByMode.asTimeSeries('CPU time by mode'),
+          cpuFreq: signals.cpuFreq.asTimeSeries('CPU frequency'),
+          cpuCState: signals.cpuCState.asTimeSeries('C-state residency'),
+          cpuInterrupts: signals.cpuInterrupts.asTimeSeries('Interrupts/s'),
+          cpuDpcs: signals.cpuDpcs.asTimeSeries('DPCs/s'),
         },
       },
       {
-        title: 'Memory',
+        title: 'Memory',  // collector: memory
         width: 12,
         height: 7,
         elements: {
           memUsed: signals.memUsed.asTimeSeries('Physical memory used'),
           memAvailable: signals.memAvailable.asTimeSeries('Physical memory available'),
-          memFree: signals.memFree.asTimeSeries('Physical memory free'),
-          memTotal: signals.memTotal.asTimeSeries('Physical memory total'),
           memCommitted: signals.memCommitted.asTimeSeries('Committed memory'),
+          memCommitLimit: signals.memCommitLimit.asTimeSeries('Commit limit'),
+          memCache: signals.memCache.asTimeSeries('Cache'),
+          memPoolPaged: signals.memPoolPaged.asTimeSeries('Paged pool'),
+          memPoolNonpaged: signals.memPoolNonpaged.asTimeSeries('Nonpaged pool'),
+          memPageFaults: signals.memPageFaults.asTimeSeries('Page faults/s'),
+          memSwapOps: signals.memSwapOps.asTimeSeries('Swap page operations/s'),
         },
       },
       {
-        title: 'Disk',
+        title: 'Disk',  // collector: logical_disk
         width: 12,
         height: 7,
         elements: {
           diskUsedRatio: signals.diskUsedRatio.asTable('Logical disk used ratio'),
           diskFree: signals.diskFree.asTimeSeries('Logical disk free'),
+          diskReadBytes: signals.diskReadBytes.asTimeSeries('Disk read'),
+          diskWriteBytes: signals.diskWriteBytes.asTimeSeries('Disk write'),
+          diskReadIops: signals.diskReadIops.asTimeSeries('Disk read IOPS'),
+          diskWriteIops: signals.diskWriteIops.asTimeSeries('Disk write IOPS'),
+          diskReadLatency: signals.diskReadLatency.asTimeSeries('Disk read latency'),
+          diskWriteLatency: signals.diskWriteLatency.asTimeSeries('Disk write latency'),
+          diskQueue: signals.diskQueue.asTimeSeries('Disk queue length'),
+          diskActive: signals.diskActive.asTimeSeries('Disk active time'),
         },
       },
       {
-        title: 'Network',
+        title: 'Network',  // collector: net
         width: 12,
         height: 7,
         elements: {
           netRecv: signals.netRecv.asTimeSeries('Network received'),
           netSent: signals.netSent.asTimeSeries('Network sent'),
+          netUtil: signals.netUtil.asTimeSeries('Link utilisation'),
+          netBandwidth: signals.netBandwidth.asTimeSeries('Link speed'),
+          netPacketsRecv: signals.netPacketsRecv.asTimeSeries('Packets received'),
+          netPacketsSent: signals.netPacketsSent.asTimeSeries('Packets sent'),
+          netErrors: signals.netErrors.asTimeSeries('Errors/s'),
+          netDiscards: signals.netDiscards.asTimeSeries('Discards/s'),
+          netQueue: signals.netQueue.asTimeSeries('Output queue length'),
+        },
+      },
+      {
+        title: 'System activity',  // collector: system
+        width: 12,
+        height: 7,
+        elements: {
+          contextSwitches: signals.contextSwitches.asTimeSeries('Context switches/s'),
+          systemCalls: signals.systemCalls.asTimeSeries('System calls/s'),
+          exceptions: signals.exceptions.asTimeSeries('Exception dispatches/s'),
+          procQueue: signals.procQueue.asTimeSeries('Processor queue length'),
+        },
+      },
+      {
+        title: 'Time',  // collector: time — NTP sync health
+        width: 12,
+        height: 7,
+        elements: {
+          timeOffset: signals.timeOffset.asTimeSeries('Clock offset'),
+          ntpRoundTrip: signals.ntpRoundTrip.asTimeSeries('NTP round-trip delay'),
+        },
+      },
+      {
+        title: 'Scrape health',  // collector: exporter — the exporter monitoring itself
+        width: 12,
+        height: 7,
+        elements: {
+          osInfo: signals.osInfo.asTable('OS'),
+          collectorSuccess: signals.collectorSuccess.asTable('Collector success'),
+          scrapeDuration: signals.scrapeDuration.asTimeSeries('Scrape duration'),
+          collectorDuration: signals.collectorDuration.asTimeSeries('Collector duration'),
         },
       },
     ], [
@@ -232,6 +340,7 @@ local query = import 'custom/query.libsonnet';
         elements: {
           processes: signals.processes.asStat('Processes'),
           servicesRunning: signals.servicesRunning.asStat('Running services'),
+          servicesStopped: signals.servicesStopped.asStat('Stopped services'),
           serviceState: signals.serviceState.asTable('Service states'),
         },
       },
