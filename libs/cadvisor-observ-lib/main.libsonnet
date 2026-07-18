@@ -15,7 +15,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTags: ['kubernetes', 'cadvisor'],
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',
-      varMetric: 'cadvisor_version_info',
+      varMetric: 'container_cpu_usage_seconds_total',  // allowlisted with job+namespace
+      varLabels: ['namespace'],  // $namespace dropdown (label_values scoped by $job)
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
@@ -36,10 +37,17 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       cpuThrottling: sig('CPU throttling', 'sum by (pod)(rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
       memWorkingSet: sig('Memory working set', 'sum by (pod,container)(container_memory_working_set_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
       memRss: sig('Memory RSS', 'sum by (pod,container)(container_memory_rss{%(queriesSelector)s,container!=""})', 'bytes'),
-      netReceive: sig('Network receive', 'sum by (pod)(rate(container_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
-      netTransmit: sig('Network transmit', 'sum by (pod)(rate(container_network_transmit_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
       diskReads: sig('Disk reads', 'sum by (pod)(rate(container_fs_reads_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
       diskWrites: sig('Disk writes', 'sum by (pod)(rate(container_fs_writes_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
+      // --- CPU detail ---
+      cpuThrottleRatio: sig('CPU throttled ratio', 'sum by (pod)(rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s}[$__rate_interval])) / sum by (pod)(rate(container_cpu_cfs_periods_total{%(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
+      // --- Memory detail ---
+      memUsage: sig('Memory usage', 'sum by (pod,container)(container_memory_usage_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
+      memCache: sig('Memory cache', 'sum by (pod,container)(container_memory_cache{%(queriesSelector)s,container!=""})', 'bytes'),
+      memSwap: sig('Memory swap', 'sum by (pod,container)(container_memory_swap{%(queriesSelector)s,container!=""})', 'bytes'),
+      // --- Disk detail ---
+      diskReadIops: sig('Disk read IOPS', 'sum by (pod)(rate(container_fs_reads_total{%(queriesSelector)s}[$__rate_interval]))', 'iops'),
+      diskWriteIops: sig('Disk write IOPS', 'sum by (pod)(rate(container_fs_writes_total{%(queriesSelector)s}[$__rate_interval]))', 'iops'),
     };
 
     pack.build(cfg, signals, [
@@ -49,7 +57,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         height: 7,
         elements: {
           cpuUsage: signals.cpuUsage.asTimeSeries('CPU usage (cores)'),
-          cpuThrottling: signals.cpuThrottling.asTimeSeries('CPU throttling'),
+          cpuThrottling: signals.cpuThrottling.asTimeSeries('CPU throttled periods'),
+          cpuThrottleRatio: signals.cpuThrottleRatio.asTimeSeries('CPU throttled ratio'),
         },
       },
       {
@@ -58,16 +67,10 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         height: 7,
         elements: {
           memWorkingSet: signals.memWorkingSet.asTimeSeries('Memory working set'),
+          memUsage: signals.memUsage.asTimeSeries('Memory usage'),
           memRss: signals.memRss.asTimeSeries('Memory RSS'),
-        },
-      },
-      {
-        title: 'Network',
-        width: 12,
-        height: 7,
-        elements: {
-          netReceive: signals.netReceive.asTimeSeries('Network receive'),
-          netTransmit: signals.netTransmit.asTimeSeries('Network transmit'),
+          memCache: signals.memCache.asTimeSeries('Memory cache'),
+          memSwap: signals.memSwap.asTimeSeries('Memory swap'),
         },
       },
       {
@@ -75,8 +78,10 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         width: 12,
         height: 7,
         elements: {
-          diskReads: signals.diskReads.asTimeSeries('Disk reads'),
-          diskWrites: signals.diskWrites.asTimeSeries('Disk writes'),
+          diskReads: signals.diskReads.asTimeSeries('Disk read'),
+          diskWrites: signals.diskWrites.asTimeSeries('Disk write'),
+          diskReadIops: signals.diskReadIops.asTimeSeries('Disk read IOPS'),
+          diskWriteIops: signals.diskWriteIops.asTimeSeries('Disk write IOPS'),
         },
       },
     ], [
