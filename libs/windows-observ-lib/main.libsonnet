@@ -45,10 +45,14 @@ local query = import 'custom/query.libsonnet';
       logsSelector: 'instance=~"$instance"',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
-      // CPU temperature alert thresholds (°C) — hardware-specific, so overridable.
-      // dormant until OhmGraphite emits ohm_cpu_celsius (metric absent -> no firing).
+      // Temperature alert thresholds (°C) — hardware-specific, so overridable.
+      // Dormant until a temperature source emits (metric absent -> no firing).
       tempWarnC: 85,
       tempCritC: 95,
+      // Sane window: sensor readings outside [tempMinC, tempMaxC] are dropped as
+      // nonsense (negatives / disconnected-sensor garbage / impossible highs).
+      tempMinC: 0,
+      tempMaxC: 150,
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -61,12 +65,25 @@ local query = import 'custom/query.libsonnet';
     // Windows event log lines from Loki, scoped to the selected instance.
     local lsig(name, expr) =
       signal.new(name, 'loki', '${loki_datasource}', expr, 'short').filteringSelector(cfg.logsSelector);
-    // OhmGraphite temperature signals carry job="integrations/ohmgraphite" (a
-    // separate scrape from windows_exporter), so they filter on cluster+instance
-    // only — NOT the windows_exporter $job. Same host, different job label.
-    local ohmSelector = 'cluster=~"$cluster", instance=~"$instance"';
-    local osig(name, expr, unit, legend='{{instance}}') =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(ohmSelector).withLegendFormat(legend);
+    // Temperature signals filter on cluster+instance only — NOT the windows_exporter
+    // $job, since OhmGraphite carries job="integrations/ohmgraphite" (a separate
+    // scrape). Same host, different job label.
+    local tempSelector = 'cluster=~"$cluster", instance=~"$instance"';
+    local tsig(name, expr, legend='{{instance}} / {{sensor}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, 'celsius').withLegendFormat(legend);
+    // Unified temperature source: whichever a host emits — OhmGraphite
+    // (ohm_<hw>_celsius, labelled `sensor`) OR the windows_exporter thermalzone
+    // collector (labelled `name`, relabelled to `sensor` so both share a legend).
+    // `or` yields ohm where present, else thermalzone. Range-filtered to drop
+    // nonsense (negatives / disconnected-sensor garbage / impossible highs).
+    local tempRange = ' > ' + cfg.tempMinC + ' < ' + cfg.tempMaxC;
+    local tempUnion(sel) =
+      '({__name__=~"ohm_.+_celsius", ' + sel + '}'
+      + ' or label_replace(windows_thermalzone_temperature_celsius{' + sel + '}, "sensor", "$1", "name", "(.+)"))';
+    // rule-side union (no dashboard vars; the static ruleSelector may be empty).
+    local tempUnionRule =
+      '({__name__=~"ohm_.+_celsius"' + rsComma + '}'
+      + ' or label_replace(windows_thermalzone_temperature_celsius' + rsBrace + ', "sensor", "$1", "name", "(.+)"))';
 
     local signals = {
       // --- System ---
@@ -96,16 +113,13 @@ local query = import 'custom/query.libsonnet';
       servicesRunning: sig('Running services', 'count(windows_service_state{state="running",%(queriesSelector)s} == 1)', 'short', 'running'),
       serviceState: sig('Service states', 'windows_service_state{%(queriesSelector)s}', 'short', '{{name}} / {{state}}'),
 
-      // --- Temperature (OhmGraphite: LibreHardwareMonitor + PawnIO) ---
-      // windows_exporter's thermalzone collector reads ACPI WMI, which returns
-      // nothing on this fleet's laptops; OhmGraphite reads the chips directly and
-      // publishes ohm_<hardware>_celsius gauges (job="integrations/ohmgraphite"),
-      // labelled hardware/sensor/hw_instance. Gated on data presence (showIfData),
-      // so the tab stays hidden until a host opts into hardware_sensors (salt).
-      tempCpuMax: osig('Max CPU temperature', 'max by (instance)(ohm_cpu_celsius{%(queriesSelector)s})', 'celsius'),
-      tempCpu: osig('CPU temperature', 'ohm_cpu_celsius{%(queriesSelector)s}', 'celsius', '{{instance}} / {{sensor}}'),
-      // any component that reports a temperature (CPU package/cores, GPU, disks, battery).
-      tempAll: osig('Component temperatures', '{__name__=~"ohm_.+_celsius", %(queriesSelector)s}', 'celsius', '{{sensor}}'),
+      // --- Temperature (source-agnostic: OhmGraphite OR windows_exporter thermalzone) ---
+      // One unified signal per host — ohm_<hw>_celsius (LibreHardwareMonitor +
+      // PawnIO, our fleet) or windows_thermalzone_temperature_celsius (hosts whose
+      // ACPI exposes it), nonsense-filtered. Gated on data presence (showIfData),
+      // so the tab stays hidden until a host emits any temperature.
+      tempMax: tsig('Max temperature', 'max by (instance)(' + tempUnion(tempSelector) + tempRange + ')', '{{instance}}'),
+      tempBySensor: tsig('Temperature by sensor', tempUnion(tempSelector) + tempRange),
 
       // --- Logs (Windows event log via Loki) ---
       winLogs: lsig('Windows event log', '{%(queriesSelector)s}'),
@@ -185,19 +199,19 @@ local query = import 'custom/query.libsonnet';
           '15m', 'warning', {},
           { summary: 'Logical disk {{ $labels.volume }} on {{ $labels.instance }} has less than 5GB free.' }
         ),
-        // CPU temperature (OhmGraphite) — warning + critical tiers. Both stay
-        // dormant until ohm_cpu_celsius is emitted (absent metric -> no firing).
+        // Temperature (any source) — warning + critical tiers on the per-host max
+        // sensor reading, nonsense-filtered. Dormant until a source emits.
         alert.rule.new(
           'WindowsHighTemperature',
-          'ohm_cpu_celsius' + rsBrace + ' > ' + cfg.tempWarnC,
+          'max by (instance) (' + tempUnionRule + tempRange + ') > ' + cfg.tempWarnC,
           '10m', 'warning', {},
-          { summary: 'CPU sensor {{ $labels.sensor }} on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
+          { summary: 'Temperature on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
         ),
         alert.rule.new(
           'WindowsCriticalTemperature',
-          'ohm_cpu_celsius' + rsBrace + ' > ' + cfg.tempCritC,
+          'max by (instance) (' + tempUnionRule + tempRange + ') > ' + cfg.tempCritC,
           '5m', 'critical', {},
-          { summary: 'CPU sensor {{ $labels.sensor }} on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
+          { summary: 'Temperature on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
         ),
       ]),
     ], [
@@ -206,7 +220,7 @@ local query = import 'custom/query.libsonnet';
         alert.rule.record('instance:windows_cpu_utilisation:rate5m', '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m]))'),
         alert.rule.record('instance:windows_memory_utilisation:ratio', '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace),
         alert.rule.record('instance:windows_logical_disk_free_bytes:sum', 'sum without (volume) (windows_logical_disk_free_bytes' + rsBrace + ')'),
-        alert.rule.record('instance:ohm_cpu_celsius:max', 'max without (sensor, hardware, hw_instance) (ohm_cpu_celsius' + rsBrace + ')'),
+        alert.rule.record('instance:temperature_celsius:max', 'max by (instance) (' + tempUnionRule + tempRange + ')'),
       ]),
     ], [
       // optional tabs — render only when their metrics/logs are present.
@@ -230,15 +244,14 @@ local query = import 'custom/query.libsonnet';
         },
       },
       {
-        // no `presence` -> showIfData(): hidden until OhmGraphite emits, then the
-        // tab appears on its own once a host opts into hardware_sensors (salt).
+        // no `presence` -> showIfData(): hidden until a temperature source emits,
+        // then the tab appears on its own (either ohm or thermalzone).
         title: 'Temperature',
         width: 12,
         height: 7,
         elements: {
-          tempCpuMax: signals.tempCpuMax.asStat('Max CPU temperature'),
-          tempCpu: signals.tempCpu.asTimeSeries('CPU temperature by sensor'),
-          tempAll: signals.tempAll.asTimeSeries('Component temperatures'),
+          tempMax: signals.tempMax.asStat('Max temperature'),
+          tempBySensor: signals.tempBySensor.asTimeSeries('Temperature by sensor'),
         },
       },
     ]);
