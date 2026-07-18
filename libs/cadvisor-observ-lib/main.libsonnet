@@ -45,6 +45,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       memUsage: sig('Memory usage', 'sum by (pod,container)(container_memory_usage_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
       memCache: sig('Memory cache', 'sum by (pod,container)(container_memory_cache{%(queriesSelector)s,container!=""})', 'bytes'),
       memSwap: sig('Memory swap', 'sum by (pod,container)(container_memory_swap{%(queriesSelector)s,container!=""})', 'bytes'),
+      // --- CPU user/system + Memory limit/OOM (unlocked via cadvisor includeMetrics) ---
+      cpuUser: sig('CPU user', 'sum by (pod,container)(rate(container_cpu_user_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short'),
+      cpuSystem: sig('CPU system', 'sum by (pod,container)(rate(container_cpu_system_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short'),
+      specMemLimit: sig('Memory limit (spec)', 'sum by (pod,container)(container_spec_memory_limit_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
+      oomEvents: sig('OOM kills', 'sum by (pod)(rate(container_oom_events_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
       // --- Disk detail ---
       diskReadIops: sig('Disk read IOPS', 'sum by (pod)(rate(container_fs_reads_total{%(queriesSelector)s}[$__rate_interval]))', 'iops'),
       diskWriteIops: sig('Disk write IOPS', 'sum by (pod)(rate(container_fs_writes_total{%(queriesSelector)s}[$__rate_interval]))', 'iops'),
@@ -57,6 +62,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         height: 7,
         elements: {
           cpuUsage: signals.cpuUsage.asTimeSeries('CPU usage (cores)'),
+          cpuUser: signals.cpuUser.asTimeSeries('CPU user'),
+          cpuSystem: signals.cpuSystem.asTimeSeries('CPU system'),
           cpuThrottling: signals.cpuThrottling.asTimeSeries('CPU throttled periods'),
           cpuThrottleRatio: signals.cpuThrottleRatio.asTimeSeries('CPU throttled ratio'),
         },
@@ -71,6 +78,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
           memRss: signals.memRss.asTimeSeries('Memory RSS'),
           memCache: signals.memCache.asTimeSeries('Memory cache'),
           memSwap: signals.memSwap.asTimeSeries('Memory swap'),
+          specMemLimit: signals.specMemLimit.asTimeSeries('Memory limit (spec)'),
+          oomEvents: signals.oomEvents.asTimeSeries('OOM kills'),
         },
       },
       {
