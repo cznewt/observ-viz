@@ -20,16 +20,16 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux Server | 51 | 47 |
+| `system.linux` | Linux Server | 86 | 83 |
 | `system.docker` | Docker containers | 7 | 9 |
-| `system.windows` | Windows Server | 16 | 19 |
+| `system.windows` | Windows Server | 58 | 58 |
 
 ## Kubernetes
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `kubernetes.pod` | Kubernetes pod | 6 | 8 |
-| `kubernetes.cadvisor` | Container resources | 8 | 10 |
+| `kubernetes.pod` | Kubernetes pod | 29 | 31 |
+| `kubernetes.cadvisor` | Container resources | 16 | 18 |
 
 ## Databases
 

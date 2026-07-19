@@ -1,6 +1,6 @@
 # Linux Server  (`g.libs.system.linux`)
 
-Dashboard uid `compute-linux-overview` · 51 signals · 26 alerts · 7 recording rules.
+Dashboard uid `compute-linux-overview` · 86 signals · 26 alerts · 7 recording rules.
 
 ## Signals
 
@@ -10,10 +10,15 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 |--------|------|-------|-------------|
 | `batoceraOs` | short | `node_os_info{id=~"batocera", instance=~"$instance"}` | — |
 | `batoceraTemp` | celsius | `node_hwmon_temp_celsius{instance=~"$instance"} and on (instance) node_os_info{id=~"batocera"}` | — |
+| `batteryCapacity` | percent | `node_power_supply_capacity{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `batteryOnline` | short | `node_power_supply_online{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `batteryPower` | watt | `node_power_supply_power_watt{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `batteryVoltage` | volt | `node_power_supply_voltage_volt{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `conntrackMax` | short | `node_nf_conntrack_entries_limit{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `conntrackUsed` | short | `node_nf_conntrack_entries{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `contextSwitches` | ops | `rate(node_context_switches_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `cpuBusy` | percentunit | `1 - avg without(cpu,mode)(rate(node_cpu_seconds_total{mode="idle",job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | `instance:node_cpu_utilisation:rate5m` |
+| `cpuFreq` | hertz | `avg without (cpu) (node_cpu_scaling_frequency_hertz{job=~"$job", cluster=~"$cluster", instance=~"$instance"})` | — |
 | `cpuMode` | percentunit | `avg without(cpu)(rate(node_cpu_seconds_total{mode!="idle",job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
 | `diskIo` | percentunit | `rate(node_disk_io_time_seconds_total{device!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | `instance_device:node_disk_io_time_seconds:rate5m` |
 | `diskIoLatency` | s | `rate(node_disk_io_time_weighted_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
@@ -24,6 +29,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `dockerContainers` | short | `count(container_last_seen{instance=~"$instance", container!=""})` | — |
 | `dockerCpu` | short | `sum by (pod) (rate(container_cpu_usage_seconds_total{instance=~"$instance", container!=""}[$__rate_interval]))` | — |
 | `dockerMem` | bytes | `sum by (pod) (container_memory_usage_bytes{instance=~"$instance", container!=""})` | — |
+| `entropy` | short | `node_entropy_available_bits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `fdMax` | short | `node_filefd_maximum{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `fdUsed` | short | `node_filefd_allocated{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `fsAvail` | bytes | `node_filesystem_avail_bytes{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
@@ -48,27 +54,57 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `netTxDrop` | pps | `rate(node_network_transmit_drop_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `netTxErrs` | pps | `rate(node_network_transmit_errs_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `netTxExclLo` | Bps | `sum without (device) (rate(node_network_transmit_bytes_total{device!="lo",job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | `instance:node_network_transmit_bytes_excluding_lo:rate5m` |
+| `nfsRetransmissions` | short | `rate(node_nfs_rpc_retransmissions_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `nfsRpcs` | short | `rate(node_nfs_rpcs_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `nodeLogs` | short | `{instance=~"$instance"}` | — |
+| `pgFaults` | short | `rate(node_vmstat_pgfault{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `pgMajFaults` | short | `rate(node_vmstat_pgmajfault{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `procsBlocked` | short | `node_procs_blocked{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `procsRunning` | short | `node_procs_running{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `psiCpu` | percentunit | `rate(node_pressure_cpu_waiting_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `psiIo` | percentunit | `rate(node_pressure_io_waiting_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `psiIoFull` | percentunit | `rate(node_pressure_io_stalled_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `psiMem` | percentunit | `rate(node_pressure_memory_waiting_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `psiMemFull` | percentunit | `rate(node_pressure_memory_stalled_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `pveCpusAllocated` | short | `proxmox_node_cpus_allocated{node=~"$instance"}` | — |
 | `pveMemAllocated` | bytes | `proxmox_node_memory_allocated_bytes{node=~"$instance"}` | — |
 | `pveUp` | short | `proxmox_node_up{node=~"$instance"}` | — |
+| `raplPower` | watt | `sum without (index, path) (rate(node_rapl_package_joules_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
+| `schedWait` | s | `sum without (cpu) (rate(node_schedstat_waiting_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
 | `servicesActive` | short | `sum(node_systemd_unit_state{state="active",job=~"$job", cluster=~"$cluster", instance=~"$instance"})` | — |
 | `servicesFailed` | short | `node_systemd_unit_state{state="failed",job=~"$job", cluster=~"$cluster", instance=~"$instance"} == 1` | — |
+| `socketsMem` | bytes | `node_sockstat_TCP_mem_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `socketsTcp` | short | `node_sockstat_TCP_inuse{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `softnetDropped` | short | `sum without (cpu) (rate(node_softnet_dropped_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
+| `softnetSqueezed` | short | `sum without (cpu) (rate(node_softnet_times_squeezed_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
+| `swapIn` | short | `rate(node_vmstat_pswpin{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `swapIoPages` | short | `rate(node_vmstat_pgpgin{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]) + rate(node_vmstat_pgpgout{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | `instance:node_memory_swap_io_pages:rate5m` |
+| `swapOut` | short | `rate(node_vmstat_pswpout{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `swapUsed` | bytes | `node_memory_SwapTotal_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"} - node_memory_SwapFree_bytes{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `tcpActiveOpens` | short | `rate(node_netstat_Tcp_ActiveOpens{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `tcpEstablished` | short | `node_netstat_Tcp_CurrEstab{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `tcpInErrs` | short | `rate(node_netstat_Tcp_InErrs{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `tcpRetrans` | short | `rate(node_netstat_TcpExt_TCPSynRetrans{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `tempCelsius` | celsius | `node_hwmon_temp_celsius{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `thermalZone` | celsius | `node_thermal_zone_temp{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `udpQueues` | bytes | `node_udp_queues{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `uptime` | s | `time() - node_boot_time_seconds{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `zfsArcCMax` | bytes | `node_zfs_arc_c_max{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `zfsArcHitRatio` | percentunit | `rate(node_zfs_arc_hits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]) / clamp_min(rate(node_zfs_arc_hits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]) + rate(node_zfs_arc_misses{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]), 1)` | — |
+| `zfsArcHits` | short | `rate(node_zfs_arc_hits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `zfsArcMisses` | short | `rate(node_zfs_arc_misses{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
+| `zfsArcSize` | bytes | `node_zfs_arc_size{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 
 ## Dashboard
 
-- **System** — `conntrackUsed`, `contextSwitches`, `fdUsed`, `uptime`
-- **CPU / Load** — `cpuBusy`, `cpuMode`, `load1`, `load15`, `load5`
-- **Memory** — `memAvailable`, `memBuffers`, `memCached`, `memFree`, `memUsed`, `memUsedRatio`, `swapUsed`
+- **System** — `conntrackUsed`, `contextSwitches`, `entropy`, `fdUsed`, `procsBlocked`, `procsRunning`, `uptime`
+- **CPU / Load** — `cpuBusy`, `cpuFreq`, `cpuMode`, `load1`, `load15`, `load5`, `loadPerCpu`, `schedWait`
+- **Memory** — `memAvailable`, `memBuffers`, `memCached`, `memFree`, `memUsed`, `memUsedRatio`, `pgFaults`, `pgMajFaults`, `swapIn`, `swapOut`, `swapUsed`
 - **Disk space** — `fsAvail`, `fsSize`, `fsUsed`, `inodesUsed`
 - **Disk IO** — `diskIo`, `diskIoLatency`, `diskReadBps`, `diskReadIops`, `diskWriteBps`, `diskWriteIops`
-- **Network** — `netRx`, `netRxDrop`, `netRxErrs`, `netTx`, `netTxDrop`, `netTxErrs`
-- **Temperature** — `tempCelsius`, `thermalZone`
+- **Network** — `netRx`, `netRxDrop`, `netRxErrs`, `netTx`, `netTxDrop`, `netTxErrs`, `socketsMem`, `socketsTcp`, `softnetDropped`, `softnetSqueezed`, `tcpActiveOpens`, `tcpEstablished`, `tcpInErrs`, `tcpRetrans`, `udpQueues`
+- **Temperature / power** — `raplPower`, `tempCelsius`, `thermalZone`
+- **Pressure (PSI)** — `psiCpu`, `psiIo`, `psiIoFull`, `psiMem`, `psiMemFull`
 
 ## Alerts
 
