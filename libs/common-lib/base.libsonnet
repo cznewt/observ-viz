@@ -209,10 +209,12 @@ local serversTable(c, capacity=false) =
     tq(c, '(count ' + byNode + ' (' + lot('node_cpu_seconds_total{mode="idle", ' + s + '}') + ')) or '
         + '(count ' + byNode + ' (' + lot('windows_cpu_time_total{mode="idle", ' + s + '}') + '))');
   // normalized run-queue pressure: Linux load1/cores; Windows has no loadavg,
-  // so processor queue length/cores is the closest analog.
+  // so processor queue length/cores is the closest analog. Range query — the
+  // column renders as a sparkline (orange >1, red >5).
   local qLoadPerCpu =
-    tq(c, '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
-        + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
+    query.prometheus.new(c.datasource,
+      '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
+      + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
   local qMemTotal =
     tq(c, '(max ' + byNode + ' (' + lot('node_memory_MemTotal_bytes{' + s + '}') + ')) or '
         + '(max ' + byNode + ' (' + lot('windows_memory_physical_total_bytes{' + s + '}') + '))');
@@ -235,7 +237,7 @@ local serversTable(c, capacity=false) =
   // G cpu-trend (range), H mem-trend (range).
   + panel.table.withTargets(
     if capacity
-    then [qInfo, qCpus, qMemTotal, qLoadPerCpu, qOs, qKind, qTrendCpu, qTrendMem]
+    then [qInfo, qCpus, qMemTotal, qUptime, qOs, qKind, qTrendCpu, qTrendMem, qLoadPerCpu]
     else [qInfo, qCpuPct, qMemPct, qUptime, qOs]
   )
   + panel.table.withTransformations(
@@ -246,13 +248,13 @@ local serversTable(c, capacity=false) =
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['kind', 'Trend #G', 'Trend #H'] else []) } } },
+      + (if capacity then ['kind', 'Trend #G', 'Trend #H', 'Trend #I'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
         excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Value #D': 6, 'Trend #H': 7, 'Value #C': 8, board: 9 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #B': 'CPUs', 'Value #D': 'Load/CPU', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', board: 'Board' },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Trend #H': 6, 'Value #C': 7, 'Value #D': 8, 'Trend #I': 9, board: 10 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
@@ -268,7 +270,16 @@ local serversTable(c, capacity=false) =
          ov('CPU %|Mem %', pctSpark),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
          ov('Type', [{ id: 'custom.width', value: 80 }]),
-         ov('Load/CPU', [{ id: 'decimals', value: 2 }, { id: 'custom.width', value: 90 }]),
+         ov('Load/CPU', [
+           { id: 'decimals', value: 2 },
+           { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme', thresholdsStyle: { mode: 'dashed' } } },
+           { id: 'min', value: 0 },
+           { id: 'color', value: { mode: 'thresholds' } },
+           { id: 'thresholds', value: { mode: 'absolute', steps: [
+             { color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 },
+           ] } },
+         ]),
+         ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
