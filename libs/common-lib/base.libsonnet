@@ -176,6 +176,7 @@ local serversTable(c, capacity=false) =
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+         ov('Cluster', [{ id: 'custom.hidden', value: true }]),
        ])
     + [ov('Board', [{ id: 'custom.hidden', value: true }])]
   );
@@ -212,6 +213,41 @@ local disksTable(c) =
   + panel.table.withOverrides([
     ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
+  ]);
+
+// per-GPU table (clusterDetail Compute tab): OhmGraphite ohm_gpu<vendor>_*
+// series (Windows boxes with the hardware_sensors pillar; hardware label = GPU
+// model). Joined on a synthetic node|gpu|slot key; nodes without OhmGraphite
+// simply don't appear.
+local gpusTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c);
+  local joinKey = '"key", "|", "' + nl + '", "hardware", "hw_instance"';
+  local g(suffix, sensor) = '{__name__=~"ohm_gpu.*_' + suffix + '", sensor="' + sensor + '", ' + s + '}';
+  panel.table.new('GPUs')
+  + panel.table.withTargets([
+    tq(c, 'label_join(' + g('celsius', 'GPU Core') + ', ' + joinKey + ')'),
+    tq(c, 'sum by (key) (label_join(' + g('load_percent', 'GPU Core') + ', ' + joinKey + '))'),
+    tq(c, 'sum by (key) (label_join(' + g('bytes', 'GPU Memory Used') + ', ' + joinKey + '))'),
+    tq(c, 'sum by (key) (label_join(' + g('bytes', 'GPU Memory Total') + ', ' + joinKey + '))'),
+    tq(c, 'sum by (key) (label_join(' + g('watts', 'GPU Package') + ', ' + joinKey + '))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E'] } } },
+    { id: 'seriesToColumns', options: { byField: 'key' } },
+    { id: 'organize', options: {
+      excludeByName: { key: true },
+      indexByName: { [nl]: 0, hardware: 1, 'Value #A': 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, 'Value #E': 6 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #A': 'Temp', 'Value #B': 'Load %', 'Value #C': 'VRAM Used', 'Value #D': 'VRAM Total', 'Value #E': 'Power' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('Temp', [{ id: 'unit', value: 'celsius' }]),
+    ov('Load %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('VRAM Used|VRAM Total', [{ id: 'unit', value: 'bytes' }]),
+    ov('Power', [{ id: 'unit', value: 'watt' }]),
   ]);
 
 // per-node Used/Free storage pie (clusterDetail Storage tab): the grid item
@@ -346,7 +382,10 @@ local storagePie(c) =
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
       local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c)], [
-        { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c, capacity=true) } },
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), gpus: gpusTable(c) }, items: [
+          grid.item('servers', 0, 0, 24, 12),
+          grid.item('gpus', 0, 12, 24, 7),
+        ] },
         { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
         // explicit items: tall disks table + per-node Used/Free pies (repeated
         // over the hidden $instance variable, 6 per row).
