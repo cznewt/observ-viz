@@ -104,7 +104,7 @@ local nodeCountVar(c) =
   // rule is per-cluster, so manual node narrowing doesn't shrink the count.
   + variable.query.withLabelValues('n', 'base:cluster_nodes:n{' + clComma(c) + '}')
   + variable.query.withLabel('Nodes')
-  + { spec+: { refresh: 'onTimeRangeChanged' } };
+  + { spec+: { hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
