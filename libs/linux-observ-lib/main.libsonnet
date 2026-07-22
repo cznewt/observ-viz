@@ -184,7 +184,41 @@ local panel = import 'custom/panel.libsonnet';
       nodeLogs: lsig('Journal', '{%(queriesSelector)s}'),
     };
 
+    local query = import 'custom/query.libsonnet';
+    local iq(expr) =
+      query.prometheus.new(cfg.datasource, expr)
+      + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
+    // label-value stat tile (shows a label like pretty_name instead of the value)
+    local labelStat(title, expr, field) =
+      panel.stat.new(title)
+      + panel.stat.withTargets([iq(expr)])
+      + panel.stat.withOptions({ reduceOptions: { values: true, fields: '/^' + field + '$/' }, colorMode: 'none' });
+    local numStat(title, expr, unit) =
+      panel.stat.new(title)
+      + panel.stat.withTargets([iq(expr)])
+      + panel.stat.withOptions({ reduceOptions: { values: false, calcs: ['lastNotNull'] }, colorMode: 'value' })
+      + panel.stat.withUnit(unit);
+    local inst = 'instance=~"$instance"';
     pack.build(cfg, signals, [
+      // generic system facts, mirroring the cluster-detail tables.
+      {
+        title: 'Overview',
+        width: 4,
+        height: 4,
+        elements: {
+          ovOs: labelStat('OS', 'node_os_info{' + inst + '}', 'pretty_name'),
+          ovKernel: labelStat('Kernel', 'node_uname_info{' + inst + '}', 'release'),
+          ovModel: labelStat('CPU Model', 'sum by (model_name) (node_cpu_info{' + inst + '})', 'model_name'),
+          ovArch: labelStat('Arch', 'node_uname_info{' + inst + '}', 'machine'),
+          ovType: labelStat('Type', 'label_replace(label_replace(sum by (product_name) (node_dmi_info{' + inst + '}), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")', 'kind'),
+          ovCores: numStat('Cores', 'count(node_cpu_seconds_total{mode="idle", ' + inst + '})', 'short'),
+          ovMem: numStat('Memory', 'max(node_memory_MemTotal_bytes{' + inst + '})', 'bytes'),
+          ovUptime: numStat('Uptime', 'max(time() - node_boot_time_seconds{' + inst + '})', 'dtdurations'),
+          ovLoad: numStat('Load 1m', 'max(node_load1{' + inst + '})', 'short'),
+          ovTemp: numStat('CPU Temp', 'max(node_hwmon_temp_celsius{chip=~".*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3", ' + inst + '})', 'celsius')
+                  + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 }]),
+        },
+      },
       {
         title: 'System',
         width: 12,

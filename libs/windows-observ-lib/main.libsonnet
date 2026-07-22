@@ -181,12 +181,35 @@ local query = import 'custom/query.libsonnet';
         width: 4,
         height: 4,
         elements: {
+          local query = import 'custom/query.libsonnet',
+          local iq(expr) =
+            query.prometheus.new(cfg.datasource, expr)
+            + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } },
+          local labelStat(title, expr, field) =
+            panel.stat.new(title)
+            + panel.stat.withTargets([iq(expr)])
+            + panel.stat.withOptions({ reduceOptions: { values: true, fields: '/^' + field + '$/' }, colorMode: 'none' }),
           uptime: signals.uptime.asStat('Uptime'),
           cpu: signals.cpuBusy.asStat('CPU utilisation'),
           memRatio: signals.memUsedRatio.asStat('Memory used ratio'),
           cores: signals.cpuCores.asStat('Logical processors'),
           processes: signals.processes.asStat('Processes'),
           threads: signals.threads.asStat('Threads'),
+          // generic system facts, mirroring the cluster-detail tables. CPU
+          // model comes from OhmGraphite's hardware label (boxes with the
+          // hardware_sensors pillar); windows_exporter has no such info.
+          ovOs: labelStat('OS', 'windows_os_info{instance=~"$instance"}', 'product'),
+          ovBuild: labelStat('Build', 'windows_os_info{instance=~"$instance"}', 'version'),
+          ovModel: labelStat('CPU Model', 'sum by (hardware) (ohm_cpu_hertz{instance=~"$instance"})', 'hardware'),
+          ovMem: panel.stat.new('Memory')
+                 + panel.stat.withTargets([iq('max(windows_memory_physical_total_bytes{instance=~"$instance"})')])
+                 + panel.stat.withOptions({ reduceOptions: { values: false, calcs: ['lastNotNull'] }, colorMode: 'value' })
+                 + panel.stat.withUnit('bytes'),
+          ovTemp: panel.stat.new('CPU Temp')
+                  + panel.stat.withTargets([iq('max(ohm_cpu_celsius{instance=~"$instance"})')])
+                  + panel.stat.withOptions({ reduceOptions: { values: false, calcs: ['lastNotNull'] }, colorMode: 'value' })
+                  + panel.stat.withUnit('celsius')
+                  + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 }]),
         },
       },
       {
