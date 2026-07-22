@@ -171,6 +171,7 @@ local serversTable(c, capacity=false) =
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
+         ov('CPU Model', [{ id: 'custom.width', value: 320 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
@@ -248,10 +249,11 @@ local gpusTable(c) =
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('Temp', [{ id: 'unit', value: 'celsius' }]),
+    ov('GPU', [{ id: 'custom.width', value: 320 }]),
+    ov('Temp', [{ id: 'unit', value: 'celsius' }, { id: 'custom.width', value: 70 }]),
     ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-    ov('Memory', [{ id: 'unit', value: 'bytes' }]),
-    ov('Power', [{ id: 'unit', value: 'watt' }]),
+    ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
+    ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
   ]);
 
 // physical Disks table (clusterDetail Storage tab): drive name + temperature.
