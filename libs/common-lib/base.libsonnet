@@ -646,15 +646,16 @@ local storagePie(c) =
         // explicit items: tall partitions table, physical disk temps, then
         // per-node Used/Free pies (repeated over the hidden $instance
         // variable, 6 per row).
-        { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, items: [
-          grid.item('partitions', 0, 0, 24, 14),
-          grid.item('disks', 0, 14, 24, 7),
-          grid.item('storagePie', 0, 21, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
-        ], shortItems: [
-          grid.item('partitions', 0, 0, 24, 8),
-          grid.item('disks', 0, 8, 24, 5),
-          grid.item('storagePie', 0, 13, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
-        ] },
+        // partitions/disks heights step with the node-count buckets like the
+        // Compute stack (partition rows scale ~4-5 per node).
+        local storageStack(ph, dh) = [
+          grid.item('partitions', 0, 0, 24, ph),
+          grid.item('disks', 0, ph, 24, dh),
+          grid.item('storagePie', 0, ph + dh, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
+        ];
+        { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, buckets: {
+          n1: storageStack(5, 4), n23: storageStack(7, 4), n46: storageStack(10, 5), n79: storageStack(12, 5), rest: storageStack(14, 6),
+        } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
       {
