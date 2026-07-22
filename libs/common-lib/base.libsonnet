@@ -303,10 +303,19 @@ local partitionsTable(c) =
   local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
   local fsSel = 'fstype!="", mountpoint!~"/(boot|media).*", ' + s;  // skip EFI/boot + removable mounts
   local winSel = 'volume!~"HarddiskVolume.*", ' + s;  // skip letterless recovery/EFI partitions
+  // parent disk from the device label where derivable (sdX1 -> sdX,
+  // nvmeXnYpZ -> nvmeXnY, mmcblkXpY -> mmcblkX); LVM/zfs/Windows volumes keep
+  // the device itself — labels carry no disk topology for those.
+  local diskify(expr) =
+    'label_replace(label_replace(label_replace(label_replace(' + expr
+    + ', "disk", "$1", "device", "(.+)")'
+    + ', "disk", "$1", "device", "/dev/([shv]d[a-z]+)[0-9]+")'
+    + ', "disk", "$1", "device", "/dev/(nvme[0-9]+n[0-9]+)p[0-9]+")'
+    + ', "disk", "$1", "device", "/dev/(mmcblk[0-9]+)p[0-9]+")';
   panel.table.new('Partitions')
   + panel.table.withTargets([
-    tq(c, '(label_join(last_over_time(node_filesystem_size_bytes{' + fsSel + '}[$__range]), ' + joinKey + ')) or '
-        + '(label_join(' + winRelabel('last_over_time(windows_logical_disk_size_bytes{' + winSel + '}[$__range])') + ', ' + joinKey + '))'),
+    tq(c, '(' + diskify('label_join(last_over_time(node_filesystem_size_bytes{' + fsSel + '}[$__range]), ' + joinKey + ')') + ') or '
+        + '(' + diskify('label_join(' + winRelabel('last_over_time(windows_logical_disk_size_bytes{' + winSel + '}[$__range])') + ', ' + joinKey + ')') + ')'),
     query.prometheus.new(c.datasource,
       'max by (key) ((label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
       + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + ')))'),
@@ -314,12 +323,12 @@ local partitionsTable(c) =
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', 'device', 'mountpoint', nl, 'Value #A', 'Trend #B'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', 'disk', 'mountpoint', nl, 'Value #A', 'Trend #B'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true },
-      indexByName: { device: 0, mountpoint: 1, 'Trend #B': 2, 'Value #A': 3, [nl]: 4 },
-      renameByName: { device: 'Name', mountpoint: 'Mount', 'Trend #B': 'Used %', 'Value #A': 'Capacity', [nl]: 'Node' },
+      indexByName: { [nl]: 0, mountpoint: 1, disk: 2, 'Trend #B': 3, 'Value #A': 4 },
+      renameByName: { [nl]: 'Node', mountpoint: 'Mount', disk: 'Disk', 'Trend #B': 'Used %', 'Value #A': 'Capacity' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -487,16 +496,19 @@ local nicsTable(c) =
 local storagePie(c) =
   local nl = c.nodeLabel;
   local si = 'fstype!="", mountpoint!~"/(boot|media).*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
-  local wi = clComma(c) + ', ' + nl + '=~"$instance"';
+  local wi = 'volume!~"HarddiskVolume.*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
+  // last_over_time over the dashboard range: offline nodes keep their last
+  // known pie, matching the tables' row retention.
+  local lo(sel) = 'last_over_time(' + sel + '[$__range])';
   local pq(expr, legend) =
     query.prometheus.new(c.datasource, expr)
     + query.prometheus.withLegendFormat(legend)
     + { spec+: { query+: { spec+: { instant: true, range: false } } } };
   panel.pieChart.new('Storage $instance')
   + panel.pieChart.withTargets([
-    pq('(sum(node_filesystem_size_bytes{' + si + '}) - sum(node_filesystem_avail_bytes{' + si + '})) or '
-       + '(sum(windows_logical_disk_size_bytes{' + wi + '}) - sum(windows_logical_disk_free_bytes{' + wi + '}))', 'Used'),
-    pq('(sum(node_filesystem_avail_bytes{' + si + '})) or (sum(windows_logical_disk_free_bytes{' + wi + '}))', 'Free'),
+    pq('(sum(' + lo('node_filesystem_size_bytes{' + si + '}') + ') - sum(' + lo('node_filesystem_avail_bytes{' + si + '}') + ')) or '
+       + '(sum(' + lo('windows_logical_disk_size_bytes{' + wi + '}') + ') - sum(' + lo('windows_logical_disk_free_bytes{' + wi + '}') + '))', 'Used'),
+    pq('(sum(' + lo('node_filesystem_avail_bytes{' + si + '}') + ')) or (sum(' + lo('windows_logical_disk_free_bytes{' + wi + '}') + '))', 'Free'),
   ])
   + panel.pieChart.withUnit('bytes')
   + panel.pieChart.withOptions({
