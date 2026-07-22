@@ -100,7 +100,8 @@ local nodeCountVar(c) =
     query: 'query_result(count(count by (' + c.nodeLabel + ') ({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"})))',
     refId: 'A',
   })
-  + { spec+: { regex: '/ ([0-9]+) /', hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
+  + variable.query.withLabel('Nodes')
+  + { spec+: { regex: '/ ([0-9]+) /', refresh: 'onTimeRangeChanged' } };
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
