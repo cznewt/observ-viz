@@ -388,7 +388,10 @@ local cpusTable(c) =
     query.prometheus.new(c.datasource,
       '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
       + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
-    tq(c, 'sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))'),
+    // windows_exporter has no arch label; the fleet's Windows boxes are all
+    // x86_64, so stamp it.
+    tq(c, '(sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))) or '
+        + '(sum by (' + nl + ', machine) (label_replace(last_over_time(windows_os_info{' + s + '}[$__range]), "machine", "x86_64", "", "")))'),
     tq(c, '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
         + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
     query.prometheus.new(c.datasource,
