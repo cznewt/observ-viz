@@ -141,29 +141,39 @@ local serversTable(c, capacity=false) =
   // windows_exporter has no DMI metric, so Windows rows stay blank.
   local qKind =
     tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (node_dmi_info{' + s + '}), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
+  // range queries feeding the sparkline cells (timeSeriesTable turns each
+  // series into a row with a Trend field, joined on the node column).
+  local rq(expr) = query.prometheus.new(c.datasource, expr);
+  local qTrendCpu =
+    rq('((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
+       + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)');
+  local qTrendMem =
+    rq('((1 - avg by (' + nl + ') (node_memory_MemAvailable_bytes{' + s + '}) / avg by (' + nl + ') (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
+       + '((1 - avg by (' + nl + ') (windows_memory_available_bytes{' + s + '}) / avg by (' + nl + ') (windows_memory_physical_total_bytes{' + s + '})) * 100)');
   panel.table.new('Servers')
   // refIds by position — default: A info, B cpu%, C mem%, D uptime, E os;
-  // capacity: A info, B cpu%, C mem%, D cpus, E mem-total, F load/cpu, G os.
+  // capacity: A info, B cpus, C mem-total, D load/cpu, E os, F kind,
+  // G cpu-trend (range), H mem-trend (range).
   + panel.table.withTargets(
-    [qInfo, qCpuPct, qMemPct]
-    + (if capacity then [qCpus, qMemTotal, qLoadPerCpu] else [qUptime])
-    + [qOs]
-    + (if capacity then [qKind] else [])
+    if capacity
+    then [qInfo, qCpus, qMemTotal, qLoadPerCpu, qOs, qKind, qTrendCpu, qTrendMem]
+    else [qInfo, qCpuPct, qMemPct, qUptime, qOs]
   )
-  + panel.table.withTransformations([
+  + panel.table.withTransformations(
+    (if capacity then [{ id: 'timeSeriesTable', options: {} }] else []) + [
     { id: 'labelsToFields' },
     // the cluster label is deliberately NOT included: no Cluster column (in any
     // join-suffixed variant) reaches the table — drill links carry the cluster
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['Value #E', 'Value #F', 'kind'] else []) } } },
+      + (if capacity then ['kind', 'Trend #G', 'Trend #H'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #G': true, 'Value #H': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Value #B': 4, 'Value #D': 5, 'Value #F': 6, 'Value #C': 7, 'Value #E': 8, board: 9 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #D': 'CPUs', 'Value #F': 'Load/CPU', 'Value #B': 'CPU %', 'Value #E': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Value #D': 6, 'Trend #H': 7, 'Value #C': 8, board: 9 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #B': 'CPUs', 'Value #D': 'Load/CPU', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
@@ -176,7 +186,7 @@ local serversTable(c, capacity=false) =
     // via the fleet-unique var-instance).
     [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}' }] }])]
     + (if capacity then [
-         ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+         ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
          ov('Type', [{ id: 'custom.width', value: 80 }]),
          ov('Load/CPU', [{ id: 'decimals', value: 2 }, { id: 'custom.width', value: 90 }]),
