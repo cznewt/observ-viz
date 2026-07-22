@@ -93,6 +93,12 @@ local instanceVar(c) =
 // hidden node-count variable: resolves to the number of nodes in the current
 // cluster+node selection (query_result + regex extract) — drives the
 // selection-sized layout buckets.
+// hidden kube-presence variable: non-empty when kube-state-metrics reports
+// nodes for the selected cluster — gates the kube-board link row.
+local hasKubeVar(c) =
+  variable.query.new('has_kube')
+  + variable.query.withLabelValues(c.clusterLabel, 'kube_node_info{' + clComma(c) + '}')
+  + { spec+: { hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
 local nodeCountVar(c) =
   variable.query.new('nodecount')
   // count_values folds the node count into label "n", so the proven
@@ -139,7 +145,10 @@ local sizeBuckets(mk) = [
 ];
 local gridOf(g) =
   if std.objectHas(g, 'buckets') then
-    layout.rows.new() + layout.rows.withRows(sizeBuckets(g.buckets))
+    layout.rows.new() + layout.rows.withRows(
+      sizeBuckets(g.buckets)
+      + (if std.objectHas(g, 'extraRows') then g.extraRows else [])
+    )
   else if std.objectHas(g, 'shortItems') then
     layout.rows.new() + layout.rows.withRows([
       condRow([condVar('nodecount', 'notMatches', '^[1-4]$')], g.items),
@@ -230,7 +239,8 @@ local serversTable(c, capacity=false) =
   // has no DMI metric — blank there.
   local dmiGarbage = 'Default string|System Version|System Product Name|To Be Filled.*|';
   local qDevice =
-    tq(c, 'sum by (' + cl + ', ' + nl + ', device) (label_join((label_replace(' + lot('node_dmi_info{' + s + ', product_version!~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_version", "(.+)")) or (label_replace(' + lot('node_dmi_info{' + s + ', product_version=~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))');
+    tq(c, '(sum by (' + cl + ', ' + nl + ', device) (label_join((label_replace(' + lot('node_dmi_info{' + s + ', product_version!~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_version", "(.+)")) or (label_replace(' + lot('node_dmi_info{' + s + ', product_version=~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))) or '
+        + '(sum by (' + cl + ', ' + nl + ', device) (label_join(' + lot('windows_device_info{' + s + '}') + ', "device", " ", "vendor", "product")))');
   // range queries feeding the sparkline cells (timeSeriesTable turns each
   // series into a row with a Trend field, joined on the node column).
   local rq(expr) = query.prometheus.new(c.datasource, expr);
@@ -636,16 +646,21 @@ local storagePie(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
+      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c), hasKubeVar(c)], [
         // servers/cpus/gpus share one height per selection-size bucket.
         local computeStack(h) = [
           grid.item('servers', 0, 0, 24, h),
           grid.item('cpus', 0, h, 24, h),
           grid.item('gpus', 0, 2 * h, 24, h),
         ];
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
+        local kubeLink =
+          panel.text.new('Kubernetes')
+          + panel.text.withOptions({ mode: 'markdown', content: '### [Kubernetes cluster board \u2192](/d/observ-viz-kube-pod?var-cluster=$cluster)\n\nkube-state-metrics is reporting for this cluster.' });
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), kubeLink: kubeLink }, buckets: {
           n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
-        } },
+        }, extraRows: [
+          condRow([condVar('has_kube', 'notEquals', '')], [grid.item('kubeLink', 0, 0, 24, 3)]),
+        ] },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
           grid.item('netRx', 0, 10, 12, 8),
