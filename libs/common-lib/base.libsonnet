@@ -55,13 +55,13 @@ local clusterVar(c, multi=true) =
   + variable.query.withLabel('Cluster')
   + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
   + (if multi then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {});
-// hidden all-nodes variable (Linux + Windows) — drives grid-item repeats.
+// multi-select node variable (Linux + Windows) — filters every clusterDetail
+// panel and drives the storage-pie grid-item repeat.
 local instanceVar(c) =
   variable.query.new('instance')
   + variable.query.withLabel('Node')
   + variable.query.withLabelValues(c.nodeLabel, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
-  + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent
-  + { spec+: { hide: 'hideVariable' } };
+  + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
@@ -109,7 +109,7 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
 local serversTable(c, capacity=false) =
   local nl = c.nodeLabel;
   local cl = c.clusterLabel;
-  local s = clComma(c);
+  local s = clComma(c) + (if capacity then ', ' + nl + '=~"$instance"' else '');
   local byNode = 'by (' + cl + ', ' + nl + ')';
   local qInfo =
     tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
@@ -137,6 +137,10 @@ local serversTable(c, capacity=false) =
   local qMemTotal =
     tq(c, '(max ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) or '
         + '(max ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '}))');
+  // physical vs virtual via DMI product_name (QEMU/KVM/VMware patterns);
+  // windows_exporter has no DMI metric, so Windows rows stay blank.
+  local qKind =
+    tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (node_dmi_info{' + s + '}), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
   panel.table.new('Servers')
   // refIds by position — default: A info, B cpu%, C mem%, D uptime, E os;
   // capacity: A info, B cpu%, C mem%, D cpus, E mem-total, F load/cpu, G os.
@@ -144,6 +148,7 @@ local serversTable(c, capacity=false) =
     [qInfo, qCpuPct, qMemPct]
     + (if capacity then [qCpus, qMemTotal, qLoadPerCpu] else [qUptime])
     + [qOs]
+    + (if capacity then [qKind] else [])
   )
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
@@ -152,13 +157,13 @@ local serversTable(c, capacity=false) =
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['Value #E', 'Value #F'] else []) } } },
+      + (if capacity then ['Value #E', 'Value #F', 'kind'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #G': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #D': 4, 'Value #F': 5, 'Value #C': 6, 'Value #E': 7, board: 8 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', 'Value #F': 'Load/CPU', 'Value #B': 'CPU %', 'Value #E': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #G': true, 'Value #H': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Value #B': 4, 'Value #D': 5, 'Value #F': 6, 'Value #C': 7, 'Value #E': 8, board: 9 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #D': 'CPUs', 'Value #F': 'Load/CPU', 'Value #B': 'CPU %', 'Value #E': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
@@ -173,6 +178,7 @@ local serversTable(c, capacity=false) =
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
+         ov('Type', [{ id: 'custom.width', value: 80 }]),
          ov('Load/CPU', [{ id: 'decimals', value: 2 }, { id: 'custom.width', value: 90 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
@@ -190,7 +196,7 @@ local serversTable(c, capacity=false) =
 // Sorted worst-used first.
 local partitionsTable(c) =
   local nl = c.nodeLabel;
-  local s = clComma(c);
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local joinKey = '"key", "|", "' + nl + '", "device", "mountpoint"';
   local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
   local fsSel = 'fstype!="", mountpoint!~"/(boot|media).*", ' + s;  // skip EFI/boot + removable mounts
@@ -238,7 +244,7 @@ local tempGauge = [
 // unions collapsed with max by key. Joined on a synthetic node|gpu|slot key.
 local gpusTable(c) =
   local nl = c.nodeLabel;
-  local s = clComma(c);
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local joinKey = '"key", "|", "' + nl + '", "hardware", "hw_instance"';
   local g(suffix, sensorRe) = '{__name__=~"ohm_gpu.*_' + suffix + '", sensor=~"' + sensorRe + '", ' + s + '}';
   local keyed(suffix, sensorRe) = 'max by (key) (label_join(' + g(suffix, sensorRe) + ', ' + joinKey + '))';
@@ -277,7 +283,7 @@ local gpusTable(c) =
 // blank. Temp renders as a 0-100 gauge: orange >60, red >80.
 local cpusTable(c) =
   local nl = c.nodeLabel;
-  local s = clComma(c);
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
   panel.table.new('CPUs')
   + panel.table.withTargets([
@@ -289,21 +295,23 @@ local cpusTable(c) =
         + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
     tq(c, '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
         + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
+    tq(c, 'sum by (' + nl + ', machine) (node_uname_info{' + s + '})'),
   ])
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'Value #A', 'Value #C', 'Value #D'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Value #C', 'Value #D'] } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
-      excludeByName: { 'Value #B': true },
-      indexByName: { [nl]: 0, 'Value #C': 1, 'Value #A': 2, model_name: 3, 'Value #D': 4 },
-      renameByName: { [nl]: 'Node', 'Value #A': 'CPUs', model_name: 'CPU Model', 'Value #C': 'CPU %', 'Value #D': 'Temp' },
+      excludeByName: { 'Value #B': true, 'Value #E': true },
+      indexByName: { [nl]: 0, 'Value #C': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #D': 5 },
+      renameByName: { [nl]: 'Node', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #C': 'CPU %', 'Value #D': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
     ov('CPUs', [{ id: 'custom.width', value: 60 }]),
     ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
+    ov('Arch', [{ id: 'custom.width', value: 90 }]),
     ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Temp', tempGauge),
   ]);
@@ -315,7 +323,7 @@ local cpusTable(c) =
 // query, no join. Hottest first.
 local diskTempsTable(c) =
   local nl = c.nodeLabel;
-  local s = clComma(c);
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
   panel.table.new('Disks')
   + panel.table.withTargets([
     tq(c, '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
@@ -339,7 +347,7 @@ local diskTempsTable(c) =
 // byte rates joined on a synthetic node|device key. Busiest inbound first.
 local nicsTable(c) =
   local nl = c.nodeLabel;
-  local s = clComma(c);
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local joinKey = '"key", "|", "' + nl + '", "device"';
   local lx(m) = 'sum by (' + nl + ', device) (rate(' + m + '{device!~"lo|veth.*", ' + s + '}[5m]))';
   local wx(m) = 'label_replace(sum by (' + nl + ', nic) (rate(' + m + '{' + s + '}[5m])), "device", "$1", "nic", "(.+)")';
@@ -484,7 +492,7 @@ local storagePie(c) =
       local s = clComma(c);
       local byNode = 'by (' + cl + ', ' + nl + ')';
       local tsig(name, expr, unit) =
-        signal.new(name, 'prometheus', c.datasource, expr, unit).filteringSelector(s).withLegendFormat('{{' + nl + '}}');
+        signal.new(name, 'prometheus', c.datasource, expr, unit).filteringSelector(s + ', ' + nl + '=~"$instance"').withLegendFormat('{{' + nl + '}}');
       local workload =
         countTable(
           c, 'Workload', c.appLabel,
