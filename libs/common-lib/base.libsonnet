@@ -255,7 +255,7 @@ local gpusTable(c) =
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Value #B': 2, 'Value #C': 3, 'Value #E': 4, 'Value #D': 5, 'Value #F': 6 },
+      indexByName: { [nl]: 0, hardware: 1, 'Value #C': 2, 'Value #E': 3, 'Value #D': 4, 'Value #F': 5, 'Value #B': 6 },
       renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #B': 'Temp', 'Value #C': 'Load %', 'Value #E': 'Memory', 'Value #D': 'Mem %', 'Value #F': 'Power' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
@@ -294,7 +294,7 @@ local cpusTable(c) =
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
       excludeByName: { 'Value #B': true },
-      indexByName: { [nl]: 0, 'Value #A': 1, model_name: 2, 'Value #C': 3, 'Value #D': 4 },
+      indexByName: { [nl]: 0, 'Value #C': 1, 'Value #A': 2, model_name: 3, 'Value #D': 4 },
       renameByName: { [nl]: 'Node', 'Value #A': 'CPUs', model_name: 'CPU Model', 'Value #C': 'CPU %', 'Value #D': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
