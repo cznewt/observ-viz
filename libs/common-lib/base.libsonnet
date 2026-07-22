@@ -97,7 +97,9 @@ local nodeCountVar(c) =
   variable.query.new('nodecount')
   // count_values folds the node count into label "n", so the proven
   // label_values plumbing reads it directly — no query_result, no regex.
-  + variable.query.withLabelValues('n', 'count_values("n", count(count by (' + c.nodeLabel + ') ({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"})))')
+  // last_over_time over the dashboard range — the same stretch the tables use
+  // for row retention, so the count matches the rows actually shown.
+  + variable.query.withLabelValues('n', 'count_values("n", count(count by (' + c.nodeLabel + ') (last_over_time({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"}[$__range]))))')
   + variable.query.withLabel('Nodes')
   + { spec+: { refresh: 'onTimeRangeChanged' } };
 
