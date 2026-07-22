@@ -161,6 +161,39 @@ local serversTable(c, capacity=false) =
     + [ov('Board', [{ id: 'custom.hidden', value: true }])]
   );
 
+// per-filesystem Disks table (clusterDetail Storage tab): Linux node_filesystem
+// (fstype!="") + Windows logical disks (volume relabeled to device+mountpoint)
+// unioned. Rows are (node, device, mount) tuples, so the used%/capacity queries
+// join on a synthetic key label (node|device|mount) instead of a single natural
+// column; the key is hidden after the join. Sorted worst-used first.
+local disksTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c);
+  local joinKey = '"key", "|", "' + nl + '", "device", "mountpoint"';
+  local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
+  panel.table.new('Disks')
+  + panel.table.withTargets([
+    tq(c, '(label_join((1 - node_filesystem_avail_bytes{fstype!="", ' + s + '} / node_filesystem_size_bytes{fstype!="", ' + s + '}) * 100, ' + joinKey + ')) or '
+        + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + s + '} / windows_logical_disk_size_bytes{' + s + '}) * 100') + ', ' + joinKey + '))'),
+    tq(c, '(sum by (key) (label_join(node_filesystem_size_bytes{fstype!="", ' + s + '}, ' + joinKey + '))) or '
+        + '(sum by (key) (label_join(' + winRelabel('windows_logical_disk_size_bytes{' + s + '}') + ', ' + joinKey + ')))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', 'device', 'mountpoint', nl, 'Value #A', 'Value #B'] } } },
+    { id: 'seriesToColumns', options: { byField: 'key' } },
+    { id: 'organize', options: {
+      excludeByName: { key: true },
+      indexByName: { device: 0, mountpoint: 1, 'Value #A': 2, 'Value #B': 3, [nl]: 4 },
+      renameByName: { device: 'Name', mountpoint: 'Mount', 'Value #A': 'Used %', 'Value #B': 'Capacity', [nl]: 'Node' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Used %', desc: true }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
+  ]);
+
 {
   config:: defaults,
 
@@ -267,7 +300,9 @@ local serversTable(c, capacity=false) =
       local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false)], [
         { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c, capacity=true) } },
         { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
-        { title: 'Storage', width: 12, height: 8, elements: { storageUsed: storageUsed, storageFree: storageFree } },
+        // uniform grid per tab: full-width rows — disks table first (alphabetical
+        // element order), then the used/free trends.
+        { title: 'Storage', width: 24, height: 8, elements: { disks: disksTable(c), storageUsed: storageUsed, storageFree: storageFree } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
       {
