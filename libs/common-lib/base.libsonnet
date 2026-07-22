@@ -217,36 +217,40 @@ local disksTable(c) =
 
 // per-GPU table (clusterDetail Compute tab): OhmGraphite ohm_gpu<vendor>_*
 // series (Windows boxes with the hardware_sensors pillar; hardware label = GPU
-// model). Joined on a synthetic node|gpu|slot key; nodes without OhmGraphite
-// simply don't appear.
+// model; families gpunvidia/gpuati/gpuintel). Rows anchor on the load family
+// (the one every vendor exports); temp/power stay blank where the silicon has
+// no such sensor (iGPUs). Sensor names differ per vendor, hence the regex
+// unions collapsed with max by key. Joined on a synthetic node|gpu|slot key.
 local gpusTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c);
   local joinKey = '"key", "|", "' + nl + '", "hardware", "hw_instance"';
-  local g(suffix, sensor) = '{__name__=~"ohm_gpu.*_' + suffix + '", sensor="' + sensor + '", ' + s + '}';
+  local g(suffix, sensorRe) = '{__name__=~"ohm_gpu.*_' + suffix + '", sensor=~"' + sensorRe + '", ' + s + '}';
+  local keyed(suffix, sensorRe) = 'max by (key) (label_join(' + g(suffix, sensorRe) + ', ' + joinKey + '))';
   panel.table.new('GPUs')
   + panel.table.withTargets([
-    tq(c, 'label_join(' + g('celsius', 'GPU Core') + ', ' + joinKey + ')'),
-    tq(c, 'sum by (key) (label_join(' + g('load_percent', 'GPU Core') + ', ' + joinKey + '))'),
-    tq(c, 'sum by (key) (label_join(' + g('bytes', 'GPU Memory Used') + ', ' + joinKey + '))'),
-    tq(c, 'sum by (key) (label_join(' + g('bytes', 'GPU Memory Total') + ', ' + joinKey + '))'),
-    tq(c, 'sum by (key) (label_join(' + g('watts', 'GPU Package') + ', ' + joinKey + '))'),
+    tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) ({__name__=~"ohm_gpu.*_load_percent", ' + s + '}), ' + joinKey + ')'),
+    tq(c, keyed('celsius', 'GPU Core')),
+    tq(c, keyed('load_percent', 'GPU Core|D3D 3D')),
+    tq(c, keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used')),
+    tq(c, keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
+    tq(c, keyed('watts', 'GPU Package|GPU Power')),
   ])
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
-      excludeByName: { key: true },
-      indexByName: { [nl]: 0, hardware: 1, 'Value #A': 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, 'Value #E': 6 },
-      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #A': 'Temp', 'Value #B': 'Load %', 'Value #C': 'VRAM Used', 'Value #D': 'VRAM Total', 'Value #E': 'Power' },
+      excludeByName: { key: true, 'Value #A': true },
+      indexByName: { [nl]: 0, hardware: 1, 'Value #B': 2, 'Value #C': 3, 'Value #D': 4, 'Value #E': 5, 'Value #F': 6 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #B': 'Temp', 'Value #C': 'Load %', 'Value #D': 'Mem Used', 'Value #E': 'Mem Total', 'Value #F': 'Power' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
     ov('Temp', [{ id: 'unit', value: 'celsius' }]),
     ov('Load %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-    ov('VRAM Used|VRAM Total', [{ id: 'unit', value: 'bytes' }]),
+    ov('Mem Used|Mem Total', [{ id: 'unit', value: 'bytes' }]),
     ov('Power', [{ id: 'unit', value: 'watt' }]),
   ]);
 
