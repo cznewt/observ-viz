@@ -95,13 +95,11 @@ local instanceVar(c) =
 // selection-sized layout buckets.
 local nodeCountVar(c) =
   variable.query.new('nodecount')
-  + variable.query.withQuery('prometheus', {
-    qryType: 3,
-    query: 'query_result(count(count by (' + c.nodeLabel + ') ({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"})))',
-    refId: 'A',
-  })
+  // count_values folds the node count into label "n", so the proven
+  // label_values plumbing reads it directly — no query_result, no regex.
+  + variable.query.withLabelValues('n', 'count_values("n", count(count by (' + c.nodeLabel + ') ({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"})))')
   + variable.query.withLabel('Nodes')
-  + { spec+: { regex: '/ ([0-9]+) /', refresh: 'onTimeRangeChanged' } };
+  + { spec+: { refresh: 'onTimeRangeChanged' } };
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
