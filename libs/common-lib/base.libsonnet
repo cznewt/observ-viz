@@ -216,6 +216,18 @@ local partitionsTable(c) =
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
   ]);
 
+// temperature column styling shared by the CPUs/GPUs tables: a 0-100 gauge
+// colored by absolute thresholds (orange >60, red >80).
+local tempGauge = [
+  { id: 'unit', value: 'celsius' },
+  { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
+  { id: 'min', value: 0 },
+  { id: 'max', value: 100 },
+  { id: 'thresholds', value: { mode: 'absolute', steps: [
+    { color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 },
+  ] } },
+];
+
 // per-GPU table (clusterDetail Compute tab): OhmGraphite ohm_gpu<vendor>_*
 // series (Windows boxes with the hardware_sensors pillar; hardware label = GPU
 // model; families gpunvidia/gpuati/gpuintel). Rows anchor on the load family
@@ -250,10 +262,48 @@ local gpusTable(c) =
   ])
   + panel.table.withOverrides([
     ov('GPU', [{ id: 'custom.width', value: 320 }]),
-    ov('Temp', [{ id: 'unit', value: 'celsius' }, { id: 'custom.width', value: 70 }]),
+    ov('Temp', tempGauge),
     ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
     ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
+  ]);
+
+// per-node CPUs table (clusterDetail Compute tab): count / model / busy% plus
+// package temperature — Linux hwmon cpu chips (coretemp; AMD SMN k10temp shows
+// as chip pci0000:00_0000:00:18_3; zenpower/cpu_thermal for other silicon),
+// Windows OhmGraphite cpu sensors. VMs (kube nodes) expose no sensor and stay
+// blank. Temp renders as a 0-100 gauge: orange >60, red >80.
+local cpusTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c);
+  local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
+  panel.table.new('CPUs')
+  + panel.table.withTargets([
+    tq(c, '(count by (' + nl + ') (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
+        + '(count by (' + nl + ') (windows_cpu_time_total{mode="idle", ' + s + '}))'),
+    tq(c, '(sum by (' + nl + ', model_name) (node_cpu_info{' + s + '})) or '
+        + '(sum by (' + nl + ', model_name) (label_replace(ohm_cpu_hertz{' + s + '}, "model_name", "$1", "hardware", "(.+)")))'),
+    tq(c, '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
+        + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
+    tq(c, '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
+        + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'Value #A', 'Value #C', 'Value #D'] } } },
+    { id: 'seriesToColumns', options: { byField: nl } },
+    { id: 'organize', options: {
+      excludeByName: { 'Value #B': true },
+      indexByName: { [nl]: 0, 'Value #A': 1, model_name: 2, 'Value #C': 3, 'Value #D': 4 },
+      renameByName: { [nl]: 'Node', 'Value #A': 'CPUs', model_name: 'CPU Model', 'Value #C': 'CPU %', 'Value #D': 'Temp' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('CPUs', [{ id: 'custom.width', value: 60 }]),
+    ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
+    ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Temp', tempGauge),
   ]);
 
 // physical Disks table (clusterDetail Storage tab): drive name + temperature.
@@ -443,9 +493,10 @@ local storagePie(c) =
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
       local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c)], [
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), gpus: gpusTable(c) }, items: [
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, items: [
           grid.item('servers', 0, 0, 24, 12),
-          grid.item('gpus', 0, 12, 24, 7),
+          grid.item('cpus', 0, 12, 24, 8),
+          grid.item('gpus', 0, 20, 24, 7),
         ] },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
