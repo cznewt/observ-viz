@@ -620,7 +620,7 @@ local storagePie(c) =
           grid.item('gpus', 0, 2 * h, 24, h),
         ];
         { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
-          n1: computeStack(6), n23: computeStack(9), n46: computeStack(13), n79: computeStack(16), rest: computeStack(19),
+          n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
         } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
