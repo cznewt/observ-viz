@@ -289,7 +289,7 @@ local nicsTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c);
   local joinKey = '"key", "|", "' + nl + '", "device"';
-  local lx(m) = 'sum by (' + nl + ', device) (rate(' + m + '{device!="lo", ' + s + '}[5m]))';
+  local lx(m) = 'sum by (' + nl + ', device) (rate(' + m + '{device!~"lo|veth.*", ' + s + '}[5m]))';
   local wx(m) = 'label_replace(sum by (' + nl + ', nic) (rate(' + m + '{' + s + '}[5m])), "device", "$1", "nic", "(.+)")';
   panel.table.new('Network Interfaces')
   + panel.table.withTargets([
