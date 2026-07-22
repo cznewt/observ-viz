@@ -655,7 +655,7 @@ local storagePie(c) =
         ];
         local kubeLink =
           panel.text.new('Kubernetes')
-          + panel.text.withOptions({ mode: 'markdown', content: '### [Kubernetes cluster board \u2192](/d/observ-viz-kube-pod?var-cluster=$cluster)\n\nkube-state-metrics is reporting for this cluster.' });
+          + panel.text.withOptions({ mode: 'markdown', content: '### [Kubernetes cluster board \u2192](/d/observ-viz-kube-cluster?var-cluster=$cluster)\n\nkube-state-metrics is reporting for this cluster.' });
         { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), kubeLink: kubeLink }, buckets: {
           n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
         }, extraRows: [

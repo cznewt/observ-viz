@@ -17,6 +17,8 @@
   },
   kubernetes: {
     pod: import 'libs/kubernetes-observ-lib/main.libsonnet',
+    // cluster-level board + kubernetes-mixin-ported rules/alerts
+    cluster: import 'libs/kubernetes-observ-lib/cluster.libsonnet',
     cadvisor: import 'libs/cadvisor-observ-lib/main.libsonnet',
   },
   databases: {
