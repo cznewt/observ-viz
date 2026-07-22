@@ -14,6 +14,7 @@ local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
+local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local query = import 'custom/query.libsonnet';
 
 {
@@ -398,6 +399,16 @@ local query = import 'custom/query.libsonnet';
         elements: {
           tempMax: signals.tempMax.asStat('Max temperature'),
           tempBySensor: signals.tempBySensor.asTimeSeries('Temperature by sensor'),
+        },
+      },
+      {
+        title: 'Alerts',
+        width: 24,
+        height: 10,
+        alwaysShow: true,
+        elements: {
+          nodeAlertList: alertPanels.list('Alerts', instanceFilter='{instance=~"$instance"}', groupMode='custom', groupBy=['alertname']),
+          nodeAlertTimeline: alertPanels.timeline('Alert state', cfg.datasource, 'instance=~"$instance"'),
         },
       },
     ]);

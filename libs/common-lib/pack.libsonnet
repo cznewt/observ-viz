@@ -48,7 +48,8 @@ local variable =
         if std.objectHas(t, 'presence')
       ],
       local tabGate(t) =
-        if std.objectHas(t, 'presence') then
+        if std.objectHas(t, 'alwaysShow') && t.alwaysShow then {}
+        else if std.objectHas(t, 'presence') then
           layout.withConditionalRendering(layout.conditional.group([
             layout.conditional.variable('has_' + slug(t.title), '', 'notEquals'),
           ]))

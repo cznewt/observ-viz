@@ -683,6 +683,10 @@ local storagePie(c) =
         { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, buckets: {
           n1: storageStack(5, 4), n23: storageStack(7, 4), n46: storageStack(10, 5), n79: storageStack(12, 5), rest: storageStack(14, 6),
         } },
+        { title: 'Alerts', width: 24, height: 10, elements: {
+          alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
+          alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"'),
+        } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
       + dashboard.withLinks([
