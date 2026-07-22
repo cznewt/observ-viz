@@ -20,6 +20,20 @@ local query = import 'custom/query.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'compute-windows-overview',
+      // back-link to the fleet view, keeping the selected cluster (node filter
+      // reset to All so the whole cluster shows).
+      links: [{
+        title: 'Cluster Detail',
+        type: 'link',
+        icon: 'dashboard',
+        url: '/d/cluster-detail?var-cluster=${cluster}&var-instance=$__all',
+        keepTime: true,
+        targetBlank: false,
+        asDropdown: false,
+        includeVars: false,
+        tooltip: 'Open the cluster overview for the selected cluster',
+        tags: [],
+      }],
       dashboardTitle: 'Windows Server',
       dashboardTags: ['windows'],
       // fleet board: every Windows host in the selected cluster(s) at once.

@@ -14,6 +14,20 @@ local panel = import 'custom/panel.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'compute-linux-overview',
+      // back-link to the fleet view, keeping the selected cluster (node filter
+      // reset to All so the whole cluster shows).
+      links: [{
+        title: 'Cluster Detail',
+        type: 'link',
+        icon: 'dashboard',
+        url: '/d/cluster-detail?var-cluster=${cluster}&var-instance=$__all',
+        keepTime: true,
+        targetBlank: false,
+        asDropdown: false,
+        includeVars: false,
+        tooltip: 'Open the cluster overview for the selected cluster',
+        tags: [],
+      }],
       dashboardTitle: 'Linux Server',
       dashboardTags: ['linux', 'node'],
       datasource: '${datasource}',
