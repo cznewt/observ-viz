@@ -603,7 +603,10 @@ local storagePie(c) =
       local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
-      ], asTabs=true);
+      ], asTabs=true)
+      + dashboard.withLinks([
+        { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
+      ]);
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidCluster + '.json']: dash } },
@@ -663,7 +666,11 @@ local storagePie(c) =
           n1: storageStack(5, 4), n23: storageStack(7, 4), n46: storageStack(10, 5), n79: storageStack(12, 5), rest: storageStack(14, 6),
         } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
-      ], asTabs=true);
+      ], asTabs=true)
+      + dashboard.withLinks([
+        { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
+        { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
+      ]);
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },
