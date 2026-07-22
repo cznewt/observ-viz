@@ -95,7 +95,8 @@ local instanceVar(c) =
 // conditionally-rendered header-less rows — the tall grid when the node
 // variable is All, the compact one when a subset is selected (the closest
 // Grafana gets to sizing panels by selection).
-local condRow(op, items) = {
+local condVar(op, value) = { kind: 'ConditionalRenderingVariable', spec: { variable: 'instance', operator: op, value: value } };
+local condRow(conds, items) = {
   kind: 'RowsLayoutRow',
   spec: {
     title: '',
@@ -103,16 +104,30 @@ local condRow(op, items) = {
     conditionalRendering: { kind: 'ConditionalRenderingGroup', spec: {
       visibility: 'show',
       condition: 'and',
-      items: [{ kind: 'ConditionalRenderingVariable', spec: { variable: 'instance', operator: op, value: '$__all' } }],
+      items: conds,
     } },
     layout: layout.grid.new() + layout.grid.withItems(items),
   },
 };
+// selection-size buckets for node-scoped tabs: multi values serialize
+// comma-joined, so comma-counting regexes bucket the selection size. The last
+// bucket is a catch-all (covers any serialization surprise) so some variant
+// always renders.
+local oneNode = '^[^,]+$';
+local twoThree = '^[^,]+(,[^,]+){1,2}$';
+local sizeBuckets(mk) = [
+  condRow([condVar('equals', '$__all')], mk.all),
+  condRow([condVar('notEquals', '$__all'), condVar('matches', oneNode)], mk.one),
+  condRow([condVar('matches', twoThree)], mk.few),
+  condRow([condVar('notEquals', '$__all'), condVar('notMatches', oneNode), condVar('notMatches', twoThree)], mk.many),
+];
 local gridOf(g) =
-  if std.objectHas(g, 'shortItems') then
+  if std.objectHas(g, 'buckets') then
+    layout.rows.new() + layout.rows.withRows(sizeBuckets(g.buckets))
+  else if std.objectHas(g, 'shortItems') then
     layout.rows.new() + layout.rows.withRows([
-      condRow('equals', g.items),
-      condRow('notEquals', g.shortItems),
+      condRow([condVar('equals', '$__all')], g.items),
+      condRow([condVar('notEquals', '$__all')], g.shortItems),
     ])
   else
     layout.grid.new() + layout.grid.withItems(
@@ -568,15 +583,15 @@ local storagePie(c) =
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
       local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c)], [
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, items: [
-          grid.item('servers', 0, 0, 24, 12),
-          grid.item('cpus', 0, 12, 24, 8),
-          grid.item('gpus', 0, 20, 24, 7),
-        ], shortItems: [
-          grid.item('servers', 0, 0, 24, 7),
-          grid.item('cpus', 0, 7, 24, 5),
-          grid.item('gpus', 0, 12, 24, 5),
-        ] },
+        // servers/cpus/gpus share one height per selection-size bucket.
+        local computeStack(h) = [
+          grid.item('servers', 0, 0, 24, h),
+          grid.item('cpus', 0, h, 24, h),
+          grid.item('gpus', 0, 2 * h, 24, h),
+        ];
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
+          all: computeStack(10), one: computeStack(4), few: computeStack(6), many: computeStack(10),
+        } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
           grid.item('netRx', 0, 10, 12, 8),
