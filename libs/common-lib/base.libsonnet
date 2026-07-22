@@ -96,14 +96,14 @@ local instanceVar(c) =
 // variable is All, the compact one when a subset is selected (the closest
 // Grafana gets to sizing panels by selection).
 local condVar(op, value) = { kind: 'ConditionalRenderingVariable', spec: { variable: 'instance', operator: op, value: value } };
-local condRow(conds, items) = {
+local condRow(conds, items, cond='and') = {
   kind: 'RowsLayoutRow',
   spec: {
     title: '',
     hideHeader: true,
     conditionalRendering: { kind: 'ConditionalRenderingGroup', spec: {
       visibility: 'show',
-      condition: 'and',
+      condition: cond,
       items: conds,
     } },
     layout: layout.grid.new() + layout.grid.withItems(items),
@@ -115,11 +115,14 @@ local condRow(conds, items) = {
 // always renders.
 local oneNode = '^[^,]+$';
 local twoThree = '^[^,]+(,[^,]+){1,2}$';
+// the All selection surfaces as '$__all' or its display text 'All' depending
+// on runtime — match both everywhere.
+local allRe = '^(\\$__all|All)$';
 local sizeBuckets(mk) = [
-  condRow([condVar('equals', '$__all')], mk.all),
-  condRow([condVar('notEquals', '$__all'), condVar('matches', oneNode)], mk.one),
-  condRow([condVar('matches', twoThree)], mk.few),
-  condRow([condVar('notEquals', '$__all'), condVar('notMatches', oneNode), condVar('notMatches', twoThree)], mk.many),
+  condRow([condVar('matches', allRe)], mk.all),
+  condRow([condVar('notMatches', allRe), condVar('matches', oneNode)], mk.one),
+  condRow([condVar('notMatches', allRe), condVar('matches', twoThree)], mk.few),
+  condRow([condVar('notMatches', allRe), condVar('notMatches', oneNode), condVar('notMatches', twoThree)], mk.many),
 ];
 local gridOf(g) =
   if std.objectHas(g, 'buckets') then
@@ -590,7 +593,7 @@ local storagePie(c) =
           grid.item('gpus', 0, 2 * h, 24, h),
         ];
         { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
-          all: computeStack(10), one: computeStack(4), few: computeStack(6), many: computeStack(10),
+          all: computeStack(10), one: computeStack(5), few: computeStack(7), many: computeStack(10),
         } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
