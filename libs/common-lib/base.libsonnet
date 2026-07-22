@@ -238,11 +238,11 @@ local partitionsTable(c) =
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
   ]);
 
-// temperature column styling shared by the CPUs/GPUs tables: a 0-100 gauge
-// colored by absolute thresholds (orange >60, red >80).
-local tempGauge = [
+// temperature column styling shared by the CPUs/GPUs/Disks tables: sparkline
+// over the dashboard range (0-100 scale, red when the latest value runs hot).
+local tempSpark = [
   { id: 'unit', value: 'celsius' },
-  { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
   { id: 'min', value: 0 },
   { id: 'max', value: 100 },
   { id: 'thresholds', value: { mode: 'absolute', steps: [
@@ -266,7 +266,7 @@ local gpusTable(c) =
   panel.table.new('GPUs')
   + panel.table.withTargets([
     tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) (last_over_time({__name__=~"ohm_gpu.*_load_percent", ' + s + '}[$__range])), ' + joinKey + ')'),
-    tq(c, keyed('celsius', 'GPU Core')),
+    query.prometheus.new(c.datasource, keyed('celsius', 'GPU Core')),
     tq(c, 'max by (key) (label_join(last_over_time(' + g('bytes', 'GPU Memory Total|D3D Shared Memory Total') + '[$__range]), ' + joinKey + '))'),
     tq(c, keyed('watts', 'GPU Package|GPU Power')),
     tq(c, keyed('hertz', 'GPU Core')),
@@ -276,12 +276,12 @@ local gpusTable(c) =
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Trend #F', 'Trend #G'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Trend #B', 'Value #C', 'Value #D', 'Value #E', 'Trend #F', 'Trend #G'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Value #C': 3, 'Trend #G': 4, 'Value #E': 5, 'Value #D': 6, 'Value #B': 7 },
-      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Value #E': 'Freq', 'Value #D': 'Power', 'Value #B': 'Temp' },
+      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Value #C': 3, 'Trend #G': 4, 'Value #E': 5, 'Value #D': 6, 'Trend #B': 7 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Value #E': 'Freq', 'Value #D': 'Power', 'Trend #B': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -291,7 +291,7 @@ local gpusTable(c) =
     ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
     ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
     ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
-    ov('Temp', tempGauge),
+    ov('Temp', tempSpark),
   ]);
 
 // per-node CPUs table (clusterDetail Compute tab): CPU % sparkline, count,
@@ -310,8 +310,9 @@ local cpusTable(c) =
         + '(count by (' + nl + ') (last_over_time(windows_cpu_time_total{mode="idle", ' + s + '}[$__range])))'),
     tq(c, '(sum by (' + nl + ', model_name) (last_over_time(node_cpu_info{' + s + '}[$__range]))) or '
         + '(sum by (' + nl + ', model_name) (label_replace(last_over_time(ohm_cpu_hertz{' + s + '}[$__range]), "model_name", "$1", "hardware", "(.+)")))'),
-    tq(c, '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
-        + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
+    query.prometheus.new(c.datasource,
+      '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
+      + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
     tq(c, 'sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))'),
     tq(c, '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
         + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
@@ -322,12 +323,12 @@ local cpusTable(c) =
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Value #C', 'Value #E', 'Trend #F'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Trend #C', 'Value #E', 'Trend #F'] } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
       excludeByName: { 'Value #B': true, 'Value #D': true },
-      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #E': 5, 'Value #C': 6 },
-      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #E': 'Freq', 'Value #C': 'Temp' },
+      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #E': 5, 'Trend #C': 6 },
+      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #E': 'Freq', 'Trend #C': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -337,7 +338,7 @@ local cpusTable(c) =
     ov('Arch', [{ id: 'custom.width', value: 90 }]),
     ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
     ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-    ov('Temp', tempGauge),
+    ov('Temp', tempSpark),
   ]);
 
 // physical Disks table (clusterDetail Storage tab): drive name + temperature.
@@ -350,20 +351,21 @@ local diskTempsTable(c) =
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
   panel.table.new('Disks')
   + panel.table.withTargets([
-    tq(c, '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
-        + '(label_replace(max by (' + nl + ', hardware) (ohm_hdd_celsius{sensor="Temperature", ' + s + '}), "disk", "$1", "hardware", "(.+)"))'),
+    query.prometheus.new(c.datasource,
+      '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
+      + '(label_replace(max by (' + nl + ', hardware) (ohm_hdd_celsius{sensor="Temperature", ' + s + '}), "disk", "$1", "hardware", "(.+)"))'),
   ])
   + panel.table.withTransformations([
-    { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'disk', 'Value', 'Value #A'] } } },
+    { id: 'timeSeriesTable', options: {} },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'disk', 'Trend #A'] } } },
     { id: 'organize', options: {
-      indexByName: { [nl]: 0, disk: 1, Value: 2, 'Value #A': 2 },
-      renameByName: { [nl]: 'Node', disk: 'Disk', Value: 'Temp', 'Value #A': 'Temp' },
+      indexByName: { [nl]: 0, disk: 1, 'Trend #A': 2 },
+      renameByName: { [nl]: 'Node', disk: 'Disk', 'Trend #A': 'Temp' },
     } },
-    { id: 'sortBy', options: { sort: [{ field: 'Temp', desc: true }] } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('Temp', [{ id: 'unit', value: 'celsius' }]),
+    ov('Temp', tempSpark),
   ]);
 
 // per-NIC table (clusterDetail Network tab): Linux node_network (device!="lo",
