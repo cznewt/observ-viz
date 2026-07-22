@@ -170,7 +170,8 @@ local serversTable(c, capacity=false) =
         else '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }])]
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-         ov('Memory', [{ id: 'unit', value: 'bytes' }]),
+         ov('CPUs', [{ id: 'custom.width', value: 60 }]),
+         ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
          ov('Cluster', [{ id: 'custom.hidden', value: true }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
