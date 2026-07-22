@@ -232,7 +232,7 @@ local gpusTable(c) =
     tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) ({__name__=~"ohm_gpu.*_load_percent", ' + s + '}), ' + joinKey + ')'),
     tq(c, keyed('celsius', 'GPU Core')),
     tq(c, keyed('load_percent', 'GPU Core|D3D 3D')),
-    tq(c, keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used')),
+    tq(c, '100 * ' + keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used') + ' / ' + keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
     tq(c, keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
     tq(c, keyed('watts', 'GPU Package|GPU Power')),
   ])
@@ -242,15 +242,15 @@ local gpusTable(c) =
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Value #B': 2, 'Value #C': 3, 'Value #D': 4, 'Value #E': 5, 'Value #F': 6 },
-      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #B': 'Temp', 'Value #C': 'Load %', 'Value #D': 'Mem Used', 'Value #E': 'Mem Total', 'Value #F': 'Power' },
+      indexByName: { [nl]: 0, hardware: 1, 'Value #B': 2, 'Value #C': 3, 'Value #E': 4, 'Value #D': 5, 'Value #F': 6 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #B': 'Temp', 'Value #C': 'Load %', 'Value #E': 'Memory', 'Value #D': 'Mem %', 'Value #F': 'Power' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
     ov('Temp', [{ id: 'unit', value: 'celsius' }]),
-    ov('Load %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-    ov('Mem Used|Mem Total', [{ id: 'unit', value: 'bytes' }]),
+    ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Memory', [{ id: 'unit', value: 'bytes' }]),
     ov('Power', [{ id: 'unit', value: 'watt' }]),
   ]);
 
