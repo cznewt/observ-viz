@@ -65,12 +65,34 @@ local instanceVar(c) =
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
-// (mixed sizes / per-item repeat).
+// (mixed sizes / per-item repeat). With shortItems, the tab carries TWO
+// conditionally-rendered header-less rows — the tall grid when the node
+// variable is All, the compact one when a subset is selected (the closest
+// Grafana gets to sizing panels by selection).
+local condRow(op, items) = {
+  kind: 'RowsLayoutRow',
+  spec: {
+    title: '',
+    hideHeader: true,
+    conditionalRendering: { kind: 'ConditionalRenderingGroup', spec: {
+      visibility: 'show',
+      condition: 'and',
+      items: [{ kind: 'ConditionalRenderingVariable', spec: { variable: 'instance', operator: op, value: '$__all' } }],
+    } },
+    layout: layout.grid.new() + layout.grid.withItems(items),
+  },
+};
 local gridOf(g) =
-  layout.grid.new() + layout.grid.withItems(
-    if std.objectHas(g, 'items') then g.items
-    else grid.wrapItems(std.objectFields(g.elements), g.width, g.height)
-  );
+  if std.objectHas(g, 'shortItems') then
+    layout.rows.new() + layout.rows.withRows([
+      condRow('equals', g.items),
+      condRow('notEquals', g.shortItems),
+    ])
+  else
+    layout.grid.new() + layout.grid.withItems(
+      if std.objectHas(g, 'items') then g.items
+      else grid.wrapItems(std.objectFields(g.elements), g.width, g.height)
+    );
 local board(uid, title, tags, vars, groups, asTabs=false) =
   dashboard.new(title)
   + dashboard.withUid(uid)
@@ -536,11 +558,19 @@ local storagePie(c) =
           grid.item('servers', 0, 0, 24, 12),
           grid.item('cpus', 0, 12, 24, 8),
           grid.item('gpus', 0, 20, 24, 7),
+        ], shortItems: [
+          grid.item('servers', 0, 0, 24, 7),
+          grid.item('cpus', 0, 7, 24, 5),
+          grid.item('gpus', 0, 12, 24, 5),
         ] },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
           grid.item('netRx', 0, 10, 12, 8),
           grid.item('netTx', 12, 10, 12, 8),
+        ], shortItems: [
+          grid.item('nics', 0, 0, 24, 6),
+          grid.item('netRx', 0, 6, 12, 8),
+          grid.item('netTx', 12, 6, 12, 8),
         ] },
         // explicit items: tall partitions table, physical disk temps, then
         // per-node Used/Free pies (repeated over the hidden $instance
@@ -549,6 +579,10 @@ local storagePie(c) =
           grid.item('partitions', 0, 0, 24, 14),
           grid.item('disks', 0, 14, 24, 7),
           grid.item('storagePie', 0, 21, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
+        ], shortItems: [
+          grid.item('partitions', 0, 0, 24, 8),
+          grid.item('disks', 0, 8, 24, 5),
+          grid.item('storagePie', 0, 13, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
         ] },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
