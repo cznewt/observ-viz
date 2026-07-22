@@ -55,10 +55,22 @@ local clusterVar(c, multi=true) =
   + variable.query.withLabel('Cluster')
   + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
   + (if multi then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {});
+// hidden all-nodes variable (Linux + Windows) — drives grid-item repeats.
+local instanceVar(c) =
+  variable.query.new('instance')
+  + variable.query.withLabel('Node')
+  + variable.query.withLabelValues(c.nodeLabel, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
+  + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent
+  + { spec+: { hide: 'hideVariable' } };
 
-// rows-of-grids (or tabs) layout (same shape as pack.build)
+// rows-of-grids (or tabs) layout (same shape as pack.build). A group either
+// wraps its elements uniformly (width/height) or brings explicit grid items
+// (mixed sizes / per-item repeat).
 local gridOf(g) =
-  layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(g.elements), g.width, g.height));
+  layout.grid.new() + layout.grid.withItems(
+    if std.objectHas(g, 'items') then g.items
+    else grid.wrapItems(std.objectFields(g.elements), g.width, g.height)
+  );
 local board(uid, title, tags, vars, groups, asTabs=false) =
   dashboard.new(title)
   + dashboard.withUid(uid)
@@ -149,7 +161,13 @@ local serversTable(c, capacity=false) =
       } },
   ])
   + panel.table.withOverrides(
-    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }])]
+    // capacity boards have a single-select cluster var, so the drill link passes
+    // it directly (${cluster:queryparam}); hidden-column ${__data.fields[...]}
+    // lookups resolve empty there. The multi-cluster overview keeps the row's
+    // own cluster (visible column) so "All" drills to the right cluster.
+    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: if capacity
+        then '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}'
+        else '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }])]
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }]),
@@ -171,11 +189,12 @@ local disksTable(c) =
   local s = clComma(c);
   local joinKey = '"key", "|", "' + nl + '", "device", "mountpoint"';
   local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
+  local fsSel = 'fstype!="", mountpoint!~"/(boot|media).*", ' + s;  // skip EFI/boot + removable mounts
   panel.table.new('Disks')
   + panel.table.withTargets([
-    tq(c, '(label_join((1 - node_filesystem_avail_bytes{fstype!="", ' + s + '} / node_filesystem_size_bytes{fstype!="", ' + s + '}) * 100, ' + joinKey + ')) or '
+    tq(c, '(label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
         + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + s + '} / windows_logical_disk_size_bytes{' + s + '}) * 100') + ', ' + joinKey + '))'),
-    tq(c, '(sum by (key) (label_join(node_filesystem_size_bytes{fstype!="", ' + s + '}, ' + joinKey + '))) or '
+    tq(c, '(sum by (key) (label_join(node_filesystem_size_bytes{' + fsSel + '}, ' + joinKey + '))) or '
         + '(sum by (key) (label_join(' + winRelabel('windows_logical_disk_size_bytes{' + s + '}') + ', ' + joinKey + ')))'),
   ])
   + panel.table.withTransformations([
@@ -192,6 +211,36 @@ local disksTable(c) =
   + panel.table.withOverrides([
     ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
+  ]);
+
+// per-node Used/Free storage pie (clusterDetail Storage tab): the grid item
+// repeats over the hidden $instance variable, one clone per node. Same
+// /boot|/media exclusion as the Disks table so the numbers line up.
+local storagePie(c) =
+  local nl = c.nodeLabel;
+  local si = 'fstype!="", mountpoint!~"/(boot|media).*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
+  local wi = clComma(c) + ', ' + nl + '=~"$instance"';
+  local pq(expr, legend) =
+    query.prometheus.new(c.datasource, expr)
+    + query.prometheus.withLegendFormat(legend)
+    + { spec+: { query+: { spec+: { instant: true, range: false } } } };
+  panel.pieChart.new('Storage $instance')
+  + panel.pieChart.withTargets([
+    pq('(sum(node_filesystem_size_bytes{' + si + '}) - sum(node_filesystem_avail_bytes{' + si + '})) or '
+       + '(sum(windows_logical_disk_size_bytes{' + wi + '}) - sum(windows_logical_disk_free_bytes{' + wi + '}))', 'Used'),
+    pq('(sum(node_filesystem_avail_bytes{' + si + '})) or (sum(windows_logical_disk_free_bytes{' + wi + '}))', 'Free'),
+  ])
+  + panel.pieChart.withUnit('bytes')
+  + panel.pieChart.withOptions({
+    reduceOptions: { values: false, calcs: ['lastNotNull'], fields: '' },
+    pieType: 'pie',
+    displayLabels: ['percent'],
+    legend: { showLegend: true, displayMode: 'list', placement: 'bottom' },
+    tooltip: { mode: 'single' },
+  })
+  + panel.pieChart.withOverrides([
+    ov('Used', [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }]),
+    ov('Free', [{ id: 'color', value: { mode: 'fixed', fixedColor: 'green' } }]),
   ]);
 
 {
@@ -295,14 +344,15 @@ local disksTable(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local storageUsed = tsig('Storage used', '(sum ' + byNode + ' (node_filesystem_size_bytes{fstype!="", %(queriesSelector)s} - node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_size_bytes{%(queriesSelector)s} - windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage used');
-      local storageFree = tsig('Storage free', '(sum ' + byNode + ' (node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage free');
-      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false)], [
+      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c)], [
         { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c, capacity=true) } },
         { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
-        // uniform grid per tab: full-width rows — disks table first (alphabetical
-        // element order), then the used/free trends.
-        { title: 'Storage', width: 24, height: 8, elements: { disks: disksTable(c), storageUsed: storageUsed, storageFree: storageFree } },
+        // explicit items: tall disks table + per-node Used/Free pies (repeated
+        // over the hidden $instance variable, 6 per row).
+        { title: 'Storage', elements: { disks: disksTable(c), storagePie: storagePie(c) }, items: [
+          grid.item('disks', 0, 0, 24, 14),
+          grid.item('storagePie', 0, 14, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
+        ] },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
       {
