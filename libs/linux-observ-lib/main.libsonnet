@@ -220,7 +220,7 @@ local panel = import 'custom/panel.libsonnet';
         width: 4,
         height: 4,
         elements: {
-          ovDevice: labelStat('Device', 'sum by (device) (label_join((label_replace(node_dmi_info{' + inst + ', product_version!~"''' + G + '''"}, "dev", "$1", "product_version", "(.+)")) or (label_replace(node_dmi_info{' + inst + ', product_version=~"''' + G + '''"}, "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))', 'device'),
+          ovDevice: labelStat('Device', 'sum by (device) (label_join((label_replace(node_dmi_info{' + inst + ', product_version!~"Default string|System Version|System Product Name|To Be Filled.*|"}, "dev", "$1", "product_version", "(.+)")) or (label_replace(node_dmi_info{' + inst + ', product_version=~"Default string|System Version|System Product Name|To Be Filled.*|"}, "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))', 'device'),
           ovOs: labelStat('OS', 'node_os_info{' + inst + '}', 'pretty_name'),
           ovKernel: labelStat('Kernel', 'node_uname_info{' + inst + '}', 'release'),
           ovModel: labelStat('CPU Model', 'sum by (model_name) (node_cpu_info{' + inst + '})', 'model_name'),
