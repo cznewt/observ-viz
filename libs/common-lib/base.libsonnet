@@ -155,7 +155,7 @@ local serversTable(c, capacity=false) =
     { id: 'organize', options:
       if capacity then {
         excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #G': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #D': 3, model_name: 4, 'Value #B': 5, 'Value #F': 6, 'Value #C': 7, board: 8 },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #D': 4, model_name: 5, 'Value #C': 6, 'Value #F': 7, board: 8 },
         renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', model_name: 'CPU Model', 'Value #B': 'CPU %', 'Value #F': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
