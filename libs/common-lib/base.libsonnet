@@ -225,6 +225,12 @@ local serversTable(c, capacity=false) =
   // windows_exporter has no DMI metric, so Windows rows stay blank.
   local qKind =
     tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (' + lot('node_dmi_info{' + s + '}') + '), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
+  // vendor + product from DMI ("LENOVO Legion 5 Pro 16ACH6H"); firmware
+  // garbage values fall back from product_version to product_name. Windows
+  // has no DMI metric — blank there.
+  local dmiGarbage = 'Default string|System Version|System Product Name|To Be Filled.*|';
+  local qDevice =
+    tq(c, 'sum by (' + cl + ', ' + nl + ', device) (label_join((label_replace(' + lot('node_dmi_info{' + s + ', product_version!~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_version", "(.+)")) or (label_replace(' + lot('node_dmi_info{' + s + ', product_version=~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))');
   // range queries feeding the sparkline cells (timeSeriesTable turns each
   // series into a row with a Trend field, joined on the node column).
   local rq(expr) = query.prometheus.new(c.datasource, expr);
@@ -240,7 +246,7 @@ local serversTable(c, capacity=false) =
   // G cpu-trend (range), H mem-trend (range).
   + panel.table.withTargets(
     if capacity
-    then [qInfo, qCpus, qMemTotal, qUptime, qOs, qKind, qTrendCpu, qTrendMem, qLoadPerCpu]
+    then [qInfo, qCpus, qMemTotal, qUptime, qOs, qKind, qTrendCpu, qTrendMem, qLoadPerCpu, qDevice]
     else [qInfo, qCpuPct, qMemPct, qUptime, qOs]
   )
   + panel.table.withTransformations(
@@ -251,13 +257,13 @@ local serversTable(c, capacity=false) =
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['kind', 'Trend #G', 'Trend #H', 'Trend #I'] else []) } } },
+      + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Trend #H': 6, 'Value #C': 7, 'Trend #I': 8, 'Value #D': 9, board: 10 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true, 'Value #J': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
