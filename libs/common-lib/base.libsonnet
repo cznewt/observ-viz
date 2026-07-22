@@ -326,7 +326,7 @@ local gpusTable(c) =
   local keyed(suffix, sensorRe) = 'max by (key) (label_join(' + g(suffix, sensorRe) + ', ' + joinKey + '))';
   panel.table.new('GPUs')
   + panel.table.withTargets([
-    tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) (last_over_time({__name__=~"ohm_gpu.*_load_percent", ' + s + '}[$__range])), ' + joinKey + ')'),
+    tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) (last_over_time({__name__=~"ohm_gpu.*_(load_percent|hertz)", ' + s + '}[$__range])), ' + joinKey + ')'),
     query.prometheus.new(c.datasource, keyed('celsius', 'GPU Core')),
     tq(c, 'max by (key) (label_join(last_over_time(' + g('bytes', 'GPU Memory Total|D3D Shared Memory Total') + '[$__range]), ' + joinKey + '))'),
     tq(c, keyed('watts', 'GPU Package|GPU Power')),
