@@ -22,7 +22,11 @@ local defaults = {
   appLabel: 'app_part_of',  // workload grouping label (e.g. app_part_of / app / namespace)
   nodeMetric: 'node_uname_info',  // an info metric every node_exporter exports (node count + release)
   windowsNodeMetric: 'windows_os_info',  // windows_exporter OS info (node count + version)
-  selector: '',  // optional base label filter, e.g. 'job=~".+"'
+  // baseline filter in every query. The gameedu-* exclusion hides stale
+  // minion-id-shaped instance series (pre-2026-07-22 batocera alloy labels,
+  // e.g. gameedu-roam-newt-loki-zero) that Mimir cannot delete — safe to drop
+  // after retention ages them out (90d -> 2026-10-21).
+  selector: 'instance!~"gameedu-.+"',
   datasource: '${datasource}',
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
