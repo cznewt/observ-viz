@@ -88,41 +88,78 @@ local countTable(c, title, byLabel, countExpr, alertExpr, names) =
   ]);
 
 // per-node Servers table: Linux (node_exporter) + Windows (windows_exporter) unioned,
-// per-OS drill link via a hidden board column. Shared by cluster + clusterDetail.
-local serversTable(c) =
+// per-OS drill link via a hidden board column. Shared by cluster (default flavor:
+// Cluster + Uptime columns) and clusterDetail (capacity flavor: CPUs / CPU Model /
+// Memory-total columns instead; the cluster var is single-select there, so the
+// Cluster column is hidden but kept for the drill link).
+// CPU Model sources: node_cpu_info (needs the node_exporter cpu.info collector,
+// off in our alloy unix module today) or OhmGraphite's hardware label on Windows.
+local serversTable(c, capacity=false) =
   local nl = c.nodeLabel;
   local cl = c.clusterLabel;
   local s = clComma(c);
   local byNode = 'by (' + cl + ', ' + nl + ')';
-  panel.table.new('Servers')
-  + panel.table.withTargets([
+  local qInfo =
     tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
-        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))'),
+        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
+  local qCpuPct =
     tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
-        + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
+        + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)');
+  local qMemPct =
     tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
-        + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)'),
+        + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)');
+  local qUptime =
     tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
-        + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))'),
+        + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))');
+  local qOs =
     tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
-        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))'),
-  ])
+        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))');
+  local qCpus =
+    tq(c, '(count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
+        + '(count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
+  local qModel =
+    tq(c, '(sum by (' + cl + ', ' + nl + ', model_name) (node_cpu_info{' + s + '})) or '
+        + '(sum by (' + cl + ', ' + nl + ', model_name) (label_replace(ohm_cpu_hertz{' + s + '}, "model_name", "$1", "hardware", "(.+)")))');
+  local qMemTotal =
+    tq(c, '(max ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) or '
+        + '(max ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '}))');
+  panel.table.new('Servers')
+  // refIds by position — default: A info, B cpu%, C mem%, D uptime, E os;
+  // capacity: A info, B cpu%, C mem%, D cpus, E model, F mem-total, G os.
+  + panel.table.withTargets(
+    [qInfo, qCpuPct, qMemPct]
+    + (if capacity then [qCpus, qModel, qMemTotal] else [qUptime])
+    + [qOs]
+  )
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D'] } } },
+    { id: 'filterFieldsByName', options: { include: { names:
+      [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
+      + (if capacity then ['model_name', 'Value #F'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
-    { id: 'organize', options: {
-      excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-      indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
-      renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
-    } },
+    { id: 'organize', options:
+      if capacity then {
+        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #G': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true, [cl + ' 6']: true, [cl + ' 7']: true },
+        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #D': 4, model_name: 5, 'Value #B': 6, 'Value #F': 7, 'Value #C': 8, board: 9 },
+        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', model_name: 'CPU Model', 'Value #B': 'CPU %', 'Value #F': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
+      } else {
+        excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
+        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
+        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
+      } },
   ])
-  + panel.table.withOverrides([
-    ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }]),
-    ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
-    ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-    ov('Board', [{ id: 'custom.hidden', value: true }]),
-  ]);
+  + panel.table.withOverrides(
+    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }])]
+    + (if capacity then [
+         ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+         ov('Memory', [{ id: 'unit', value: 'bytes' }]),
+         ov('Cluster', [{ id: 'custom.hidden', value: true }]),
+       ] else [
+         ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
+         ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+       ])
+    + [ov('Board', [{ id: 'custom.hidden', value: true }])]
+  );
 
 {
   config:: defaults,
@@ -228,7 +265,7 @@ local serversTable(c) =
       local storageUsed = tsig('Storage used', '(sum ' + byNode + ' (node_filesystem_size_bytes{fstype!="", %(queriesSelector)s} - node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_size_bytes{%(queriesSelector)s} - windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage used');
       local storageFree = tsig('Storage free', '(sum ' + byNode + ' (node_filesystem_avail_bytes{fstype!="", %(queriesSelector)s})) or (sum ' + byNode + ' (windows_logical_disk_free_bytes{%(queriesSelector)s}))', 'bytes').asTimeSeries('Storage free');
       local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false)], [
-        { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c) } },
+        { title: 'Compute', width: 24, height: 12, elements: { servers: serversTable(c, capacity=true) } },
         { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
         { title: 'Storage', width: 12, height: 8, elements: { storageUsed: storageUsed, storageFree: storageFree } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
