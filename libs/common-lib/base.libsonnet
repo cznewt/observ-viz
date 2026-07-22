@@ -97,10 +97,12 @@ local nodeCountVar(c) =
   variable.query.new('nodecount')
   // count_values folds the node count into label "n", so the proven
   // label_values plumbing reads it directly — no query_result, no regex.
-  // fixed 6h stretch: $__range does NOT interpolate in variable queries (tried
-  // — the query breaks and the variable goes empty), so approximate the
-  // tables' row retention with a fixed window.
-  + variable.query.withLabelValues('n', 'count_values("n", count(count by (' + c.nodeLabel + ') (last_over_time({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"}[6h]))))')
+  // label_values() can only read labels off real series (computed exprs like
+  // count_values() don't work there, and $__range doesn't interpolate in
+  // variable queries) — so the base-node-count recording rule materializes the
+  // per-cluster 6h node count as label "n" and this just reads it. Note: the
+  // rule is per-cluster, so manual node narrowing doesn't shrink the count.
+  + variable.query.withLabelValues('n', 'base:cluster_nodes:n{' + clComma(c) + '}')
   + variable.query.withLabel('Nodes')
   + { spec+: { refresh: 'onTimeRangeChanged' } };
 
@@ -254,7 +256,7 @@ local serversTable(c, capacity=false) =
     { id: 'organize', options:
       if capacity then {
         excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Trend #H': 6, 'Value #C': 7, 'Value #D': 8, 'Trend #I': 9, board: 10 },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, 'Trend #G': 4, 'Value #B': 5, 'Trend #H': 6, 'Value #C': 7, 'Trend #I': 8, 'Value #D': 9, board: 10 },
         renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
@@ -646,6 +648,19 @@ local storagePie(c) =
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },
+        prometheus: {
+          alerts: [],
+          // materializes the per-cluster node count (6h retention window, same
+          // idea as the tables' row stretch) as label "n" — feeds $nodecount.
+          rules: [{
+            name: 'base-node-count',
+            interval: '1m',
+            rules: [{
+              record: 'base:cluster_nodes:n',
+              expr: 'count_values by (' + cl + ') ("n", count by (' + cl + ') (group by (' + cl + ', ' + nl + ') ((last_over_time(' + c.nodeMetric + selBrace(c) + '[6h])) or (last_over_time(' + c.windowsNodeMetric + selBrace(c) + '[6h])))))',
+            }],
+          }],
+        },
       },
   },
 
