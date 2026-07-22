@@ -145,59 +145,59 @@ local serversTable(c, capacity=false) =
   )
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
+    // the cluster label is deliberately NOT included: no Cluster column (in any
+    // join-suffixed variant) reaches the table — drill links carry the cluster
+    // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
-      [cl, nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
+      [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
       + (if capacity then ['model_name', 'Value #F'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #G': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true, [cl + ' 6']: true, [cl + ' 7']: true },
-        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #D': 4, model_name: 5, 'Value #B': 6, 'Value #F': 7, 'Value #C': 8, board: 9 },
-        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', model_name: 'CPU Model', 'Value #B': 'CPU %', 'Value #F': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #G': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #D': 3, model_name: 4, 'Value #B': 5, 'Value #F': 6, 'Value #C': 7, board: 8 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', model_name: 'CPU Model', 'Value #B': 'CPU %', 'Value #F': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
       } else {
-        excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
-        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #E': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
       } },
   ])
   + panel.table.withOverrides(
-    // capacity boards have a single-select cluster var, so the drill link passes
-    // it directly (${cluster:queryparam}); hidden-column ${__data.fields[...]}
-    // lookups resolve empty there. The multi-cluster overview keeps the row's
-    // own cluster (visible column) so "All" drills to the right cluster.
-    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: if capacity
-        then '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}'
-        else '/d/${__data.fields["Board"]}?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}' }] }])]
+    // drill link: cluster comes from the dashboard variable (single value on the
+    // detail board; on the multi-cluster overview "All" still resolves the node
+    // via the fleet-unique var-instance).
+    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}' }] }])]
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
-         ov('Cluster', [{ id: 'custom.hidden', value: true }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
-         ov('Cluster', [{ id: 'custom.hidden', value: true }]),
        ])
     + [ov('Board', [{ id: 'custom.hidden', value: true }])]
   );
 
-// per-filesystem Disks table (clusterDetail Storage tab): Linux node_filesystem
-// (fstype!="") + Windows logical disks (volume relabeled to device+mountpoint)
-// unioned. Rows are (node, device, mount) tuples, so the used%/capacity queries
-// join on a synthetic key label (node|device|mount) instead of a single natural
-// column; the key is hidden after the join. Sorted worst-used first.
-local disksTable(c) =
+// per-filesystem Partitions table (clusterDetail Storage tab): Linux
+// node_filesystem (fstype!="") + Windows logical disks (volume relabeled to
+// device+mountpoint) unioned. Rows are (node, device, mount) tuples, so the
+// used%/capacity queries join on a synthetic key label (node|device|mount)
+// instead of a single natural column; the key is hidden after the join.
+// Sorted worst-used first.
+local partitionsTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c);
   local joinKey = '"key", "|", "' + nl + '", "device", "mountpoint"';
   local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
   local fsSel = 'fstype!="", mountpoint!~"/(boot|media).*", ' + s;  // skip EFI/boot + removable mounts
-  panel.table.new('Disks')
+  local winSel = 'volume!~"HarddiskVolume.*", ' + s;  // skip letterless recovery/EFI partitions
+  panel.table.new('Partitions')
   + panel.table.withTargets([
     tq(c, '(label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
-        + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + s + '} / windows_logical_disk_size_bytes{' + s + '}) * 100') + ', ' + joinKey + '))'),
+        + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + '))'),
     tq(c, '(sum by (key) (label_join(node_filesystem_size_bytes{' + fsSel + '}, ' + joinKey + '))) or '
-        + '(sum by (key) (label_join(' + winRelabel('windows_logical_disk_size_bytes{' + s + '}') + ', ' + joinKey + ')))'),
+        + '(sum by (key) (label_join(' + winRelabel('windows_logical_disk_size_bytes{' + winSel + '}') + ', ' + joinKey + ')))'),
   ])
   + panel.table.withTransformations([
     { id: 'labelsToFields' },
@@ -252,6 +252,61 @@ local gpusTable(c) =
     ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Memory', [{ id: 'unit', value: 'bytes' }]),
     ov('Power', [{ id: 'unit', value: 'watt' }]),
+  ]);
+
+// physical Disks table (clusterDetail Storage tab): drive name + temperature.
+// Linux: node_hwmon nvme/drivetemp chips (composite sensor temp1; chip id as
+// the name — node_exporter has no model label). Windows: OhmGraphite
+// ohm_hdd_celsius (hardware label = disk model, composite sensor). One union
+// query, no join. Hottest first.
+local diskTempsTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c);
+  panel.table.new('Disks')
+  + panel.table.withTargets([
+    tq(c, '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
+        + '(label_replace(max by (' + nl + ', hardware) (ohm_hdd_celsius{sensor="Temperature", ' + s + '}), "disk", "$1", "hardware", "(.+)"))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'disk', 'Value', 'Value #A'] } } },
+    { id: 'organize', options: {
+      indexByName: { [nl]: 0, disk: 1, Value: 2, 'Value #A': 2 },
+      renameByName: { [nl]: 'Node', disk: 'Disk', Value: 'Temp', 'Value #A': 'Temp' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Temp', desc: true }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('Temp', [{ id: 'unit', value: 'celsius' }]),
+  ]);
+
+// per-NIC table (clusterDetail Network tab): Linux node_network (device!="lo")
+// + Windows adapters (nic label relabeled to device) unioned; In/Out are 5m
+// byte rates joined on a synthetic node|device key. Busiest inbound first.
+local nicsTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c);
+  local joinKey = '"key", "|", "' + nl + '", "device"';
+  local lx(m) = 'sum by (' + nl + ', device) (rate(' + m + '{device!="lo", ' + s + '}[5m]))';
+  local wx(m) = 'label_replace(sum by (' + nl + ', nic) (rate(' + m + '{' + s + '}[5m])), "device", "$1", "nic", "(.+)")';
+  panel.table.new('Network Interfaces')
+  + panel.table.withTargets([
+    tq(c, '(label_join(' + lx('node_network_receive_bytes_total') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_received_total') + ', ' + joinKey + '))'),
+    tq(c, 'sum by (key) ((label_join(' + lx('node_network_transmit_bytes_total') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_sent_total') + ', ' + joinKey + ')))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'device', 'Value #A', 'Value #B'] } } },
+    { id: 'seriesToColumns', options: { byField: 'key' } },
+    { id: 'organize', options: {
+      excludeByName: { key: true },
+      indexByName: { [nl]: 0, device: 1, 'Value #A': 2, 'Value #B': 3 },
+      renameByName: { [nl]: 'Node', device: 'NIC', 'Value #A': 'In', 'Value #B': 'Out' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'In', desc: true }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('In|Out', [{ id: 'unit', value: 'Bps' }]),
   ]);
 
 // per-node Used/Free storage pie (clusterDetail Storage tab): the grid item
@@ -390,12 +445,18 @@ local storagePie(c) =
           grid.item('servers', 0, 0, 24, 12),
           grid.item('gpus', 0, 12, 24, 7),
         ] },
-        { title: 'Network', width: 12, height: 8, elements: { netRx: netRx, netTx: netTx } },
-        // explicit items: tall disks table + per-node Used/Free pies (repeated
-        // over the hidden $instance variable, 6 per row).
-        { title: 'Storage', elements: { disks: disksTable(c), storagePie: storagePie(c) }, items: [
-          grid.item('disks', 0, 0, 24, 14),
-          grid.item('storagePie', 0, 14, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
+        { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
+          grid.item('nics', 0, 0, 24, 10),
+          grid.item('netRx', 0, 10, 12, 8),
+          grid.item('netTx', 12, 10, 12, 8),
+        ] },
+        // explicit items: tall partitions table, physical disk temps, then
+        // per-node Used/Free pies (repeated over the hidden $instance
+        // variable, 6 per row).
+        { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, items: [
+          grid.item('partitions', 0, 0, 24, 14),
+          grid.item('disks', 0, 14, 24, 7),
+          grid.item('storagePie', 0, 21, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
         ] },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true);
