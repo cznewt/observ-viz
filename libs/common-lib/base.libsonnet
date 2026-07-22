@@ -111,9 +111,12 @@ local serversTable(c, capacity=false) =
   local cl = c.clusterLabel;
   local s = clComma(c) + (if capacity then ', ' + nl + '=~"$instance"' else '');
   local byNode = 'by (' + cl + ', ' + nl + ')';
+  // capacity flavor stretches static facts over the dashboard range so nodes
+  // that went offline keep their row (live columns just go blank).
+  local lot(sel) = if capacity then 'last_over_time(' + sel + '[$__range])' else sel;
   local qInfo =
-    tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + c.nodeMetric + '{' + s + '}, "board", "' + c.nodeUid + '", "", ""))) or '
-        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + c.windowsNodeMetric + '{' + s + '}, "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
+    tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + lot(c.nodeMetric + '{' + s + '}') + ', "board", "' + c.nodeUid + '", "", ""))) or '
+        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
   local qCpuPct =
     tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
         + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)');
@@ -124,23 +127,23 @@ local serversTable(c, capacity=false) =
     tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
         + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))');
   local qOs =
-    tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (node_os_info{' + s + '})) or '
-        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + c.windowsNodeMetric + '{' + s + '}, "pretty_name", "$1", "product", "(.+)")))');
+    tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (' + lot('node_os_info{' + s + '}') + ')) or '
+        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "pretty_name", "$1", "product", "(.+)")))');
   local qCpus =
-    tq(c, '(count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
-        + '(count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
+    tq(c, '(count ' + byNode + ' (' + lot('node_cpu_seconds_total{mode="idle", ' + s + '}') + ')) or '
+        + '(count ' + byNode + ' (' + lot('windows_cpu_time_total{mode="idle", ' + s + '}') + '))');
   // normalized run-queue pressure: Linux load1/cores; Windows has no loadavg,
   // so processor queue length/cores is the closest analog.
   local qLoadPerCpu =
     tq(c, '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
         + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
   local qMemTotal =
-    tq(c, '(max ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) or '
-        + '(max ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '}))');
+    tq(c, '(max ' + byNode + ' (' + lot('node_memory_MemTotal_bytes{' + s + '}') + ')) or '
+        + '(max ' + byNode + ' (' + lot('windows_memory_physical_total_bytes{' + s + '}') + '))');
   // physical vs virtual via DMI product_name (QEMU/KVM/VMware patterns);
   // windows_exporter has no DMI metric, so Windows rows stay blank.
   local qKind =
-    tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (node_dmi_info{' + s + '}), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
+    tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (' + lot('node_dmi_info{' + s + '}') + '), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
   // range queries feeding the sparkline cells (timeSeriesTable turns each
   // series into a row with a Trend field, joined on the node column).
   local rq(expr) = query.prometheus.new(c.datasource, expr);
@@ -200,10 +203,9 @@ local serversTable(c, capacity=false) =
 
 // per-filesystem Partitions table (clusterDetail Storage tab): Linux
 // node_filesystem (fstype!="") + Windows logical disks (volume relabeled to
-// device+mountpoint) unioned. Rows are (node, device, mount) tuples, so the
-// used%/capacity queries join on a synthetic key label (node|device|mount)
-// instead of a single natural column; the key is hidden after the join.
-// Sorted worst-used first.
+// device+mountpoint) unioned; rows join on a synthetic node|device|mount key.
+// Capacity is range-stretched so recently-offline nodes keep their rows;
+// Used % renders as a sparkline over the dashboard range.
 local partitionsTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
@@ -213,24 +215,26 @@ local partitionsTable(c) =
   local winSel = 'volume!~"HarddiskVolume.*", ' + s;  // skip letterless recovery/EFI partitions
   panel.table.new('Partitions')
   + panel.table.withTargets([
-    tq(c, '(label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
-        + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + '))'),
-    tq(c, '(sum by (key) (label_join(node_filesystem_size_bytes{' + fsSel + '}, ' + joinKey + '))) or '
-        + '(sum by (key) (label_join(' + winRelabel('windows_logical_disk_size_bytes{' + winSel + '}') + ', ' + joinKey + ')))'),
+    tq(c, '(label_join(last_over_time(node_filesystem_size_bytes{' + fsSel + '}[$__range]), ' + joinKey + ')) or '
+        + '(label_join(' + winRelabel('last_over_time(windows_logical_disk_size_bytes{' + winSel + '}[$__range])') + ', ' + joinKey + '))'),
+    query.prometheus.new(c.datasource,
+      'max by (key) ((label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
+      + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + ')))'),
   ])
   + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', 'device', 'mountpoint', nl, 'Value #A', 'Value #B'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', 'device', 'mountpoint', nl, 'Value #A', 'Trend #B'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true },
-      indexByName: { device: 0, mountpoint: 1, 'Value #A': 2, 'Value #B': 3, [nl]: 4 },
-      renameByName: { device: 'Name', mountpoint: 'Mount', 'Value #A': 'Used %', 'Value #B': 'Capacity', [nl]: 'Node' },
+      indexByName: { device: 0, mountpoint: 1, 'Trend #B': 2, 'Value #A': 3, [nl]: 4 },
+      renameByName: { device: 'Name', mountpoint: 'Mount', 'Trend #B': 'Used %', 'Value #A': 'Capacity', [nl]: 'Node' },
     } },
-    { id: 'sortBy', options: { sort: [{ field: 'Used %', desc: true }] } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
   ]);
 
@@ -249,9 +253,10 @@ local tempGauge = [
 // per-GPU table (clusterDetail Compute tab): OhmGraphite ohm_gpu<vendor>_*
 // series (Windows boxes with the hardware_sensors pillar; hardware label = GPU
 // model; families gpunvidia/gpuati/gpuintel). Rows anchor on the load family
-// (the one every vendor exports); temp/power stay blank where the silicon has
-// no such sensor (iGPUs). Sensor names differ per vendor, hence the regex
-// unions collapsed with max by key. Joined on a synthetic node|gpu|slot key.
+// range-stretched (offline nodes keep rows); sensor names differ per vendor,
+// hence the regex unions collapsed with max by join key. Load %/Mem % render
+// as sparklines; Temp keeps the thresholded gauge; Freq/Power blank where the
+// silicon exposes no sensor.
 local gpusTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
@@ -260,61 +265,69 @@ local gpusTable(c) =
   local keyed(suffix, sensorRe) = 'max by (key) (label_join(' + g(suffix, sensorRe) + ', ' + joinKey + '))';
   panel.table.new('GPUs')
   + panel.table.withTargets([
-    tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) ({__name__=~"ohm_gpu.*_load_percent", ' + s + '}), ' + joinKey + ')'),
+    tq(c, 'label_join(count by (' + c.clusterLabel + ', ' + nl + ', hardware, hw_instance) (last_over_time({__name__=~"ohm_gpu.*_load_percent", ' + s + '}[$__range])), ' + joinKey + ')'),
     tq(c, keyed('celsius', 'GPU Core')),
-    tq(c, keyed('load_percent', 'GPU Core|D3D 3D')),
-    tq(c, '100 * ' + keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used') + ' / ' + keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
-    tq(c, keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
+    tq(c, 'max by (key) (label_join(last_over_time(' + g('bytes', 'GPU Memory Total|D3D Shared Memory Total') + '[$__range]), ' + joinKey + '))'),
     tq(c, keyed('watts', 'GPU Package|GPU Power')),
+    tq(c, keyed('hertz', 'GPU Core')),
+    query.prometheus.new(c.datasource, keyed('load_percent', 'GPU Core|D3D 3D')),
+    query.prometheus.new(c.datasource, '100 * ' + keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used') + ' / ' + keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
   ])
   + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Trend #F', 'Trend #G'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Value #C': 2, 'Value #E': 3, 'Value #D': 4, 'Value #F': 5, 'Value #B': 6 },
-      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Value #B': 'Temp', 'Value #C': 'Load %', 'Value #E': 'Memory', 'Value #D': 'Mem %', 'Value #F': 'Power' },
+      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Value #C': 3, 'Trend #G': 4, 'Value #E': 5, 'Value #D': 6, 'Value #B': 7 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Value #E': 'Freq', 'Value #D': 'Power', 'Value #B': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
     ov('GPU', [{ id: 'custom.width', value: 320 }]),
-    ov('Temp', tempGauge),
-    ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
+    ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
     ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
+    ov('Temp', tempGauge),
   ]);
 
-// per-node CPUs table (clusterDetail Compute tab): count / model / busy% plus
-// package temperature — Linux hwmon cpu chips (coretemp; AMD SMN k10temp shows
-// as chip pci0000:00_0000:00:18_3; zenpower/cpu_thermal for other silicon),
-// Windows OhmGraphite cpu sensors. VMs (kube nodes) expose no sensor and stay
-// blank. Temp renders as a 0-100 gauge: orange >60, red >80.
+// per-node CPUs table (clusterDetail Compute tab): CPU % sparkline, count,
+// model, arch, current frequency and package temperature. Static facts are
+// range-stretched so offline nodes keep their rows. Temp sources: Linux hwmon
+// cpu chips (coretemp; AMD SMN k10temp shows as chip pci0000:00_0000:00:18_3;
+// zenpower/cpu_thermal), Windows OhmGraphite. Freq: node cpufreq scaling or
+// ohm cpu clocks. VMs (kube nodes) expose neither and stay blank there.
 local cpusTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
   panel.table.new('CPUs')
   + panel.table.withTargets([
-    tq(c, '(count by (' + nl + ') (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
-        + '(count by (' + nl + ') (windows_cpu_time_total{mode="idle", ' + s + '}))'),
-    tq(c, '(sum by (' + nl + ', model_name) (node_cpu_info{' + s + '})) or '
-        + '(sum by (' + nl + ', model_name) (label_replace(ohm_cpu_hertz{' + s + '}, "model_name", "$1", "hardware", "(.+)")))'),
-    tq(c, '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
-        + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)'),
+    tq(c, '(count by (' + nl + ') (last_over_time(node_cpu_seconds_total{mode="idle", ' + s + '}[$__range]))) or '
+        + '(count by (' + nl + ') (last_over_time(windows_cpu_time_total{mode="idle", ' + s + '}[$__range])))'),
+    tq(c, '(sum by (' + nl + ', model_name) (last_over_time(node_cpu_info{' + s + '}[$__range]))) or '
+        + '(sum by (' + nl + ', model_name) (label_replace(last_over_time(ohm_cpu_hertz{' + s + '}[$__range]), "model_name", "$1", "hardware", "(.+)")))'),
     tq(c, '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
         + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
-    tq(c, 'sum by (' + nl + ', machine) (node_uname_info{' + s + '})'),
+    tq(c, 'sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))'),
+    tq(c, '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
+        + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
+    query.prometheus.new(c.datasource,
+      '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
+      + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
   ])
   + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Value #C', 'Value #D'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Value #C', 'Value #E', 'Trend #F'] } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
-      excludeByName: { 'Value #B': true, 'Value #E': true },
-      indexByName: { [nl]: 0, 'Value #C': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #D': 5 },
-      renameByName: { [nl]: 'Node', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #C': 'CPU %', 'Value #D': 'Temp' },
+      excludeByName: { 'Value #B': true, 'Value #D': true },
+      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #E': 5, 'Value #C': 6 },
+      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #E': 'Freq', 'Value #C': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -322,7 +335,8 @@ local cpusTable(c) =
     ov('CPUs', [{ id: 'custom.width', value: 60 }]),
     ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
     ov('Arch', [{ id: 'custom.width', value: 90 }]),
-    ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
+    ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
     ov('Temp', tempGauge),
   ]);
 
@@ -352,33 +366,36 @@ local diskTempsTable(c) =
     ov('Temp', [{ id: 'unit', value: 'celsius' }]),
   ]);
 
-// per-NIC table (clusterDetail Network tab): Linux node_network (device!="lo")
-// + Windows adapters (nic label relabeled to device) unioned; In/Out are 5m
-// byte rates joined on a synthetic node|device key. Busiest inbound first.
+// per-NIC table (clusterDetail Network tab): Linux node_network (device!="lo",
+// no veth) + Windows adapters (nic label relabeled to device) unioned; In/Out
+// render as rate sparklines over the dashboard range, joined on a synthetic
+// node|device key.
 local nicsTable(c) =
   local nl = c.nodeLabel;
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local joinKey = '"key", "|", "' + nl + '", "device"';
-  local lx(m) = 'sum by (' + nl + ', device) (rate(' + m + '{device!~"lo|veth.*", ' + s + '}[5m]))';
-  local wx(m) = 'label_replace(sum by (' + nl + ', nic) (rate(' + m + '{' + s + '}[5m])), "device", "$1", "nic", "(.+)")';
+  local lx(m, w) = 'sum by (' + nl + ', device) (rate(' + m + '{device!~"lo|veth.*", ' + s + '}[' + w + ']))';
+  local wx(m, w) = 'label_replace(sum by (' + nl + ', nic) (rate(' + m + '{' + s + '}[' + w + '])), "device", "$1", "nic", "(.+)")';
   panel.table.new('Network Interfaces')
   + panel.table.withTargets([
-    tq(c, '(label_join(' + lx('node_network_receive_bytes_total') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_received_total') + ', ' + joinKey + '))'),
-    tq(c, 'sum by (key) ((label_join(' + lx('node_network_transmit_bytes_total') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_sent_total') + ', ' + joinKey + ')))'),
+    tq(c, '(label_join(' + lx('node_network_receive_bytes_total', '5m') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_received_total', '5m') + ', ' + joinKey + '))'),
+    query.prometheus.new(c.datasource, 'max by (key) ((label_join(' + lx('node_network_receive_bytes_total', '$__rate_interval') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_received_total', '$__rate_interval') + ', ' + joinKey + ')))'),
+    query.prometheus.new(c.datasource, 'max by (key) ((label_join(' + lx('node_network_transmit_bytes_total', '$__rate_interval') + ', ' + joinKey + ')) or (label_join(' + wx('windows_net_bytes_sent_total', '$__rate_interval') + ', ' + joinKey + ')))'),
   ])
   + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'device', 'Value #A', 'Value #B'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'device', 'Trend #B', 'Trend #C'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
-      excludeByName: { key: true },
-      indexByName: { [nl]: 0, device: 1, 'Value #A': 2, 'Value #B': 3 },
-      renameByName: { [nl]: 'Node', device: 'NIC', 'Value #A': 'In', 'Value #B': 'Out' },
+      excludeByName: { key: true, 'Value #A': true },
+      indexByName: { [nl]: 0, device: 1, 'Trend #B': 2, 'Trend #C': 3 },
+      renameByName: { [nl]: 'Node', device: 'NIC', 'Trend #B': 'In', 'Trend #C': 'Out' },
     } },
-    { id: 'sortBy', options: { sort: [{ field: 'In', desc: true }] } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('In|Out', [{ id: 'unit', value: 'Bps' }]),
+    ov('In|Out', [{ id: 'unit', value: 'Bps' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }]),
   ]);
 
 // per-node Used/Free storage pie (clusterDetail Storage tab): the grid item
