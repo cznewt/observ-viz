@@ -46,6 +46,32 @@ local tq(c, expr) =
   + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
 
 local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+
+// temperature column styling shared by the CPUs/GPUs/Disks tables: sparkline
+// over the dashboard range (0-100 scale, red when the latest value runs hot).
+local tempSpark = [
+  { id: 'unit', value: 'celsius' },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
+  { id: 'min', value: 0 },
+  { id: 'max', value: 100 },
+  { id: 'color', value: { mode: 'thresholds' } },  // line takes the latest value's threshold color
+  { id: 'thresholds', value: { mode: 'absolute', steps: [
+    { color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 },
+  ] } },
+];
+// utilization sparkline styling (CPU/Mem/Load/Used %): threshold-colored like
+// the old basic gauges — green, red from 80.
+local pctSpark = [
+  { id: 'unit', value: 'percent' },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
+  { id: 'min', value: 0 },
+  { id: 'max', value: 100 },
+  { id: 'color', value: { mode: 'thresholds' } },
+  { id: 'thresholds', value: { mode: 'absolute', steps: [
+    { color: 'green', value: null }, { color: 'red', value: 80 },
+  ] } },
+];
+
 local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
 
 local dsVar =
@@ -211,7 +237,7 @@ local serversTable(c, capacity=false) =
     // via the fleet-unique var-instance).
     [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}' }] }])]
     + (if capacity then [
-         ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+         ov('CPU %|Mem %', pctSpark),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
          ov('Type', [{ id: 'custom.width', value: 80 }]),
          ov('Load/CPU', [{ id: 'decimals', value: 2 }, { id: 'custom.width', value: 90 }]),
@@ -256,21 +282,9 @@ local partitionsTable(c) =
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('Used %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Used %', pctSpark),
     ov('Capacity', [{ id: 'unit', value: 'bytes' }]),
   ]);
-
-// temperature column styling shared by the CPUs/GPUs/Disks tables: sparkline
-// over the dashboard range (0-100 scale, red when the latest value runs hot).
-local tempSpark = [
-  { id: 'unit', value: 'celsius' },
-  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
-  { id: 'min', value: 0 },
-  { id: 'max', value: 100 },
-  { id: 'thresholds', value: { mode: 'absolute', steps: [
-    { color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 },
-  ] } },
-];
 
 // per-GPU table (clusterDetail Compute tab): OhmGraphite ohm_gpu<vendor>_*
 // series (Windows boxes with the hardware_sensors pillar; hardware label = GPU
@@ -309,7 +323,7 @@ local gpusTable(c) =
   ])
   + panel.table.withOverrides([
     ov('GPU', [{ id: 'custom.width', value: 320 }]),
-    ov('Load %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('Load %|Mem %', pctSpark),
     ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
     ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
     ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
@@ -359,7 +373,7 @@ local cpusTable(c) =
     ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
     ov('Arch', [{ id: 'custom.width', value: 90 }]),
     ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
-    ov('CPU %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+    ov('CPU %', pctSpark),
     ov('Temp', tempSpark),
   ]);
 
