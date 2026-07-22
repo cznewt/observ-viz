@@ -559,7 +559,7 @@ local storagePie(c) =
           } },
         ])
         + panel.table.withOverrides([
-          ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidCluster + '?var-cluster=${__value.raw}' }] }]),
+          ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}' }] }]),
           ov('Memory', [{ id: 'unit', value: 'bytes' }]),
           ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
         ]);
@@ -577,7 +577,10 @@ local storagePie(c) =
         { title: 'Clusters', width: 24, height: 24, elements: { clusters: clusters } },
         { title: 'Alerts', width: 24, height: 24, elements: { alerts: alerts } },
         { title: 'Applications', width: 24, height: 12, elements: { apps: apps } },
-      ], asTabs=true);
+      ], asTabs=true)
+      + dashboard.withLinks([
+        { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
+      ]);
       {
         config: c,
         // expose a dashboards map (uid-keyed) so render-lib can render base boards.
