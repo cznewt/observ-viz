@@ -88,6 +88,17 @@ local instanceVar(c) =
   + variable.query.withLabel('Node')
   + variable.query.withLabelValues(c.nodeLabel, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
   + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
+// hidden node-count variable: resolves to the number of nodes in the current
+// cluster+node selection (query_result + regex extract) — drives the
+// selection-sized layout buckets.
+local nodeCountVar(c) =
+  variable.query.new('nodecount')
+  + variable.query.withQuery('prometheus', {
+    qryType: 3,
+    query: 'query_result(count(count by (' + c.nodeLabel + ') ({__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"})))',
+    refId: 'A',
+  })
+  + { spec+: { regex: '/ ([0-9]+) /', hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
 
 // rows-of-grids (or tabs) layout (same shape as pack.build). A group either
 // wraps its elements uniformly (width/height) or brings explicit grid items
@@ -95,7 +106,7 @@ local instanceVar(c) =
 // conditionally-rendered header-less rows — the tall grid when the node
 // variable is All, the compact one when a subset is selected (the closest
 // Grafana gets to sizing panels by selection).
-local condVar(op, value) = { kind: 'ConditionalRenderingVariable', spec: { variable: 'instance', operator: op, value: value } };
+local condVar(varName, op, value) = { kind: 'ConditionalRenderingVariable', spec: { variable: varName, operator: op, value: value } };
 local condRow(conds, items, cond='and') = {
   kind: 'RowsLayoutRow',
   spec: {
@@ -109,28 +120,24 @@ local condRow(conds, items, cond='and') = {
     layout: layout.grid.new() + layout.grid.withItems(items),
   },
 };
-// selection-size buckets for node-scoped tabs: multi values serialize
-// comma-joined, so comma-counting regexes bucket the selection size. The last
-// bucket is a catch-all (covers any serialization surprise) so some variant
-// always renders.
-local oneNode = '^[^,]+$';
-local twoThree = '^[^,]+(,[^,]+){1,2}$';
-// the All selection surfaces as '$__all' or its display text 'All' depending
-// on runtime — match both everywhere.
-local allRe = '^(\\$__all|All)$';
+// node-count buckets for node-scoped tabs, driven by the hidden $nodecount
+// variable (reacts to cluster switches AND node narrowing). The last bucket
+// is a catch-all (10+ nodes or a broken count) so some variant always renders.
+local countIs(re) = condVar('nodecount', 'matches', re);
 local sizeBuckets(mk) = [
-  condRow([condVar('matches', allRe)], mk.all),
-  condRow([condVar('notMatches', allRe), condVar('matches', oneNode)], mk.one),
-  condRow([condVar('notMatches', allRe), condVar('matches', twoThree)], mk.few),
-  condRow([condVar('notMatches', allRe), condVar('notMatches', oneNode), condVar('notMatches', twoThree)], mk.many),
+  condRow([countIs('^1$')], mk.n1),
+  condRow([countIs('^[23]$')], mk.n23),
+  condRow([countIs('^[456]$')], mk.n46),
+  condRow([countIs('^[789]$')], mk.n79),
+  condRow([condVar('nodecount', 'notMatches', '^[1-9]$')], mk.rest),
 ];
 local gridOf(g) =
   if std.objectHas(g, 'buckets') then
     layout.rows.new() + layout.rows.withRows(sizeBuckets(g.buckets))
   else if std.objectHas(g, 'shortItems') then
     layout.rows.new() + layout.rows.withRows([
-      condRow([condVar('equals', '$__all')], g.items),
-      condRow([condVar('notEquals', '$__all')], g.shortItems),
+      condRow([condVar('nodecount', 'notMatches', '^[1-4]$')], g.items),
+      condRow([condVar('nodecount', 'matches', '^[1-4]$')], g.shortItems),
     ])
   else
     layout.grid.new() + layout.grid.withItems(
@@ -585,7 +592,7 @@ local storagePie(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c)], [
+      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
         // servers/cpus/gpus share one height per selection-size bucket.
         local computeStack(h) = [
           grid.item('servers', 0, 0, 24, h),
@@ -593,7 +600,7 @@ local storagePie(c) =
           grid.item('gpus', 0, 2 * h, 24, h),
         ];
         { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
-          all: computeStack(16), one: computeStack(5), few: computeStack(8), many: computeStack(12),
+          n1: computeStack(5), n23: computeStack(8), n46: computeStack(11), n79: computeStack(14), rest: computeStack(17),
         } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
