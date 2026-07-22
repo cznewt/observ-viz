@@ -53,10 +53,10 @@ local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properti
 // over the dashboard range (0-100 scale, red when the latest value runs hot).
 local tempSpark = [
   { id: 'unit', value: 'celsius' },
-  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme', thresholdsStyle: { mode: 'dashed' } } },
   { id: 'min', value: 0 },
   { id: 'max', value: 100 },
-  { id: 'color', value: { mode: 'thresholds' } },  // line takes the latest value's threshold color
+  { id: 'color', value: { mode: 'thresholds' } },  // scheme gradient paints the line by threshold color
   { id: 'thresholds', value: { mode: 'absolute', steps: [
     { color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 },
   ] } },
@@ -65,7 +65,7 @@ local tempSpark = [
 // the old basic gauges — green, red from 80.
 local pctSpark = [
   { id: 'unit', value: 'percent' },
-  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme', thresholdsStyle: { mode: 'dashed' } } },
   { id: 'min', value: 0 },
   { id: 'max', value: 100 },
   { id: 'color', value: { mode: 'thresholds' } },
@@ -460,7 +460,7 @@ local nicsTable(c) =
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('In|Out', [{ id: 'unit', value: 'Bps' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false } }]),
+    ov('In|Out', [{ id: 'unit', value: 'Bps' }, { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16 } }]),
   ]);
 
 // per-node Used/Free storage pie (clusterDetail Storage tab): the grid item
