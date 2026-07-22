@@ -171,7 +171,7 @@ local serversTable(c, capacity=false) =
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
-         ov('CPU Model', [{ id: 'custom.width', value: 320 }]),
+         ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
