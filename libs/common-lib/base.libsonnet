@@ -129,18 +129,20 @@ local serversTable(c, capacity=false) =
   local qCpus =
     tq(c, '(count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
         + '(count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
-  local qModel =
-    tq(c, '(sum by (' + cl + ', ' + nl + ', model_name) (node_cpu_info{' + s + '})) or '
-        + '(sum by (' + cl + ', ' + nl + ', model_name) (label_replace(ohm_cpu_hertz{' + s + '}, "model_name", "$1", "hardware", "(.+)")))');
+  // normalized run-queue pressure: Linux load1/cores; Windows has no loadavg,
+  // so processor queue length/cores is the closest analog.
+  local qLoadPerCpu =
+    tq(c, '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
+        + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
   local qMemTotal =
     tq(c, '(max ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) or '
         + '(max ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '}))');
   panel.table.new('Servers')
   // refIds by position — default: A info, B cpu%, C mem%, D uptime, E os;
-  // capacity: A info, B cpu%, C mem%, D cpus, E model, F mem-total, G os.
+  // capacity: A info, B cpu%, C mem%, D cpus, E mem-total, F load/cpu, G os.
   + panel.table.withTargets(
     [qInfo, qCpuPct, qMemPct]
-    + (if capacity then [qCpus, qModel, qMemTotal] else [qUptime])
+    + (if capacity then [qCpus, qMemTotal, qLoadPerCpu] else [qUptime])
     + [qOs]
   )
   + panel.table.withTransformations([
@@ -150,13 +152,13 @@ local serversTable(c, capacity=false) =
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['model_name', 'Value #F'] else []) } } },
+      + (if capacity then ['Value #E', 'Value #F'] else []) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #G': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #D': 4, model_name: 5, 'Value #C': 6, 'Value #F': 7, board: 8 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', model_name: 'CPU Model', 'Value #B': 'CPU %', 'Value #F': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #G': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #D': 4, 'Value #F': 5, 'Value #C': 6, 'Value #E': 7, board: 8 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #D': 'CPUs', 'Value #F': 'Load/CPU', 'Value #B': 'CPU %', 'Value #E': 'Memory', 'Value #C': 'Mem %', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true },
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
@@ -171,7 +173,7 @@ local serversTable(c, capacity=false) =
     + (if capacity then [
          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
-         ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
+         ov('Load/CPU', [{ id: 'decimals', value: 2 }, { id: 'custom.width', value: 90 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
