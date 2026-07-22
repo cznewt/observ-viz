@@ -301,7 +301,7 @@ local partitionsTable(c) =
   local s = clComma(c) + ', ' + nl + '=~"$instance"';
   local joinKey = '"key", "|", "' + nl + '", "device", "mountpoint"';
   local winRelabel(expr) = 'label_replace(label_replace(' + expr + ', "device", "$1", "volume", "(.+)"), "mountpoint", "$1", "volume", "(.+)")';
-  local fsSel = 'fstype!="", mountpoint!~"/(boot|media).*", ' + s;  // skip EFI/boot + removable mounts
+  local fsSel = 'fstype!="", mountpoint!~"/(boot|media|run).*", ' + s;  // skip EFI/boot + removable mounts
   local winSel = 'volume!~"HarddiskVolume.*", ' + s;  // skip letterless recovery/EFI partitions
   // parent disk from the device label where derivable (sdX1 -> sdX,
   // nvmeXnYpZ -> nvmeXnY, mmcblkXpY -> mmcblkX); LVM/zfs/Windows volumes keep
@@ -495,7 +495,7 @@ local nicsTable(c) =
 // /boot|/media exclusion as the Disks table so the numbers line up.
 local storagePie(c) =
   local nl = c.nodeLabel;
-  local si = 'fstype!="", mountpoint!~"/(boot|media).*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
+  local si = 'fstype!="", mountpoint!~"/(boot|media|run).*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
   local wi = 'volume!~"HarddiskVolume.*", ' + clComma(c) + ', ' + nl + '=~"$instance"';
   // last_over_time over the dashboard range: offline nodes keep their last
   // known pie, matching the tables' row retention.
