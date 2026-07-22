@@ -20,9 +20,9 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux Server | 86 | 83 |
+| `system.linux` | Linux Server | 86 | 94 |
 | `system.docker` | Docker containers | 7 | 9 |
-| `system.windows` | Windows Server | 58 | 58 |
+| `system.windows` | Windows Server | 58 | 63 |
 
 ## Kubernetes
 
