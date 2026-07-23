@@ -682,7 +682,7 @@ local storagePie(c) =
           grid.item('storagePie', 0, ph + dh, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
         ];
         { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, buckets: {
-          n1: storageStack(4, 4), n23: storageStack(4, 4), n46: storageStack(5, 5), n79: storageStack(5, 5), rest: storageStack(6, 6),
+          n1: storageStack(4, 4), n23: storageStack(6, 6), n46: storageStack(9, 9), n79: storageStack(11, 11), rest: storageStack(13, 13),
         } },
         { title: 'Alerts', width: 24, height: 10, elements: {
           alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
