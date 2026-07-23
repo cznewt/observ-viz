@@ -46,6 +46,10 @@ docs-panels:
 docs-libs:
     python3 scripts/gen-libs-docs.py
 
+# regenerate docs/collectors.md (collector metric inventories + signal map)
+docs-collectors:
+    python3 scripts/gen-collector-docs.py
+
 # full local test suite
 test: compile packs panels schema gen-check
 
@@ -162,7 +166,7 @@ catalog:
 # ── docs ────────────────────────────────────────────────────────────────────
 
 # build the docs site
-docs: docs-panels docs-libs
+docs: docs-panels docs-libs docs-collectors
     python3 -m mkdocs build
 
 # serve the docs site at http://localhost:8000
