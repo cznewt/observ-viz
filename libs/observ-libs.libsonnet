@@ -19,6 +19,8 @@
     pod: import 'libs/kubernetes-observ-lib/main.libsonnet',
     // cluster-level board + kubernetes-mixin-ported rules/alerts
     cluster: import 'libs/kubernetes-observ-lib/cluster.libsonnet',
+    // node-level kubelet elements for embedding in host boards
+    kubelet: import 'libs/kubernetes-observ-lib/kubelet.libsonnet',
     cadvisor: import 'libs/cadvisor-observ-lib/main.libsonnet',
   },
   databases: {

@@ -10,6 +10,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
+local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
+local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
 
 {
   new(config={}):
@@ -726,11 +728,20 @@ local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
         width: 12,
         height: 7,
         presence: { query: 'container_last_seen{instance=~"$instance"}', label: 'instance' },
-        elements: {
-          dockerContainers: signals.dockerContainers.asStat('Containers'),
-          dockerCpu: signals.dockerCpu.asTimeSeries('Container CPU'),
-          dockerMem: signals.dockerMem.asTimeSeries('Container memory'),
-        },
+        // panels come from the docker observ-lib (its full element set, scoped
+        // to this node) rather than a handwritten subset.
+        elements:
+          local dl = dockerLib.new({ datasource: cfg.datasource, selector: 'instance=~"$instance"', docTabs: false }).grafana.elements;
+          { ['docker_' + k]: dl[k] for k in std.objectFields(dl) if std.substr(k, 0, 4) != 'doc_' },
+      },
+      {
+        title: 'Kubelet',
+        width: 12,
+        height: 7,
+        presence: { query: 'kubelet_running_pods{instance=~"$instance"}', label: 'instance' },
+        // panels from the kubernetes lib's kubelet module — shown only on
+        // nodes actually running a kubelet.
+        elements: kubeletLib.elements(cfg.datasource, 'instance=~"$instance"'),
       },
       {
         title: 'Batocera',
