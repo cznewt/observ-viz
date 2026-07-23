@@ -4228,88 +4228,88 @@ Which collector(s) can supply each observ-lib signal (multiple collectors = cros
 
 | Signal | Metrics | Collectors |
 | --- | --- | --- |
-| batoceraOs | `node_os_info` | unix.os-uname-dmi, unix.other |
-| batoceraTemp | `node_hwmon_temp_celsius`<br>`node_os_info` | unix.hwmon, unix.os-uname-dmi, unix.other |
-| batteryCapacity | `node_power_supply_capacity` | unix.other, unix.pressure-vmstat-misc |
-| batteryOnline | `node_power_supply_online` | unix.other, unix.pressure-vmstat-misc |
-| batteryPower | `node_power_supply_power_watt` | unix.other, unix.pressure-vmstat-misc |
-| batteryVoltage | `node_power_supply_voltage_volt` | unix.other, unix.pressure-vmstat-misc |
-| conntrackMax | `node_nf_conntrack_entries_limit` | unix.other, unix.pressure-vmstat-misc |
-| conntrackUsed | `node_nf_conntrack_entries` | unix.other, unix.pressure-vmstat-misc |
-| contextSwitches | `node_context_switches_total` | unix.other, unix.pressure-vmstat-misc |
-| cpuBusy | `node_cpu_seconds_total` | unix.cpu, unix.other |
-| cpuFreq | `node_cpu_scaling_frequency_hertz` | unix.cpu, unix.other |
-| cpuMode | `node_cpu_seconds_total` | unix.cpu, unix.other |
-| diskIo | `node_disk_io_time_seconds_total` | unix.diskstats, unix.other |
-| diskIoLatency | `node_disk_io_time_weighted_seconds_total` | unix.diskstats, unix.other |
-| diskReadBps | `node_disk_read_bytes_total` | unix.diskstats, unix.other |
-| diskReadIops | `node_disk_reads_completed_total` | unix.diskstats, unix.other |
-| diskWriteBps | `node_disk_written_bytes_total` | unix.diskstats, unix.other |
-| diskWriteIops | `node_disk_writes_completed_total` | unix.diskstats, unix.other |
+| batoceraOs | `node_os_info` | unix.os-uname-dmi |
+| batoceraTemp | `node_hwmon_temp_celsius`<br>`node_os_info` | unix.hwmon, unix.os-uname-dmi |
+| batteryCapacity | `node_power_supply_capacity` | unix.pressure-vmstat-misc |
+| batteryOnline | `node_power_supply_online` | unix.pressure-vmstat-misc |
+| batteryPower | `node_power_supply_power_watt` | unix.pressure-vmstat-misc |
+| batteryVoltage | `node_power_supply_voltage_volt` | unix.pressure-vmstat-misc |
+| conntrackMax | `node_nf_conntrack_entries_limit` | unix.pressure-vmstat-misc |
+| conntrackUsed | `node_nf_conntrack_entries` | unix.pressure-vmstat-misc |
+| contextSwitches | `node_context_switches_total` | unix.pressure-vmstat-misc |
+| cpuBusy | `node_cpu_seconds_total` | unix.cpu |
+| cpuFreq | `node_cpu_scaling_frequency_hertz` | unix.cpu |
+| cpuMode | `node_cpu_seconds_total` | unix.cpu |
+| diskIo | `node_disk_io_time_seconds_total` | unix.diskstats |
+| diskIoLatency | `node_disk_io_time_weighted_seconds_total` | unix.diskstats |
+| diskReadBps | `node_disk_read_bytes_total` | unix.diskstats |
+| diskReadIops | `node_disk_reads_completed_total` | unix.diskstats |
+| diskWriteBps | `node_disk_written_bytes_total` | unix.diskstats |
+| diskWriteIops | `node_disk_writes_completed_total` | unix.diskstats |
 | dockerContainers | `container_last_seen` | cadvisor |
 | dockerCpu | `container_cpu_usage_seconds_total` | cadvisor |
 | dockerMem | `container_memory_usage_bytes` | cadvisor |
-| entropy | `node_entropy_available_bits` | unix.other, unix.pressure-vmstat-misc |
-| fdMax | `node_filefd_maximum` | unix.other, unix.pressure-vmstat-misc |
-| fdUsed | `node_filefd_allocated` | unix.other, unix.pressure-vmstat-misc |
-| fsAvail | `node_filesystem_avail_bytes` | unix.filesystem, unix.other |
-| fsSize | `node_filesystem_size_bytes` | unix.filesystem, unix.other |
-| fsUsed | `node_filesystem_avail_bytes`<br>`node_filesystem_size_bytes` | unix.filesystem, unix.other |
-| inodesUsed | `node_filesystem_files`<br>`node_filesystem_files_free` | unix.filesystem, unix.other |
-| load1 | `node_load1` | unix.loadavg, unix.other |
-| load15 | `node_load15` | unix.loadavg, unix.other |
-| load5 | `node_load5` | unix.loadavg, unix.other |
-| loadPerCpu | `node_cpu_seconds_total`<br>`node_load1` | unix.cpu, unix.loadavg, unix.other |
-| memAvailable | `node_memory_MemAvailable_bytes` | unix.meminfo, unix.other |
-| memBuffers | `node_memory_Buffers_bytes` | unix.meminfo, unix.other |
-| memCached | `node_memory_Cached_bytes` | unix.meminfo, unix.other |
-| memFree | `node_memory_MemFree_bytes` | unix.meminfo, unix.other |
-| memUsed | `node_memory_MemAvailable_bytes`<br>`node_memory_MemTotal_bytes` | unix.meminfo, unix.other |
-| memUsedRatio | `node_memory_MemAvailable_bytes`<br>`node_memory_MemTotal_bytes` | unix.meminfo, unix.other |
-| netRx | `node_network_receive_bytes_total` | unix.netdev, unix.other |
-| netRxDrop | `node_network_receive_drop_total` | unix.netdev, unix.other |
-| netRxErrs | `node_network_receive_errs_total` | unix.netdev, unix.other |
-| netRxExclLo | `node_network_receive_bytes_total` | unix.netdev, unix.other |
-| netTx | `node_network_transmit_bytes_total` | unix.netdev, unix.other |
-| netTxDrop | `node_network_transmit_drop_total` | unix.netdev, unix.other |
-| netTxErrs | `node_network_transmit_errs_total` | unix.netdev, unix.other |
-| netTxExclLo | `node_network_transmit_bytes_total` | unix.netdev, unix.other |
-| nfsRetransmissions | `node_nfs_rpc_retransmissions_total` | unix.other, unix.pressure-vmstat-misc |
-| nfsRpcs | `node_nfs_rpcs_total` | unix.other, unix.pressure-vmstat-misc |
-| pgFaults | `node_vmstat_pgfault` | unix.other, unix.pressure-vmstat-misc |
-| pgMajFaults | `node_vmstat_pgmajfault` | unix.other, unix.pressure-vmstat-misc |
-| procsBlocked | `node_procs_blocked` | unix.other, unix.pressure-vmstat-misc |
-| procsRunning | `node_procs_running` | unix.other, unix.pressure-vmstat-misc |
-| psiCpu | `node_pressure_cpu_waiting_seconds_total` | unix.other, unix.pressure-vmstat-misc |
-| psiIo | `node_pressure_io_waiting_seconds_total` | unix.other, unix.pressure-vmstat-misc |
-| psiIoFull | `node_pressure_io_stalled_seconds_total` | unix.other, unix.pressure-vmstat-misc |
-| psiMem | `node_pressure_memory_waiting_seconds_total` | unix.other, unix.pressure-vmstat-misc |
-| psiMemFull | `node_pressure_memory_stalled_seconds_total` | unix.other, unix.pressure-vmstat-misc |
+| entropy | `node_entropy_available_bits` | unix.pressure-vmstat-misc |
+| fdMax | `node_filefd_maximum` | unix.pressure-vmstat-misc |
+| fdUsed | `node_filefd_allocated` | unix.pressure-vmstat-misc |
+| fsAvail | `node_filesystem_avail_bytes` | unix.filesystem |
+| fsSize | `node_filesystem_size_bytes` | unix.filesystem |
+| fsUsed | `node_filesystem_avail_bytes`<br>`node_filesystem_size_bytes` | unix.filesystem |
+| inodesUsed | `node_filesystem_files`<br>`node_filesystem_files_free` | unix.filesystem |
+| load1 | `node_load1` | unix.loadavg |
+| load15 | `node_load15` | unix.loadavg |
+| load5 | `node_load5` | unix.loadavg |
+| loadPerCpu | `node_cpu_seconds_total`<br>`node_load1` | unix.cpu, unix.loadavg |
+| memAvailable | `node_memory_MemAvailable_bytes` | unix.meminfo |
+| memBuffers | `node_memory_Buffers_bytes` | unix.meminfo |
+| memCached | `node_memory_Cached_bytes` | unix.meminfo |
+| memFree | `node_memory_MemFree_bytes` | unix.meminfo |
+| memUsed | `node_memory_MemAvailable_bytes`<br>`node_memory_MemTotal_bytes` | unix.meminfo |
+| memUsedRatio | `node_memory_MemAvailable_bytes`<br>`node_memory_MemTotal_bytes` | unix.meminfo |
+| netRx | `node_network_receive_bytes_total` | unix.netdev |
+| netRxDrop | `node_network_receive_drop_total` | unix.netdev |
+| netRxErrs | `node_network_receive_errs_total` | unix.netdev |
+| netRxExclLo | `node_network_receive_bytes_total` | unix.netdev |
+| netTx | `node_network_transmit_bytes_total` | unix.netdev |
+| netTxDrop | `node_network_transmit_drop_total` | unix.netdev |
+| netTxErrs | `node_network_transmit_errs_total` | unix.netdev |
+| netTxExclLo | `node_network_transmit_bytes_total` | unix.netdev |
+| nfsRetransmissions | `node_nfs_rpc_retransmissions_total` | unix.pressure-vmstat-misc |
+| nfsRpcs | `node_nfs_rpcs_total` | unix.pressure-vmstat-misc |
+| pgFaults | `node_vmstat_pgfault` | unix.pressure-vmstat-misc |
+| pgMajFaults | `node_vmstat_pgmajfault` | unix.pressure-vmstat-misc |
+| procsBlocked | `node_procs_blocked` | unix.pressure-vmstat-misc |
+| procsRunning | `node_procs_running` | unix.pressure-vmstat-misc |
+| psiCpu | `node_pressure_cpu_waiting_seconds_total` | unix.pressure-vmstat-misc |
+| psiIo | `node_pressure_io_waiting_seconds_total` | unix.pressure-vmstat-misc |
+| psiIoFull | `node_pressure_io_stalled_seconds_total` | unix.pressure-vmstat-misc |
+| psiMem | `node_pressure_memory_waiting_seconds_total` | unix.pressure-vmstat-misc |
+| psiMemFull | `node_pressure_memory_stalled_seconds_total` | unix.pressure-vmstat-misc |
 | raplPower | `node_rapl_package_joules_total` | unix.other |
-| schedWait | `node_schedstat_waiting_seconds_total` | unix.cpu, unix.other |
-| servicesActive | `node_systemd_unit_state` | unix.other, unix.systemd |
-| servicesFailed | `node_systemd_unit_state` | unix.other, unix.systemd |
+| schedWait | `node_schedstat_waiting_seconds_total` | unix.cpu |
+| servicesActive | `node_systemd_unit_state` | unix.systemd |
+| servicesFailed | `node_systemd_unit_state` | unix.systemd |
 | socketsMem | `node_sockstat_TCP_mem_bytes` | unix.other |
 | socketsTcp | `node_sockstat_TCP_inuse` | unix.other |
 | softnetDropped | `node_softnet_dropped_total` | unix.other |
 | softnetSqueezed | `node_softnet_times_squeezed_total` | unix.other |
-| swapIn | `node_vmstat_pswpin` | unix.other, unix.pressure-vmstat-misc |
-| swapIoPages | `node_vmstat_pgpgin`<br>`node_vmstat_pgpgout` | unix.other, unix.pressure-vmstat-misc |
-| swapOut | `node_vmstat_pswpout` | unix.other, unix.pressure-vmstat-misc |
-| swapUsed | `node_memory_SwapFree_bytes`<br>`node_memory_SwapTotal_bytes` | unix.meminfo, unix.other |
+| swapIn | `node_vmstat_pswpin` | unix.pressure-vmstat-misc |
+| swapIoPages | `node_vmstat_pgpgin`<br>`node_vmstat_pgpgout` | unix.pressure-vmstat-misc |
+| swapOut | `node_vmstat_pswpout` | unix.pressure-vmstat-misc |
+| swapUsed | `node_memory_SwapFree_bytes`<br>`node_memory_SwapTotal_bytes` | unix.meminfo |
 | tcpActiveOpens | `node_netstat_Tcp_ActiveOpens` | unix.other |
 | tcpEstablished | `node_netstat_Tcp_CurrEstab` | unix.other |
 | tcpInErrs | `node_netstat_Tcp_InErrs` | unix.other |
 | tcpRetrans | `node_netstat_TcpExt_TCPSynRetrans` | unix.other |
-| tempCelsius | `node_hwmon_temp_celsius` | unix.hwmon, unix.other |
+| tempCelsius | `node_hwmon_temp_celsius` | unix.hwmon |
 | thermalZone | `node_thermal_zone_temp` | unix.other |
 | udpQueues | `node_udp_queues` | unix.other |
-| uptime | `node_boot_time_seconds` | unix.os-uname-dmi, unix.other |
-| zfsArcCMax | `node_zfs_arc_c_max` | unix.other, unix.pressure-vmstat-misc |
-| zfsArcHitRatio | `node_zfs_arc_hits`<br>`node_zfs_arc_misses` | unix.other, unix.pressure-vmstat-misc |
-| zfsArcHits | `node_zfs_arc_hits` | unix.other, unix.pressure-vmstat-misc |
-| zfsArcMisses | `node_zfs_arc_misses` | unix.other, unix.pressure-vmstat-misc |
-| zfsArcSize | `node_zfs_arc_size` | unix.other, unix.pressure-vmstat-misc |
+| uptime | `node_boot_time_seconds` | unix.os-uname-dmi |
+| zfsArcCMax | `node_zfs_arc_c_max` | unix.pressure-vmstat-misc |
+| zfsArcHitRatio | `node_zfs_arc_hits`<br>`node_zfs_arc_misses` | unix.pressure-vmstat-misc |
+| zfsArcHits | `node_zfs_arc_hits` | unix.pressure-vmstat-misc |
+| zfsArcMisses | `node_zfs_arc_misses` | unix.pressure-vmstat-misc |
+| zfsArcSize | `node_zfs_arc_size` | unix.pressure-vmstat-misc |
 
 ## system.windows
 
@@ -4317,59 +4317,59 @@ Which collector(s) can supply each observ-lib signal (multiple collectors = cros
 | --- | --- | --- |
 | collectorDuration | `windows_exporter_collector_duration_seconds` | windows.other |
 | collectorSuccess | `windows_exporter_collector_success` | windows.other |
-| contextSwitches | `windows_system_context_switches_total` | windows.core, windows.other |
-| cpuBusy | `windows_cpu_time_total` | windows.core, windows.other |
-| cpuByMode | `windows_cpu_time_total` | windows.core, windows.other |
-| cpuCState | `windows_cpu_cstate_seconds_total` | windows.core, windows.other |
-| cpuCores | `windows_cpu_time_total` | windows.core, windows.other |
-| cpuDpcs | `windows_cpu_dpcs_total` | windows.core, windows.other |
-| cpuFreq | `windows_cpu_core_frequency_mhz` | windows.core, windows.other |
-| cpuInterrupts | `windows_cpu_interrupts_total` | windows.core, windows.other |
-| diskActive | `windows_logical_disk_idle_seconds_total` | windows.core, windows.other |
-| diskFree | `windows_logical_disk_free_bytes` | windows.core, windows.other |
-| diskQueue | `windows_logical_disk_requests_queued` | windows.core, windows.other |
-| diskReadBytes | `windows_logical_disk_read_bytes_total` | windows.core, windows.other |
-| diskReadIops | `windows_logical_disk_reads_total` | windows.core, windows.other |
-| diskReadLatency | `windows_logical_disk_read_latency_seconds_total`<br>`windows_logical_disk_reads_total` | windows.core, windows.other |
-| diskSize | `windows_logical_disk_size_bytes` | windows.core, windows.other |
-| diskUsedRatio | `windows_logical_disk_free_bytes`<br>`windows_logical_disk_size_bytes` | windows.core, windows.other |
-| diskWriteBytes | `windows_logical_disk_write_bytes_total` | windows.core, windows.other |
-| diskWriteIops | `windows_logical_disk_writes_total` | windows.core, windows.other |
-| diskWriteLatency | `windows_logical_disk_write_latency_seconds_total`<br>`windows_logical_disk_writes_total` | windows.core, windows.other |
-| exceptions | `windows_system_exception_dispatches_total` | windows.core, windows.other |
-| memAvailable | `windows_memory_available_bytes` | windows.core, windows.other |
-| memCache | `windows_memory_cache_bytes` | windows.core, windows.other |
-| memCommitLimit | `windows_memory_commit_limit` | windows.core, windows.other |
-| memCommitted | `windows_memory_committed_bytes` | windows.core, windows.other |
-| memFree | `windows_memory_physical_free_bytes` | windows.core, windows.other |
-| memPageFaults | `windows_memory_page_faults_total` | windows.core, windows.other |
-| memPoolNonpaged | `windows_memory_pool_nonpaged_bytes` | windows.core, windows.other |
-| memPoolPaged | `windows_memory_pool_paged_bytes` | windows.core, windows.other |
-| memSwapOps | `windows_memory_swap_page_operations_total` | windows.core, windows.other |
-| memTotal | `windows_memory_physical_total_bytes` | windows.core, windows.other |
-| memUsed | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` | windows.core, windows.other |
-| memUsedRatio | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` | windows.core, windows.other |
-| netBandwidth | `windows_net_current_bandwidth_bytes` | windows.core, windows.other |
-| netDiscards | `windows_net_packets_outbound_discarded_total`<br>`windows_net_packets_received_discarded_total` | windows.core, windows.other |
-| netErrors | `windows_net_packets_outbound_errors_total`<br>`windows_net_packets_received_errors_total` | windows.core, windows.other |
-| netPacketsRecv | `windows_net_packets_received_total` | windows.core, windows.other |
-| netPacketsSent | `windows_net_packets_sent_total` | windows.core, windows.other |
-| netQueue | `windows_net_output_queue_length_packets` | windows.core, windows.other |
-| netRecv | `windows_net_bytes_received_total` | windows.core, windows.other |
-| netSent | `windows_net_bytes_sent_total` | windows.core, windows.other |
-| netUtil | `windows_net_bytes_total`<br>`windows_net_current_bandwidth_bytes` | windows.core, windows.other |
-| ntpRoundTrip | `windows_time_ntp_round_trip_delay_seconds` | windows.core, windows.other |
-| osInfo | `windows_os_info` | windows.core, windows.other |
-| procQueue | `windows_system_processor_queue_length` | windows.core, windows.other |
-| processes | `windows_system_processes` | windows.core, windows.other |
+| contextSwitches | `windows_system_context_switches_total` | windows.core |
+| cpuBusy | `windows_cpu_time_total` | windows.core |
+| cpuByMode | `windows_cpu_time_total` | windows.core |
+| cpuCState | `windows_cpu_cstate_seconds_total` | windows.core |
+| cpuCores | `windows_cpu_time_total` | windows.core |
+| cpuDpcs | `windows_cpu_dpcs_total` | windows.core |
+| cpuFreq | `windows_cpu_core_frequency_mhz` | windows.core |
+| cpuInterrupts | `windows_cpu_interrupts_total` | windows.core |
+| diskActive | `windows_logical_disk_idle_seconds_total` | windows.core |
+| diskFree | `windows_logical_disk_free_bytes` | windows.core |
+| diskQueue | `windows_logical_disk_requests_queued` | windows.core |
+| diskReadBytes | `windows_logical_disk_read_bytes_total` | windows.core |
+| diskReadIops | `windows_logical_disk_reads_total` | windows.core |
+| diskReadLatency | `windows_logical_disk_read_latency_seconds_total`<br>`windows_logical_disk_reads_total` | windows.core |
+| diskSize | `windows_logical_disk_size_bytes` | windows.core |
+| diskUsedRatio | `windows_logical_disk_free_bytes`<br>`windows_logical_disk_size_bytes` | windows.core |
+| diskWriteBytes | `windows_logical_disk_write_bytes_total` | windows.core |
+| diskWriteIops | `windows_logical_disk_writes_total` | windows.core |
+| diskWriteLatency | `windows_logical_disk_write_latency_seconds_total`<br>`windows_logical_disk_writes_total` | windows.core |
+| exceptions | `windows_system_exception_dispatches_total` | windows.core |
+| memAvailable | `windows_memory_available_bytes` | windows.core |
+| memCache | `windows_memory_cache_bytes` | windows.core |
+| memCommitLimit | `windows_memory_commit_limit` | windows.core |
+| memCommitted | `windows_memory_committed_bytes` | windows.core |
+| memFree | `windows_memory_physical_free_bytes` | windows.core |
+| memPageFaults | `windows_memory_page_faults_total` | windows.core |
+| memPoolNonpaged | `windows_memory_pool_nonpaged_bytes` | windows.core |
+| memPoolPaged | `windows_memory_pool_paged_bytes` | windows.core |
+| memSwapOps | `windows_memory_swap_page_operations_total` | windows.core |
+| memTotal | `windows_memory_physical_total_bytes` | windows.core |
+| memUsed | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` | windows.core |
+| memUsedRatio | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` | windows.core |
+| netBandwidth | `windows_net_current_bandwidth_bytes` | windows.core |
+| netDiscards | `windows_net_packets_outbound_discarded_total`<br>`windows_net_packets_received_discarded_total` | windows.core |
+| netErrors | `windows_net_packets_outbound_errors_total`<br>`windows_net_packets_received_errors_total` | windows.core |
+| netPacketsRecv | `windows_net_packets_received_total` | windows.core |
+| netPacketsSent | `windows_net_packets_sent_total` | windows.core |
+| netQueue | `windows_net_output_queue_length_packets` | windows.core |
+| netRecv | `windows_net_bytes_received_total` | windows.core |
+| netSent | `windows_net_bytes_sent_total` | windows.core |
+| netUtil | `windows_net_bytes_total`<br>`windows_net_current_bandwidth_bytes` | windows.core |
+| ntpRoundTrip | `windows_time_ntp_round_trip_delay_seconds` | windows.core |
+| osInfo | `windows_os_info` | windows.core |
+| procQueue | `windows_system_processor_queue_length` | windows.core |
+| processes | `windows_system_processes` | windows.core |
 | scrapeDuration | `windows_exporter_scrape_duration_seconds` | windows.other |
-| serviceState | `windows_service_state` | windows.other, windows.service |
-| servicesRunning | `windows_service_state` | windows.other, windows.service |
-| servicesStopped | `windows_service_state` | windows.other, windows.service |
-| systemCalls | `windows_system_system_calls_total` | windows.core, windows.other |
+| serviceState | `windows_service_state` | windows.service |
+| servicesRunning | `windows_service_state` | windows.service |
+| servicesStopped | `windows_service_state` | windows.service |
+| systemCalls | `windows_system_system_calls_total` | windows.core |
 | tempBySensor | `ohm_`<br>`windows_thermalzone_temperature_celsius` | ohm.other, windows.other |
 | tempMax | `ohm_`<br>`windows_thermalzone_temperature_celsius` | ohm.other, windows.other |
-| threads | `windows_system_threads` | windows.core, windows.other |
-| timeOffset | `windows_time_computed_time_offset_seconds` | windows.core, windows.other |
-| uptime | `windows_system_boot_time_timestamp` | windows.core, windows.other |
+| threads | `windows_system_threads` | windows.core |
+| timeOffset | `windows_time_computed_time_offset_seconds` | windows.core |
+| uptime | `windows_system_boot_time_timestamp` | windows.core |
 

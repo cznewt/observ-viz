@@ -119,13 +119,16 @@ local packs = flat('', { x: libs }).x
             cols = set()
             mets = set()
             for t in tokens:
+                best, best_len = None, -1
                 for cname, c in reg.items():
-                    if cname in ("app.exporters",):
+                    if cname == "app.exporters":
                         continue
-                    for _, rx in c["patterns"]:
-                        if rx.match(t):
-                            cols.add(cname)
-                            mets.add(t)
+                    for pat, rx in c["patterns"]:
+                        if rx.match(t) and len(pat) > best_len:
+                            best, best_len = cname, len(pat)
+                if best:
+                    cols.add(best)
+                    mets.add(t)
             if mets:
                 rows.append((sname, sorted(mets), sorted(cols)))
         if rows:
