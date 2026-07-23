@@ -13,7 +13,7 @@
   // The gameedu-* exclusion hides stale minion-id-shaped instance series
   // (pre-2026-07-22 batocera alloy labels) that Mimir cannot delete — safe to
   // clear after retention ages them out (90d -> 2026-10-21).
-  baseSelector: 'instance!~"gameedu-.+|node"',
+  baseSelector: 'instance!~"gameedu-.+|node|kocourek-elektronika"',
   groupLabels: ['job'],
   instanceLabels: ['instance'],
 
