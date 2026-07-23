@@ -1,0 +1,846 @@
+# node_exporter
+
+- **source**: alloy prometheus.exporter.unix (standalone hosts) / prometheus-node-exporter DaemonSet (kube nodes)
+
+## cpu
+
+- **notes**: node_cpu_info needs the cpu info flag (alloy-resources enable_cpu_info, default on since 2026-07-22).
+- **patterns**: `node_cpu_seconds_total`, `node_cpu_info`, `node_cpu_scaling_frequency_.*`, `node_cpu_frequency_.*`, `node_schedstat_.*`
+- **consuming signals**: system.linux.cpuBusy, system.linux.cpuFreq, system.linux.cpuMode, system.linux.loadPerCpu, system.linux.schedWait
+
+### Live metrics (11)
+
+- `node_cpu_frequency_hertz`
+- `node_cpu_frequency_max_hertz`
+- `node_cpu_frequency_min_hertz`
+- `node_cpu_info`
+- `node_cpu_scaling_frequency_hertz`
+- `node_cpu_scaling_frequency_max_hertz`
+- `node_cpu_scaling_frequency_min_hertz`
+- `node_cpu_seconds_total`
+- `node_schedstat_running_seconds_total`
+- `node_schedstat_timeslices_total`
+- `node_schedstat_waiting_seconds_total`
+
+## diskstats
+
+- **patterns**: `node_disk_.*`
+- **consuming signals**: system.linux.diskIo, system.linux.diskIoLatency, system.linux.diskReadBps, system.linux.diskReadIops, system.linux.diskWriteBps, system.linux.diskWriteIops
+
+### Live metrics (23)
+
+- `node_disk_ata_rotation_rate_rpm`
+- `node_disk_ata_write_cache`
+- `node_disk_ata_write_cache_enabled`
+- `node_disk_device_mapper_info`
+- `node_disk_discard_time_seconds_total`
+- `node_disk_discarded_sectors_total`
+- `node_disk_discards_completed_total`
+- `node_disk_discards_merged_total`
+- `node_disk_filesystem_info`
+- `node_disk_flush_requests_time_seconds_total`
+- `node_disk_flush_requests_total`
+- `node_disk_info`
+- `node_disk_io_now`
+- `node_disk_io_time_seconds_total`
+- `node_disk_io_time_weighted_seconds_total`
+- `node_disk_read_bytes_total`
+- `node_disk_read_time_seconds_total`
+- `node_disk_reads_completed_total`
+- `node_disk_reads_merged_total`
+- `node_disk_write_time_seconds_total`
+- `node_disk_writes_completed_total`
+- `node_disk_writes_merged_total`
+- `node_disk_written_bytes_total`
+
+## filesystem
+
+- **patterns**: `node_filesystem_.*`
+- **consuming signals**: system.linux.fsAvail, system.linux.fsSize, system.linux.fsUsed, system.linux.inodesUsed
+
+### Live metrics (9)
+
+- `node_filesystem_avail_bytes`
+- `node_filesystem_device_error`
+- `node_filesystem_files`
+- `node_filesystem_files_free`
+- `node_filesystem_free_bytes`
+- `node_filesystem_mount_info`
+- `node_filesystem_purgeable_bytes`
+- `node_filesystem_readonly`
+- `node_filesystem_size_bytes`
+
+## hwmon
+
+- **notes**: CPU package temps: coretemp / AMD SMN pci0000:00_0000:00:18_3; nvme drive temps.
+- **patterns**: `node_hwmon_.*`
+- **consuming signals**: system.linux.batoceraTemp, system.linux.tempCelsius
+
+### Live metrics (48)
+
+- `node_hwmon_chip_names`
+- `node_hwmon_curr_amps`
+- `node_hwmon_curr_average_amps`
+- `node_hwmon_curr_max_amps`
+- `node_hwmon_fan_max_rpm`
+- `node_hwmon_fan_min_rpm`
+- `node_hwmon_fan_rpm`
+- `node_hwmon_fan_target_rpm`
+- `node_hwmon_in_average_volts`
+- `node_hwmon_in_max_volts`
+- `node_hwmon_in_min_volts`
+- `node_hwmon_in_volts`
+- `node_hwmon_power_cap_default_watt`
+- `node_hwmon_power_cap_max_watt`
+- `node_hwmon_power_cap_min_watt`
+- `node_hwmon_power_cap_watt`
+- `node_hwmon_power_watt`
+- `node_hwmon_pwm`
+- `node_hwmon_pwm_auto_point1_pwm`
+- `node_hwmon_pwm_auto_point1_temp`
+- `node_hwmon_pwm_auto_point2_pwm`
+- `node_hwmon_pwm_auto_point2_temp`
+- `node_hwmon_pwm_auto_point3_pwm`
+- `node_hwmon_pwm_auto_point3_temp`
+- `node_hwmon_pwm_auto_point4_pwm`
+- `node_hwmon_pwm_auto_point4_temp`
+- `node_hwmon_pwm_auto_point5_pwm`
+- `node_hwmon_pwm_auto_point5_temp`
+- `node_hwmon_pwm_enable`
+- `node_hwmon_pwm_max`
+- `node_hwmon_pwm_min`
+- `node_hwmon_sensor_label`
+- `node_hwmon_temp_alarm`
+- `node_hwmon_temp_auto_point1_pwm_celsius`
+- `node_hwmon_temp_auto_point1_temp_celsius`
+- `node_hwmon_temp_auto_point1_temp_hyst_celsius`
+- `node_hwmon_temp_celsius`
+- `node_hwmon_temp_crit_alarm_celsius`
+- `node_hwmon_temp_crit_celsius`
+- `node_hwmon_temp_crit_hyst_celsius`
+- `node_hwmon_temp_emergency_celsius`
+- `node_hwmon_temp_emergency_hyst_celsius`
+- `node_hwmon_temp_max_alarm_celsius`
+- `node_hwmon_temp_max_celsius`
+- `node_hwmon_temp_max_hyst_celsius`
+- `node_hwmon_temp_min_alarm_celsius`
+- `node_hwmon_temp_min_celsius`
+- `node_hwmon_update_interval_seconds`
+
+## loadavg
+
+- **patterns**: `node_load1`, `node_load5`, `node_load15`
+- **consuming signals**: system.linux.load1, system.linux.load15, system.linux.load5, system.linux.loadPerCpu
+
+### Live metrics (3)
+
+- `node_load1`
+- `node_load15`
+- `node_load5`
+
+## meminfo
+
+- **patterns**: `node_memory_.*`
+- **consuming signals**: system.linux.memAvailable, system.linux.memBuffers, system.linux.memCached, system.linux.memFree, system.linux.memUsed, system.linux.memUsedRatio, system.linux.swapUsed
+
+### Live metrics (59)
+
+- `node_memory_Active_anon_bytes`
+- `node_memory_Active_bytes`
+- `node_memory_Active_file_bytes`
+- `node_memory_AnonHugePages_bytes`
+- `node_memory_AnonPages_bytes`
+- `node_memory_Balloon_bytes`
+- `node_memory_Bounce_bytes`
+- `node_memory_Buffers_bytes`
+- `node_memory_Cached_bytes`
+- `node_memory_CmaFree_bytes`
+- `node_memory_CmaTotal_bytes`
+- `node_memory_CommitLimit_bytes`
+- `node_memory_Committed_AS_bytes`
+- `node_memory_DirectMap1G_bytes`
+- `node_memory_DirectMap2M_bytes`
+- `node_memory_DirectMap4k_bytes`
+- `node_memory_Dirty_bytes`
+- `node_memory_FileHugePages_bytes`
+- `node_memory_FilePmdMapped_bytes`
+- `node_memory_HardwareCorrupted_bytes`
+- `node_memory_HugePages_Free`
+- `node_memory_HugePages_Rsvd`
+- `node_memory_HugePages_Surp`
+- `node_memory_HugePages_Total`
+- `node_memory_Hugepagesize_bytes`
+- `node_memory_Hugetlb_bytes`
+- `node_memory_Inactive_anon_bytes`
+- `node_memory_Inactive_bytes`
+- `node_memory_Inactive_file_bytes`
+- `node_memory_KReclaimable_bytes`
+- `node_memory_KernelStack_bytes`
+- `node_memory_Mapped_bytes`
+- `node_memory_MemAvailable_bytes`
+- `node_memory_MemFree_bytes`
+- `node_memory_MemTotal_bytes`
+- `node_memory_Mlocked_bytes`
+- `node_memory_NFS_Unstable_bytes`
+- `node_memory_PageTables_bytes`
+- `node_memory_Percpu_bytes`
+- `node_memory_SReclaimable_bytes`
+- `node_memory_SUnreclaim_bytes`
+- `node_memory_SecPageTables_bytes`
+- `node_memory_ShmemHugePages_bytes`
+- `node_memory_ShmemPmdMapped_bytes`
+- `node_memory_Shmem_bytes`
+- `node_memory_Slab_bytes`
+- `node_memory_SwapCached_bytes`
+- `node_memory_SwapFree_bytes`
+- `node_memory_SwapTotal_bytes`
+- `node_memory_Unaccepted_bytes`
+- `node_memory_Unevictable_bytes`
+- `node_memory_VmallocChunk_bytes`
+- `node_memory_VmallocTotal_bytes`
+- `node_memory_VmallocUsed_bytes`
+- `node_memory_WritebackTmp_bytes`
+- `node_memory_Writeback_bytes`
+- `node_memory_Zswap_bytes`
+- `node_memory_Zswapped_bytes`
+- `node_memory_working_set_bytes`
+
+## netdev
+
+- **notes**: veth/cali interfaces excluded at collection.
+- **patterns**: `node_network_.*`
+- **consuming signals**: system.linux.netRx, system.linux.netRxDrop, system.linux.netRxErrs, system.linux.netRxExclLo, system.linux.netTx, system.linux.netTxDrop, system.linux.netTxErrs, system.linux.netTxExclLo
+
+### Live metrics (36)
+
+- `node_network_address_assign_type`
+- `node_network_carrier`
+- `node_network_carrier_changes_total`
+- `node_network_carrier_down_changes_total`
+- `node_network_carrier_up_changes_total`
+- `node_network_device_id`
+- `node_network_dormant`
+- `node_network_flags`
+- `node_network_iface_id`
+- `node_network_iface_link`
+- `node_network_iface_link_mode`
+- `node_network_info`
+- `node_network_mtu_bytes`
+- `node_network_name_assign_type`
+- `node_network_net_dev_group`
+- `node_network_protocol_type`
+- `node_network_receive_bytes_total`
+- `node_network_receive_compressed_total`
+- `node_network_receive_drop_total`
+- `node_network_receive_errs_total`
+- `node_network_receive_fifo_total`
+- `node_network_receive_frame_total`
+- `node_network_receive_multicast_total`
+- `node_network_receive_nohandler_total`
+- `node_network_receive_packets_total`
+- `node_network_speed_bytes`
+- `node_network_transmit_bytes_total`
+- `node_network_transmit_carrier_total`
+- `node_network_transmit_colls_total`
+- `node_network_transmit_compressed_total`
+- `node_network_transmit_drop_total`
+- `node_network_transmit_errs_total`
+- `node_network_transmit_fifo_total`
+- `node_network_transmit_packets_total`
+- `node_network_transmit_queue_length`
+- `node_network_up`
+
+## os-uname-dmi
+
+- **notes**: Device identity: system_vendor + product_version|product_name (firmware garbage fallback).
+- **patterns**: `node_os_info`, `node_uname_info`, `node_dmi_info`, `node_boot_time_seconds`
+- **consuming signals**: system.linux.batoceraOs, system.linux.batoceraTemp, system.linux.uptime
+
+### Live metrics (4)
+
+- `node_boot_time_seconds`
+- `node_dmi_info`
+- `node_os_info`
+- `node_uname_info`
+
+## other
+
+- **notes**: unclassified node_exporter families (catch-all).
+- **patterns**: `node_.*`
+- **consuming signals**: system.linux.raplPower, system.linux.socketsMem, system.linux.socketsTcp, system.linux.softnetDropped, system.linux.softnetSqueezed, system.linux.tcpActiveOpens, system.linux.tcpEstablished, system.linux.tcpInErrs, system.linux.tcpRetrans, system.linux.thermalZone, system.linux.udpQueues
+
+### Live metrics (140)
+
+- `node_arp_entries`
+- `node_authorizer_graph_actions_duration_seconds_bucket`
+- `node_authorizer_graph_actions_duration_seconds_count`
+- `node_authorizer_graph_actions_duration_seconds_sum`
+- `node_cooling_device_cur_state`
+- `node_cooling_device_max_state`
+- `node_cpu_core_throttles_total`
+- `node_cpu_guest_seconds_total`
+- `node_cpu_package_throttles_total`
+- `node_cpu_scaling_governor`
+- `node_cpu_usage_seconds_total`
+- `node_exporter_build_info`
+- `node_forks_total`
+- `node_netstat_Icmp6_InErrors`
+- `node_netstat_Icmp6_InMsgs`
+- `node_netstat_Icmp6_OutMsgs`
+- `node_netstat_Icmp_InErrors`
+- `node_netstat_Icmp_InMsgs`
+- `node_netstat_Icmp_OutMsgs`
+- `node_netstat_Ip6_InOctets`
+- `node_netstat_Ip6_OutOctets`
+- `node_netstat_IpExt_InOctets`
+- `node_netstat_IpExt_OutOctets`
+- `node_netstat_Ip_Forwarding`
+- `node_netstat_TcpExt_ListenDrops`
+- `node_netstat_TcpExt_ListenOverflows`
+- `node_netstat_TcpExt_SyncookiesFailed`
+- `node_netstat_TcpExt_SyncookiesRecv`
+- `node_netstat_TcpExt_SyncookiesSent`
+- `node_netstat_TcpExt_TCPOFOQueue`
+- `node_netstat_TcpExt_TCPRcvQDrop`
+- `node_netstat_TcpExt_TCPSynRetrans`
+- `node_netstat_TcpExt_TCPTimeouts`
+- `node_netstat_Tcp_ActiveOpens`
+- `node_netstat_Tcp_CurrEstab`
+- `node_netstat_Tcp_InErrs`
+- `node_netstat_Tcp_InSegs`
+- `node_netstat_Tcp_OutRsts`
+- `node_netstat_Tcp_OutSegs`
+- `node_netstat_Tcp_PassiveOpens`
+- `node_netstat_Tcp_RetransSegs`
+- `node_netstat_Udp6_InDatagrams`
+- `node_netstat_Udp6_InErrors`
+- `node_netstat_Udp6_NoPorts`
+- `node_netstat_Udp6_OutDatagrams`
+- `node_netstat_Udp6_RcvbufErrors`
+- `node_netstat_Udp6_SndbufErrors`
+- `node_netstat_UdpLite6_InErrors`
+- `node_netstat_UdpLite_InErrors`
+- `node_netstat_Udp_InDatagrams`
+- `node_netstat_Udp_InErrors`
+- `node_netstat_Udp_NoPorts`
+- `node_netstat_Udp_OutDatagrams`
+- `node_netstat_Udp_RcvbufErrors`
+- `node_netstat_Udp_SndbufErrors`
+- `node_nvme_info`
+- `node_os_version`
+- `node_processes_max_processes`
+- `node_processes_max_threads`
+- `node_processes_pids`
+- `node_processes_state`
+- `node_processes_threads`
+- `node_processes_threads_state`
+- `node_rapl_core_joules_total`
+- `node_rapl_package_joules_total`
+- `node_rapl_psys_joules_total`
+- `node_rapl_uncore_joules_total`
+- `node_scrape_collector_duration_seconds`
+- `node_scrape_collector_success`
+- `node_selinux_enabled`
+- `node_sockstat_FRAG6_inuse`
+- `node_sockstat_FRAG6_memory`
+- `node_sockstat_FRAG_inuse`
+- `node_sockstat_FRAG_memory`
+- `node_sockstat_RAW6_inuse`
+- `node_sockstat_RAW_inuse`
+- `node_sockstat_TCP6_inuse`
+- `node_sockstat_TCP_alloc`
+- `node_sockstat_TCP_inuse`
+- `node_sockstat_TCP_mem`
+- `node_sockstat_TCP_mem_bytes`
+- `node_sockstat_TCP_orphan`
+- `node_sockstat_TCP_tw`
+- `node_sockstat_UDP6_inuse`
+- `node_sockstat_UDPLITE6_inuse`
+- `node_sockstat_UDPLITE_inuse`
+- `node_sockstat_UDP_inuse`
+- `node_sockstat_UDP_mem`
+- `node_sockstat_UDP_mem_bytes`
+- `node_sockstat_sockets_used`
+- `node_softnet_backlog_len`
+- `node_softnet_cpu_collision_total`
+- `node_softnet_dropped_total`
+- `node_softnet_flow_limit_count_total`
+- `node_softnet_processed_total`
+- `node_softnet_received_rps_total`
+- `node_softnet_times_squeezed_total`
+- `node_textfile_mtime_seconds`
+- `node_textfile_scrape_error`
+- `node_thermal_zone_temp`
+- `node_udp_queues`
+- `node_xfs_allocation_btree_compares_total`
+- `node_xfs_allocation_btree_lookups_total`
+- `node_xfs_allocation_btree_records_deleted_total`
+- `node_xfs_allocation_btree_records_inserted_total`
+- `node_xfs_block_map_btree_compares_total`
+- `node_xfs_block_map_btree_lookups_total`
+- `node_xfs_block_map_btree_records_deleted_total`
+- `node_xfs_block_map_btree_records_inserted_total`
+- `node_xfs_block_mapping_extent_list_compares_total`
+- `node_xfs_block_mapping_extent_list_deletions_total`
+- `node_xfs_block_mapping_extent_list_insertions_total`
+- `node_xfs_block_mapping_extent_list_lookups_total`
+- `node_xfs_block_mapping_reads_total`
+- `node_xfs_block_mapping_unmaps_total`
+- `node_xfs_block_mapping_writes_total`
+- `node_xfs_directory_operation_create_total`
+- `node_xfs_directory_operation_getdents_total`
+- `node_xfs_directory_operation_lookup_total`
+- `node_xfs_directory_operation_remove_total`
+- `node_xfs_extent_allocation_blocks_allocated_total`
+- `node_xfs_extent_allocation_blocks_freed_total`
+- `node_xfs_extent_allocation_extents_allocated_total`
+- `node_xfs_extent_allocation_extents_freed_total`
+- `node_xfs_inode_operation_attempts_total`
+- `node_xfs_inode_operation_attribute_changes_total`
+- `node_xfs_inode_operation_duplicates_total`
+- `node_xfs_inode_operation_found_total`
+- `node_xfs_inode_operation_missed_total`
+- `node_xfs_inode_operation_reclaims_total`
+- `node_xfs_inode_operation_recycled_total`
+- `node_xfs_read_calls_total`
+- `node_xfs_vnode_active_total`
+- `node_xfs_vnode_allocate_total`
+- `node_xfs_vnode_get_total`
+- `node_xfs_vnode_hold_total`
+- `node_xfs_vnode_reclaim_total`
+- `node_xfs_vnode_release_total`
+- `node_xfs_vnode_remove_total`
+- `node_xfs_write_calls_total`
+
+## pressure-vmstat-misc
+
+- **patterns**: `node_pressure_.*`, `node_vmstat_.*`, `node_procs_.*`, `node_context_switches_total`, `node_intr_total`, `node_entropy_.*`, `node_filefd_.*`, `node_nf_conntrack_.*`, `node_time.*`, `node_power_supply_.*`, `node_nfs.*`, `node_zfs_.*`
+- **consuming signals**: system.linux.batteryCapacity, system.linux.batteryOnline, system.linux.batteryPower, system.linux.batteryVoltage, system.linux.conntrackMax, system.linux.conntrackUsed, system.linux.contextSwitches, system.linux.entropy, system.linux.fdMax, system.linux.fdUsed, system.linux.nfsRetransmissions, system.linux.nfsRpcs, system.linux.pgFaults, system.linux.pgMajFaults, system.linux.procsBlocked, system.linux.procsRunning, system.linux.psiCpu, system.linux.psiIo, system.linux.psiIoFull, system.linux.psiMem, system.linux.psiMemFull, system.linux.swapIn, system.linux.swapIoPages, system.linux.swapOut, system.linux.zfsArcCMax, system.linux.zfsArcHitRatio, system.linux.zfsArcHits, system.linux.zfsArcMisses, system.linux.zfsArcSize
+
+### Live metrics (386)
+
+- `node_context_switches_total`
+- `node_entropy_available_bits`
+- `node_entropy_pool_size_bits`
+- `node_filefd_allocated`
+- `node_filefd_maximum`
+- `node_intr_total`
+- `node_nf_conntrack_entries`
+- `node_nf_conntrack_entries_limit`
+- `node_nf_conntrack_stat_drop`
+- `node_nf_conntrack_stat_early_drop`
+- `node_nf_conntrack_stat_found`
+- `node_nf_conntrack_stat_ignore`
+- `node_nf_conntrack_stat_insert`
+- `node_nf_conntrack_stat_insert_failed`
+- `node_nf_conntrack_stat_invalid`
+- `node_nf_conntrack_stat_search_restart`
+- `node_nfs_connections_total`
+- `node_nfs_packets_total`
+- `node_nfs_requests_total`
+- `node_nfs_rpc_authentication_refreshes_total`
+- `node_nfs_rpc_retransmissions_total`
+- `node_nfs_rpcs_total`
+- `node_nfsd_connections_total`
+- `node_nfsd_disk_bytes_read_total`
+- `node_nfsd_disk_bytes_written_total`
+- `node_nfsd_file_handles_stale_total`
+- `node_nfsd_packets_total`
+- `node_nfsd_read_ahead_cache_not_found_total`
+- `node_nfsd_read_ahead_cache_size_blocks`
+- `node_nfsd_reply_cache_hits_total`
+- `node_nfsd_reply_cache_misses_total`
+- `node_nfsd_reply_cache_nocache_total`
+- `node_nfsd_requests_total`
+- `node_nfsd_rpc_errors_total`
+- `node_nfsd_server_rpcs_total`
+- `node_nfsd_server_threads`
+- `node_power_supply_capacity`
+- `node_power_supply_charge_ampere`
+- `node_power_supply_charge_empty_design`
+- `node_power_supply_charge_full`
+- `node_power_supply_charge_full_design`
+- `node_power_supply_charge_term_current`
+- `node_power_supply_constant_charge_current_max`
+- `node_power_supply_constant_charge_voltage_max`
+- `node_power_supply_current_ampere`
+- `node_power_supply_current_max`
+- `node_power_supply_cyclecount`
+- `node_power_supply_energy_full`
+- `node_power_supply_energy_full_design`
+- `node_power_supply_energy_watthour`
+- `node_power_supply_info`
+- `node_power_supply_online`
+- `node_power_supply_power_watt`
+- `node_power_supply_present`
+- `node_power_supply_temp_alert_max_celsius`
+- `node_power_supply_temp_alert_min_celsius`
+- `node_power_supply_temp_celsius`
+- `node_power_supply_temp_max_celsius`
+- `node_power_supply_temp_min_celsius`
+- `node_power_supply_voltage_max`
+- `node_power_supply_voltage_max_design`
+- `node_power_supply_voltage_min`
+- `node_power_supply_voltage_min_design`
+- `node_power_supply_voltage_volt`
+- `node_pressure_cpu_waiting_seconds_total`
+- `node_pressure_io_stalled_seconds_total`
+- `node_pressure_io_waiting_seconds_total`
+- `node_pressure_memory_stalled_seconds_total`
+- `node_pressure_memory_waiting_seconds_total`
+- `node_procs_blocked`
+- `node_procs_running`
+- `node_time_clocksource_available_info`
+- `node_time_clocksource_current_info`
+- `node_time_seconds`
+- `node_time_zone_offset_seconds`
+- `node_timex_estimated_error_seconds`
+- `node_timex_frequency_adjustment_ratio`
+- `node_timex_loop_time_constant`
+- `node_timex_maxerror_seconds`
+- `node_timex_offset_seconds`
+- `node_timex_pps_calibration_total`
+- `node_timex_pps_error_total`
+- `node_timex_pps_frequency_hertz`
+- `node_timex_pps_jitter_seconds`
+- `node_timex_pps_jitter_total`
+- `node_timex_pps_shift_seconds`
+- `node_timex_pps_stability_exceeded_total`
+- `node_timex_pps_stability_hertz`
+- `node_timex_status`
+- `node_timex_sync_status`
+- `node_timex_tai_offset_seconds`
+- `node_timex_tick_seconds`
+- `node_vmstat_oom_kill`
+- `node_vmstat_pgfault`
+- `node_vmstat_pgmajfault`
+- `node_vmstat_pgpgin`
+- `node_vmstat_pgpgout`
+- `node_vmstat_pswpin`
+- `node_vmstat_pswpout`
+- `node_zfs_abd_linear_cnt`
+- `node_zfs_abd_linear_data_size`
+- `node_zfs_abd_scatter_chunk_waste`
+- `node_zfs_abd_scatter_cnt`
+- `node_zfs_abd_scatter_data_size`
+- `node_zfs_abd_scatter_order_0`
+- `node_zfs_abd_scatter_order_1`
+- `node_zfs_abd_scatter_order_2`
+- `node_zfs_abd_scatter_order_3`
+- `node_zfs_abd_scatter_order_4`
+- `node_zfs_abd_scatter_order_5`
+- `node_zfs_abd_scatter_order_6`
+- `node_zfs_abd_scatter_order_7`
+- `node_zfs_abd_scatter_order_8`
+- `node_zfs_abd_scatter_order_9`
+- `node_zfs_abd_scatter_page_alloc_retry`
+- `node_zfs_abd_scatter_page_multi_chunk`
+- `node_zfs_abd_scatter_page_multi_zone`
+- `node_zfs_abd_scatter_sg_table_retry`
+- `node_zfs_abd_struct_size`
+- `node_zfs_arc_abd_chunk_waste_size`
+- `node_zfs_arc_access_skip`
+- `node_zfs_arc_anon_data`
+- `node_zfs_arc_anon_evictable_data`
+- `node_zfs_arc_anon_evictable_metadata`
+- `node_zfs_arc_anon_metadata`
+- `node_zfs_arc_anon_size`
+- `node_zfs_arc_arc_dnode_limit`
+- `node_zfs_arc_arc_loaned_bytes`
+- `node_zfs_arc_arc_meta_used`
+- `node_zfs_arc_arc_need_free`
+- `node_zfs_arc_arc_no_grow`
+- `node_zfs_arc_arc_prune`
+- `node_zfs_arc_arc_raw_size`
+- `node_zfs_arc_arc_sys_free`
+- `node_zfs_arc_arc_tempreserve`
+- `node_zfs_arc_async_upgrade_sync`
+- `node_zfs_arc_bonus_size`
+- `node_zfs_arc_c`
+- `node_zfs_arc_c_max`
+- `node_zfs_arc_c_min`
+- `node_zfs_arc_cached_only_in_progress`
+- `node_zfs_arc_compressed_size`
+- `node_zfs_arc_data_size`
+- `node_zfs_arc_dbuf_size`
+- `node_zfs_arc_deleted`
+- `node_zfs_arc_demand_data_hits`
+- `node_zfs_arc_demand_data_iohits`
+- `node_zfs_arc_demand_data_misses`
+- `node_zfs_arc_demand_hit_predictive_prefetch`
+- `node_zfs_arc_demand_hit_prescient_prefetch`
+- `node_zfs_arc_demand_iohit_predictive_prefetch`
+- `node_zfs_arc_demand_iohit_prescient_prefetch`
+- `node_zfs_arc_demand_metadata_hits`
+- `node_zfs_arc_demand_metadata_iohits`
+- `node_zfs_arc_demand_metadata_misses`
+- `node_zfs_arc_dnode_size`
+- `node_zfs_arc_evict_l2_cached`
+- `node_zfs_arc_evict_l2_eligible`
+- `node_zfs_arc_evict_l2_eligible_mfu`
+- `node_zfs_arc_evict_l2_eligible_mru`
+- `node_zfs_arc_evict_l2_ineligible`
+- `node_zfs_arc_evict_l2_skip`
+- `node_zfs_arc_evict_not_enough`
+- `node_zfs_arc_evict_skip`
+- `node_zfs_arc_hash_chain_max`
+- `node_zfs_arc_hash_chains`
+- `node_zfs_arc_hash_collisions`
+- `node_zfs_arc_hash_elements`
+- `node_zfs_arc_hash_elements_max`
+- `node_zfs_arc_hdr_size`
+- `node_zfs_arc_hits`
+- `node_zfs_arc_iohits`
+- `node_zfs_arc_l2_abort_lowmem`
+- `node_zfs_arc_l2_asize`
+- `node_zfs_arc_l2_bufc_data_asize`
+- `node_zfs_arc_l2_bufc_metadata_asize`
+- `node_zfs_arc_l2_cksum_bad`
+- `node_zfs_arc_l2_data_to_meta_ratio`
+- `node_zfs_arc_l2_evict_l1cached`
+- `node_zfs_arc_l2_evict_lock_retry`
+- `node_zfs_arc_l2_evict_reading`
+- `node_zfs_arc_l2_feeds`
+- `node_zfs_arc_l2_free_on_write`
+- `node_zfs_arc_l2_hdr_size`
+- `node_zfs_arc_l2_hits`
+- `node_zfs_arc_l2_io_error`
+- `node_zfs_arc_l2_log_blk_asize`
+- `node_zfs_arc_l2_log_blk_avg_asize`
+- `node_zfs_arc_l2_log_blk_count`
+- `node_zfs_arc_l2_log_blk_writes`
+- `node_zfs_arc_l2_mfu_asize`
+- `node_zfs_arc_l2_misses`
+- `node_zfs_arc_l2_mru_asize`
+- `node_zfs_arc_l2_prefetch_asize`
+- `node_zfs_arc_l2_read_bytes`
+- `node_zfs_arc_l2_rebuild_asize`
+- `node_zfs_arc_l2_rebuild_bufs`
+- `node_zfs_arc_l2_rebuild_bufs_precached`
+- `node_zfs_arc_l2_rebuild_cksum_lb_errors`
+- `node_zfs_arc_l2_rebuild_dh_errors`
+- `node_zfs_arc_l2_rebuild_io_errors`
+- `node_zfs_arc_l2_rebuild_log_blks`
+- `node_zfs_arc_l2_rebuild_lowmem`
+- `node_zfs_arc_l2_rebuild_size`
+- `node_zfs_arc_l2_rebuild_success`
+- `node_zfs_arc_l2_rebuild_unsupported`
+- `node_zfs_arc_l2_rw_clash`
+- `node_zfs_arc_l2_size`
+- `node_zfs_arc_l2_write_bytes`
+- `node_zfs_arc_l2_writes_done`
+- `node_zfs_arc_l2_writes_error`
+- `node_zfs_arc_l2_writes_lock_retry`
+- `node_zfs_arc_l2_writes_sent`
+- `node_zfs_arc_memory_all_bytes`
+- `node_zfs_arc_memory_available_bytes`
+- `node_zfs_arc_memory_direct_count`
+- `node_zfs_arc_memory_free_bytes`
+- `node_zfs_arc_memory_indirect_count`
+- `node_zfs_arc_memory_throttle_count`
+- `node_zfs_arc_meta`
+- `node_zfs_arc_metadata_size`
+- `node_zfs_arc_mfu_data`
+- `node_zfs_arc_mfu_evictable_data`
+- `node_zfs_arc_mfu_evictable_metadata`
+- `node_zfs_arc_mfu_ghost_data`
+- `node_zfs_arc_mfu_ghost_evictable_data`
+- `node_zfs_arc_mfu_ghost_evictable_metadata`
+- `node_zfs_arc_mfu_ghost_hits`
+- `node_zfs_arc_mfu_ghost_metadata`
+- `node_zfs_arc_mfu_ghost_size`
+- `node_zfs_arc_mfu_hits`
+- `node_zfs_arc_mfu_metadata`
+- `node_zfs_arc_mfu_size`
+- `node_zfs_arc_misses`
+- `node_zfs_arc_mru_data`
+- `node_zfs_arc_mru_evictable_data`
+- `node_zfs_arc_mru_evictable_metadata`
+- `node_zfs_arc_mru_ghost_data`
+- `node_zfs_arc_mru_ghost_evictable_data`
+- `node_zfs_arc_mru_ghost_evictable_metadata`
+- `node_zfs_arc_mru_ghost_hits`
+- `node_zfs_arc_mru_ghost_metadata`
+- `node_zfs_arc_mru_ghost_size`
+- `node_zfs_arc_mru_hits`
+- `node_zfs_arc_mru_metadata`
+- `node_zfs_arc_mru_size`
+- `node_zfs_arc_mutex_miss`
+- `node_zfs_arc_overhead_size`
+- `node_zfs_arc_pd`
+- `node_zfs_arc_pm`
+- `node_zfs_arc_predictive_prefetch`
+- `node_zfs_arc_prefetch_data_hits`
+- `node_zfs_arc_prefetch_data_iohits`
+- `node_zfs_arc_prefetch_data_misses`
+- `node_zfs_arc_prefetch_metadata_hits`
+- `node_zfs_arc_prefetch_metadata_iohits`
+- `node_zfs_arc_prefetch_metadata_misses`
+- `node_zfs_arc_prescient_prefetch`
+- `node_zfs_arc_size`
+- `node_zfs_arc_uncached_data`
+- `node_zfs_arc_uncached_evictable_data`
+- `node_zfs_arc_uncached_evictable_metadata`
+- `node_zfs_arc_uncached_hits`
+- `node_zfs_arc_uncached_metadata`
+- `node_zfs_arc_uncached_size`
+- `node_zfs_arc_uncompressed_size`
+- `node_zfs_dbuf_cache_count`
+- `node_zfs_dbuf_cache_hiwater_bytes`
+- `node_zfs_dbuf_cache_level_0`
+- `node_zfs_dbuf_cache_level_0_bytes`
+- `node_zfs_dbuf_cache_level_1`
+- `node_zfs_dbuf_cache_level_10`
+- `node_zfs_dbuf_cache_level_10_bytes`
+- `node_zfs_dbuf_cache_level_11`
+- `node_zfs_dbuf_cache_level_11_bytes`
+- `node_zfs_dbuf_cache_level_1_bytes`
+- `node_zfs_dbuf_cache_level_2`
+- `node_zfs_dbuf_cache_level_2_bytes`
+- `node_zfs_dbuf_cache_level_3`
+- `node_zfs_dbuf_cache_level_3_bytes`
+- `node_zfs_dbuf_cache_level_4`
+- `node_zfs_dbuf_cache_level_4_bytes`
+- `node_zfs_dbuf_cache_level_5`
+- `node_zfs_dbuf_cache_level_5_bytes`
+- `node_zfs_dbuf_cache_level_6`
+- `node_zfs_dbuf_cache_level_6_bytes`
+- `node_zfs_dbuf_cache_level_7`
+- `node_zfs_dbuf_cache_level_7_bytes`
+- `node_zfs_dbuf_cache_level_8`
+- `node_zfs_dbuf_cache_level_8_bytes`
+- `node_zfs_dbuf_cache_level_9`
+- `node_zfs_dbuf_cache_level_9_bytes`
+- `node_zfs_dbuf_cache_lowater_bytes`
+- `node_zfs_dbuf_cache_size_bytes`
+- `node_zfs_dbuf_cache_size_bytes_max`
+- `node_zfs_dbuf_cache_target_bytes`
+- `node_zfs_dbuf_cache_total_evicts`
+- `node_zfs_dbuf_hash_chain_max`
+- `node_zfs_dbuf_hash_chains`
+- `node_zfs_dbuf_hash_collisions`
+- `node_zfs_dbuf_hash_elements`
+- `node_zfs_dbuf_hash_elements_max`
+- `node_zfs_dbuf_hash_hits`
+- `node_zfs_dbuf_hash_insert_race`
+- `node_zfs_dbuf_hash_misses`
+- `node_zfs_dbuf_hash_mutex_count`
+- `node_zfs_dbuf_hash_table_count`
+- `node_zfs_dbuf_metadata_cache_count`
+- `node_zfs_dbuf_metadata_cache_overflow`
+- `node_zfs_dbuf_metadata_cache_size_bytes`
+- `node_zfs_dbuf_metadata_cache_size_bytes_max`
+- `node_zfs_dmu_tx_dmu_tx_assigned`
+- `node_zfs_dmu_tx_dmu_tx_delay`
+- `node_zfs_dmu_tx_dmu_tx_dirty_delay`
+- `node_zfs_dmu_tx_dmu_tx_dirty_frees_delay`
+- `node_zfs_dmu_tx_dmu_tx_dirty_over_max`
+- `node_zfs_dmu_tx_dmu_tx_dirty_throttle`
+- `node_zfs_dmu_tx_dmu_tx_error`
+- `node_zfs_dmu_tx_dmu_tx_group`
+- `node_zfs_dmu_tx_dmu_tx_memory_reclaim`
+- `node_zfs_dmu_tx_dmu_tx_memory_reserve`
+- `node_zfs_dmu_tx_dmu_tx_quota`
+- `node_zfs_dmu_tx_dmu_tx_suspended`
+- `node_zfs_dmu_tx_dmu_tx_wrlog_delay`
+- `node_zfs_dnode_dnode_alloc_next_block`
+- `node_zfs_dnode_dnode_alloc_next_chunk`
+- `node_zfs_dnode_dnode_alloc_race`
+- `node_zfs_dnode_dnode_allocate`
+- `node_zfs_dnode_dnode_buf_evict`
+- `node_zfs_dnode_dnode_free_interior_lock_retry`
+- `node_zfs_dnode_dnode_hold_alloc_hits`
+- `node_zfs_dnode_dnode_hold_alloc_interior`
+- `node_zfs_dnode_dnode_hold_alloc_lock_misses`
+- `node_zfs_dnode_dnode_hold_alloc_lock_retry`
+- `node_zfs_dnode_dnode_hold_alloc_misses`
+- `node_zfs_dnode_dnode_hold_alloc_type_none`
+- `node_zfs_dnode_dnode_hold_dbuf_hold`
+- `node_zfs_dnode_dnode_hold_dbuf_read`
+- `node_zfs_dnode_dnode_hold_free_hits`
+- `node_zfs_dnode_dnode_hold_free_lock_misses`
+- `node_zfs_dnode_dnode_hold_free_lock_retry`
+- `node_zfs_dnode_dnode_hold_free_misses`
+- `node_zfs_dnode_dnode_hold_free_overflow`
+- `node_zfs_dnode_dnode_hold_free_refcount`
+- `node_zfs_dnode_dnode_move_active`
+- `node_zfs_dnode_dnode_move_handle`
+- `node_zfs_dnode_dnode_move_invalid`
+- `node_zfs_dnode_dnode_move_recheck1`
+- `node_zfs_dnode_dnode_move_recheck2`
+- `node_zfs_dnode_dnode_move_rwlock`
+- `node_zfs_dnode_dnode_move_special`
+- `node_zfs_dnode_dnode_reallocate`
+- `node_zfs_fm_erpt_dropped`
+- `node_zfs_fm_erpt_duplicates`
+- `node_zfs_fm_erpt_set_failed`
+- `node_zfs_fm_fmri_set_failed`
+- `node_zfs_fm_payload_set_failed`
+- `node_zfs_vdev_mirror_non_rotating_linear`
+- `node_zfs_vdev_mirror_non_rotating_seek`
+- `node_zfs_vdev_mirror_preferred_found`
+- `node_zfs_vdev_mirror_preferred_not_found`
+- `node_zfs_vdev_mirror_rotating_linear`
+- `node_zfs_vdev_mirror_rotating_offset`
+- `node_zfs_vdev_mirror_rotating_seek`
+- `node_zfs_zfetch_hits`
+- `node_zfs_zfetch_io_active`
+- `node_zfs_zfetch_io_issued`
+- `node_zfs_zfetch_max_streams`
+- `node_zfs_zfetch_misses`
+- `node_zfs_zil_zil_commit_count`
+- `node_zfs_zil_zil_commit_writer_count`
+- `node_zfs_zil_zil_itx_copied_bytes`
+- `node_zfs_zil_zil_itx_copied_count`
+- `node_zfs_zil_zil_itx_count`
+- `node_zfs_zil_zil_itx_indirect_bytes`
+- `node_zfs_zil_zil_itx_indirect_count`
+- `node_zfs_zil_zil_itx_metaslab_normal_alloc`
+- `node_zfs_zil_zil_itx_metaslab_normal_bytes`
+- `node_zfs_zil_zil_itx_metaslab_normal_count`
+- `node_zfs_zil_zil_itx_metaslab_normal_write`
+- `node_zfs_zil_zil_itx_metaslab_slog_alloc`
+- `node_zfs_zil_zil_itx_metaslab_slog_bytes`
+- `node_zfs_zil_zil_itx_metaslab_slog_count`
+- `node_zfs_zil_zil_itx_metaslab_slog_write`
+- `node_zfs_zil_zil_itx_needcopy_bytes`
+- `node_zfs_zil_zil_itx_needcopy_count`
+
+## systemd
+
+- **notes**: Enabled 2026-07-23 with a curated unit allowlist (salt-minion/alloy/sshd/docker/containerd/crio/kubelet/gdm/gnome-session/wg-quick/zerotier).
+- **patterns**: `node_systemd_.*`
+- **consuming signals**: system.linux.servicesActive, system.linux.servicesFailed
+
+### Live metrics (4)
+
+- `node_systemd_system_running`
+- `node_systemd_unit_state`
+- `node_systemd_units`
+- `node_systemd_version`
+
+## textfile-gpu
+
+- **notes**: gpu-ohm-textfile script: Linux GPUs emitted in the OhmGraphite schema (nvidia via nvidia-smi, amdgpu + i915 via sysfs); 30s systemd timer, batocera via a service loop.
+- **patterns**: `ohm_gpunvidia_.*`, `ohm_gpuati_.*`, `ohm_gpuintel_.*`
+
+### Live metrics (17)
+
+- `ohm_gpuati_bytes`
+- `ohm_gpuati_celsius`
+- `ohm_gpuati_factor`
+- `ohm_gpuati_hertz`
+- `ohm_gpuati_load_percent`
+- `ohm_gpuati_volts`
+- `ohm_gpuati_watts`
+- `ohm_gpuintel_bytes`
+- `ohm_gpuintel_hertz`
+- `ohm_gpuintel_load_percent`
+- `ohm_gpuintel_watts`
+- `ohm_gpunvidia_bytes`
+- `ohm_gpunvidia_bytes_per_second`
+- `ohm_gpunvidia_celsius`
+- `ohm_gpunvidia_hertz`
+- `ohm_gpunvidia_load_percent`
+- `ohm_gpunvidia_watts`
+

@@ -1,9 +1,13 @@
-# app.exporters
+# app-exporters
 
 - **source**: application exporters (etcd/loki/mimir/grafana/guardian/...)
+
+## apps
+
+- **notes**: global catch-all — everything unclaimed above.
 - **patterns**: `.*`
 
-## Live metrics (2472)
+### Live metrics (2472)
 
 - `activity_tracker_failed_total`
 - `activity_tracker_free_slots`
@@ -2477,3 +2481,4 @@
 - `wireguard_latest_handshake_seconds`
 - `wireguard_received_bytes`
 - `wireguard_sent_bytes`
+

@@ -1,9 +1,12 @@
-# mimir.ruler
+# mimir-ruler
 
 - **source**: recording rules (deployed via deploy-lib with MIMIR_RULER_URL)
+
+## recording-rules
+
 - **patterns**: `base:cluster_nodes:n`, `node_namespace_pod_container:.*`, `namespace_cpu:.*`, `namespace_memory:.*`, `namespace_workload_pod:.*`, `instance:.*`, `cluster:.*`
 
-## Live metrics (13)
+### Live metrics (13)
 
 - `base:cluster_nodes:n`
 - `instance:node_cpu_utilisation:rate5m`
@@ -18,3 +21,4 @@
 - `namespace_memory:kube_pod_container_resource_requests:sum`
 - `namespace_workload_pod:kube_pod_owner:relabel`
 - `node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate`
+

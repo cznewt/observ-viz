@@ -1,63 +1,13 @@
-# windows.core
+# windows_exporter
 
-- **source**: windows_exporter (alloy prometheus.exporter.windows)
-- **patterns**: `windows_cpu_.*`, `windows_os_.*`, `windows_memory_.*`, `windows_logical_disk_.*`, `windows_net_.*`, `windows_system_.*`, `windows_time_.*`
+- **source**: alloy prometheus.exporter.windows (embedded)
 
-## Consuming signals
+## cpu
 
-| Lib | Signal | Metrics |
-| --- | --- | --- |
-| system.windows | contextSwitches | `windows_system_context_switches_total` |
-| system.windows | cpuBusy | `windows_cpu_time_total` |
-| system.windows | cpuByMode | `windows_cpu_time_total` |
-| system.windows | cpuCState | `windows_cpu_cstate_seconds_total` |
-| system.windows | cpuCores | `windows_cpu_time_total` |
-| system.windows | cpuDpcs | `windows_cpu_dpcs_total` |
-| system.windows | cpuFreq | `windows_cpu_core_frequency_mhz` |
-| system.windows | cpuInterrupts | `windows_cpu_interrupts_total` |
-| system.windows | diskActive | `windows_logical_disk_idle_seconds_total` |
-| system.windows | diskFree | `windows_logical_disk_free_bytes` |
-| system.windows | diskQueue | `windows_logical_disk_requests_queued` |
-| system.windows | diskReadBytes | `windows_logical_disk_read_bytes_total` |
-| system.windows | diskReadIops | `windows_logical_disk_reads_total` |
-| system.windows | diskReadLatency | `windows_logical_disk_read_latency_seconds_total`<br>`windows_logical_disk_reads_total` |
-| system.windows | diskSize | `windows_logical_disk_size_bytes` |
-| system.windows | diskUsedRatio | `windows_logical_disk_free_bytes`<br>`windows_logical_disk_size_bytes` |
-| system.windows | diskWriteBytes | `windows_logical_disk_write_bytes_total` |
-| system.windows | diskWriteIops | `windows_logical_disk_writes_total` |
-| system.windows | diskWriteLatency | `windows_logical_disk_write_latency_seconds_total`<br>`windows_logical_disk_writes_total` |
-| system.windows | exceptions | `windows_system_exception_dispatches_total` |
-| system.windows | memAvailable | `windows_memory_available_bytes` |
-| system.windows | memCache | `windows_memory_cache_bytes` |
-| system.windows | memCommitLimit | `windows_memory_commit_limit` |
-| system.windows | memCommitted | `windows_memory_committed_bytes` |
-| system.windows | memFree | `windows_memory_physical_free_bytes` |
-| system.windows | memPageFaults | `windows_memory_page_faults_total` |
-| system.windows | memPoolNonpaged | `windows_memory_pool_nonpaged_bytes` |
-| system.windows | memPoolPaged | `windows_memory_pool_paged_bytes` |
-| system.windows | memSwapOps | `windows_memory_swap_page_operations_total` |
-| system.windows | memTotal | `windows_memory_physical_total_bytes` |
-| system.windows | memUsed | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` |
-| system.windows | memUsedRatio | `windows_memory_available_bytes`<br>`windows_memory_physical_total_bytes` |
-| system.windows | netBandwidth | `windows_net_current_bandwidth_bytes` |
-| system.windows | netDiscards | `windows_net_packets_outbound_discarded_total`<br>`windows_net_packets_received_discarded_total` |
-| system.windows | netErrors | `windows_net_packets_outbound_errors_total`<br>`windows_net_packets_received_errors_total` |
-| system.windows | netPacketsRecv | `windows_net_packets_received_total` |
-| system.windows | netPacketsSent | `windows_net_packets_sent_total` |
-| system.windows | netQueue | `windows_net_output_queue_length_packets` |
-| system.windows | netRecv | `windows_net_bytes_received_total` |
-| system.windows | netSent | `windows_net_bytes_sent_total` |
-| system.windows | netUtil | `windows_net_bytes_total`<br>`windows_net_current_bandwidth_bytes` |
-| system.windows | ntpRoundTrip | `windows_time_ntp_round_trip_delay_seconds` |
-| system.windows | osInfo | `windows_os_info` |
-| system.windows | procQueue | `windows_system_processor_queue_length` |
-| system.windows | processes | `windows_system_processes` |
-| system.windows | systemCalls | `windows_system_system_calls_total` |
-| system.windows | threads | `windows_system_threads` |
-| system.windows | timeOffset | `windows_time_computed_time_offset_seconds` |
-| system.windows | uptime | `windows_system_boot_time_timestamp` |
+- **patterns**: `windows_cpu_.*`
+- **consuming signals**: system.windows.cpuBusy, system.windows.cpuByMode, system.windows.cpuCState, system.windows.cpuCores, system.windows.cpuDpcs, system.windows.cpuFreq, system.windows.cpuInterrupts
 
-## Live metrics (102)
+### Live metrics (14)
 
 - `windows_cpu_clock_interrupts_total`
 - `windows_cpu_core_frequency_mhz`
@@ -73,6 +23,14 @@
 - `windows_cpu_processor_rtc_total`
 - `windows_cpu_processor_utility_total`
 - `windows_cpu_time_total`
+
+## logical_disk
+
+- **patterns**: `windows_logical_disk_.*`
+- **consuming signals**: system.windows.diskActive, system.windows.diskFree, system.windows.diskQueue, system.windows.diskReadBytes, system.windows.diskReadIops, system.windows.diskReadLatency, system.windows.diskSize, system.windows.diskUsedRatio, system.windows.diskWriteBytes, system.windows.diskWriteIops, system.windows.diskWriteLatency
+
+### Live metrics (17)
+
 - `windows_logical_disk_avg_read_requests_queued`
 - `windows_logical_disk_avg_write_requests_queued`
 - `windows_logical_disk_free_bytes`
@@ -90,6 +48,14 @@
 - `windows_logical_disk_write_latency_seconds_total`
 - `windows_logical_disk_write_seconds_total`
 - `windows_logical_disk_writes_total`
+
+## memory
+
+- **patterns**: `windows_memory_.*`
+- **consuming signals**: system.windows.memAvailable, system.windows.memCache, system.windows.memCommitLimit, system.windows.memCommitted, system.windows.memFree, system.windows.memPageFaults, system.windows.memPoolNonpaged, system.windows.memPoolPaged, system.windows.memSwapOps, system.windows.memTotal, system.windows.memUsed, system.windows.memUsedRatio
+
+### Live metrics (35)
+
 - `windows_memory_available_bytes`
 - `windows_memory_cache_bytes`
 - `windows_memory_cache_bytes_peak`
@@ -125,6 +91,14 @@
 - `windows_memory_transition_faults_total`
 - `windows_memory_transition_pages_repurposed_total`
 - `windows_memory_write_copies_total`
+
+## net
+
+- **patterns**: `windows_net_.*`
+- **consuming signals**: system.windows.netBandwidth, system.windows.netDiscards, system.windows.netErrors, system.windows.netPacketsRecv, system.windows.netPacketsSent, system.windows.netQueue, system.windows.netRecv, system.windows.netSent, system.windows.netUtil
+
+### Live metrics (16)
+
 - `windows_net_bytes_received_total`
 - `windows_net_bytes_sent_total`
 - `windows_net_bytes_total`
@@ -141,8 +115,50 @@
 - `windows_net_packets_received_unknown_total`
 - `windows_net_packets_sent_total`
 - `windows_net_packets_total`
+
+## os
+
+- **patterns**: `windows_os_.*`
+- **consuming signals**: system.windows.osInfo
+
+### Live metrics (2)
+
 - `windows_os_hostname`
 - `windows_os_info`
+
+## other
+
+- **notes**: unclassified windows_exporter families (catch-all).
+- **patterns**: `windows_.*`
+- **consuming signals**: system.windows.collectorDuration, system.windows.collectorSuccess, system.windows.scrapeDuration, system.windows.tempBySensor, system.windows.tempMax
+
+### Live metrics (5)
+
+- `windows_exporter_build_info`
+- `windows_exporter_collector_duration_seconds`
+- `windows_exporter_collector_success`
+- `windows_exporter_collector_timeout`
+- `windows_exporter_scrape_duration_seconds`
+
+## service
+
+- **patterns**: `windows_service_.*`
+- **consuming signals**: system.windows.serviceState, system.windows.servicesRunning, system.windows.servicesStopped
+
+### Live metrics (4)
+
+- `windows_service_info`
+- `windows_service_process`
+- `windows_service_start_mode`
+- `windows_service_state`
+
+## system
+
+- **patterns**: `windows_system_.*`
+- **consuming signals**: system.windows.contextSwitches, system.windows.exceptions, system.windows.procQueue, system.windows.processes, system.windows.systemCalls, system.windows.threads, system.windows.uptime
+
+### Live metrics (8)
+
 - `windows_system_boot_time_timestamp`
 - `windows_system_context_switches_total`
 - `windows_system_exception_dispatches_total`
@@ -151,6 +167,24 @@
 - `windows_system_processor_queue_length`
 - `windows_system_system_calls_total`
 - `windows_system_threads`
+
+## textfile-device
+
+- **notes**: device.prom in C:\apps\alloy\textfile — one-shot Win32_ComputerSystemProduct write per box (vendor/product/model).
+- **patterns**: `windows_device_info`, `windows_textfile_.*`
+
+### Live metrics (2)
+
+- `windows_device_info`
+- `windows_textfile_mtime_seconds`
+
+## time
+
+- **patterns**: `windows_time_.*`
+- **consuming signals**: system.windows.ntpRoundTrip, system.windows.timeOffset
+
+### Live metrics (10)
+
 - `windows_time_clock_frequency_adjustment`
 - `windows_time_clock_frequency_adjustment_ppb`
 - `windows_time_clock_sync_source`
@@ -161,3 +195,4 @@
 - `windows_time_ntp_server_incoming_requests_total`
 - `windows_time_ntp_server_outgoing_responses_total`
 - `windows_time_timezone`
+

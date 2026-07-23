@@ -46,7 +46,7 @@ docs-panels:
 docs-libs:
     python3 scripts/gen-libs-docs.py
 
-# regenerate docs/collectors.md (collector metric inventories + signal map)
+# regenerate docs/exporters/ (exporter/collector metric inventories + signal map)
 docs-collectors:
     python3 scripts/gen-collector-docs.py
 

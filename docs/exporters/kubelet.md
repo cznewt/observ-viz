@@ -1,16 +1,13 @@
 # kubelet
 
 - **source**: k8s-monitoring control-plane scrape
+
+## kubelet
+
 - **patterns**: `kubelet_.*`
+- **consuming signals**: kubernetes.cluster.kubeletErrors, kubernetes.cluster.kubeletPods
 
-## Consuming signals
-
-| Lib | Signal | Metrics |
-| --- | --- | --- |
-| kubernetes.cluster | kubeletErrors | `kubelet_runtime_operations_errors_total` |
-| kubernetes.cluster | kubeletPods | `kubelet_running_pods` |
-
-## Live metrics (108)
+### Live metrics (108)
 
 - `kubelet_active_pods`
 - `kubelet_certificate_manager_client_expiration_renew_errors`
@@ -120,3 +117,4 @@
 - `kubelet_volume_stats_inodes_used`
 - `kubelet_volume_stats_used_bytes`
 - `kubelet_working_pods`
+

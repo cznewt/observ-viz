@@ -1,36 +1,13 @@
 # kube-state-metrics
 
 - **source**: k8s-monitoring KSM
+
+## kube
+
 - **patterns**: `kube_.*`
+- **consuming signals**: kubernetes.pod.containersReady, kubernetes.pod.containersWaiting, kubernetes.pod.cpuLimits, kubernetes.pod.cpuRequests, kubernetes.pod.cronjobActive, kubernetes.pod.deployAvailable, kubernetes.pod.deployDesired, kubernetes.pod.deployUnavailable, kubernetes.pod.dsDesired, kubernetes.pod.dsReady, kubernetes.pod.dsUnavailable, kubernetes.pod.jobActive, kubernetes.pod.jobFailed, kubernetes.pod.jobSucceeded, kubernetes.pod.memLimits, kubernetes.pod.memRequests, kubernetes.pod.phase, kubernetes.pod.pvcCapacity, kubernetes.pod.pvcPhase, kubernetes.pod.restarts, kubernetes.pod.stsReady, kubernetes.pod.stsReplicas
 
-## Consuming signals
-
-| Lib | Signal | Metrics |
-| --- | --- | --- |
-| kubernetes.pod | containersReady | `kube_pod_container_status_ready` |
-| kubernetes.pod | containersWaiting | `kube_pod_container_status_waiting` |
-| kubernetes.pod | cpuLimits | `kube_pod_container_resource_limits` |
-| kubernetes.pod | cpuRequests | `kube_pod_container_resource_requests` |
-| kubernetes.pod | cronjobActive | `kube_cronjob_status_active` |
-| kubernetes.pod | deployAvailable | `kube_deployment_status_replicas_available` |
-| kubernetes.pod | deployDesired | `kube_deployment_spec_replicas` |
-| kubernetes.pod | deployUnavailable | `kube_deployment_status_replicas_unavailable` |
-| kubernetes.pod | dsDesired | `kube_daemonset_status_desired_number_scheduled` |
-| kubernetes.pod | dsReady | `kube_daemonset_status_number_ready` |
-| kubernetes.pod | dsUnavailable | `kube_daemonset_status_number_unavailable` |
-| kubernetes.pod | jobActive | `kube_job_status_active` |
-| kubernetes.pod | jobFailed | `kube_job_status_failed` |
-| kubernetes.pod | jobSucceeded | `kube_job_status_succeeded` |
-| kubernetes.pod | memLimits | `kube_pod_container_resource_limits` |
-| kubernetes.pod | memRequests | `kube_pod_container_resource_requests` |
-| kubernetes.pod | phase | `kube_pod_status_phase` |
-| kubernetes.pod | pvcCapacity | `kube_persistentvolumeclaim_resource_requests_storage_bytes` |
-| kubernetes.pod | pvcPhase | `kube_persistentvolumeclaim_status_phase` |
-| kubernetes.pod | restarts | `kube_pod_container_status_restarts_total` |
-| kubernetes.pod | stsReady | `kube_statefulset_status_replicas_ready` |
-| kubernetes.pod | stsReplicas | `kube_statefulset_status_replicas` |
-
-## Live metrics (193)
+### Live metrics (193)
 
 - `kube_apiserver_clusterip_allocator_allocated_ips`
 - `kube_apiserver_clusterip_allocator_allocation_duration_seconds_bucket`
@@ -225,3 +202,4 @@
 - `kube_validatingwebhookconfiguration_info`
 - `kube_validatingwebhookconfiguration_metadata_resource_version`
 - `kube_validatingwebhookconfiguration_webhook_clientconfig_service`
+

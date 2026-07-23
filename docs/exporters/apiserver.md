@@ -1,19 +1,13 @@
 # apiserver
 
 - **source**: k8s-monitoring control-plane scrape
-- **patterns**: `apiserver_.*`, `workqueue_.*`
 
-## Consuming signals
+## apiserver
 
-| Lib | Signal | Metrics |
-| --- | --- | --- |
-| kubernetes.cluster | apiserverErrors | `apiserver_request_total` |
-| kubernetes.cluster | apiserverInflight | `apiserver_current_inflight_requests` |
-| kubernetes.cluster | apiserverRate | `apiserver_request_total` |
-| kubernetes.cluster | workqueueAdds | `workqueue_adds_total` |
-| kubernetes.cluster | workqueueDepth | `workqueue_depth` |
+- **patterns**: `apiserver_.*`
+- **consuming signals**: kubernetes.cluster.apiserverErrors, kubernetes.cluster.apiserverInflight, kubernetes.cluster.apiserverRate
 
-## Live metrics (163)
+### Live metrics (152)
 
 - `apiserver_admission_controller_admission_duration_seconds_bucket`
 - `apiserver_admission_controller_admission_duration_seconds_count`
@@ -167,6 +161,14 @@
 - `apiserver_watch_list_duration_seconds_sum`
 - `apiserver_webhooks_x509_insecure_sha1_total`
 - `apiserver_webhooks_x509_missing_san_total`
+
+## workqueue
+
+- **patterns**: `workqueue_.*`
+- **consuming signals**: kubernetes.cluster.workqueueAdds, kubernetes.cluster.workqueueDepth
+
+### Live metrics (11)
+
 - `workqueue_adds_total`
 - `workqueue_depth`
 - `workqueue_longest_running_processor_seconds`
@@ -178,3 +180,4 @@
 - `workqueue_work_duration_seconds_bucket`
 - `workqueue_work_duration_seconds_count`
 - `workqueue_work_duration_seconds_sum`
+
