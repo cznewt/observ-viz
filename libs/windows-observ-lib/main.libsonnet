@@ -51,6 +51,8 @@ local query = import 'custom/query.libsonnet';
       // per-node drill (e.g. from Cluster Overview) lands on a single host.
       selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'windows_os_info',
+      // curated Services-tab allowlist (windows_service_state name label).
+      serviceInclude: '(?i)(salt-minion|alloy|sshd|ssh-agent)',
       varLabels: ['cluster', 'instance'],
       varMulti: false,
       // System primary tab + Applications/Logs tabs (rendered via showIfData/presence).
@@ -399,6 +401,32 @@ local query = import 'custom/query.libsonnet';
         elements: {
           tempMax: signals.tempMax.asStat('Max temperature'),
           tempBySensor: signals.tempBySensor.asTimeSeries('Temperature by sensor'),
+        },
+      },
+      {
+        title: 'Services',
+        width: 12,
+        height: 7,
+        presence: { query: 'windows_service_state{name=~"' + cfg.serviceInclude + '", instance=~"$instance"}', label: 'instance' },
+        elements: {
+          winSvcTimeline:
+            panel.base('state-timeline', 'Service state')
+            + panel.withTargets([
+              query.prometheus.new(cfg.datasource, 'max by (name) ((windows_service_state{name=~"' + cfg.serviceInclude + '", state="running", instance=~"$instance"} == 1) * 1 or (windows_service_state{name=~"' + cfg.serviceInclude + '", state=~"start pending|continue pending", instance=~"$instance"} == 1) * 2 or (windows_service_state{name=~"' + cfg.serviceInclude + '", state=~"paused|pause pending|stop pending", instance=~"$instance"} == 1) * 3 or (windows_service_state{name=~"' + cfg.serviceInclude + '", state="stopped", instance=~"$instance"} == 1) * 4)')
+              + query.prometheus.withLegendFormat('{{name}}'),
+            ])
+            + panel.withOptions({ legend: { showLegend: true, displayMode: 'list', placement: 'bottom' }, rowHeight: 0.85 })
+            + panel.withFieldConfigDefaults({ custom: { fillOpacity: 72, lineWidth: 0 } })
+            + panel.withMappings([{ 'type': 'value', options: {
+                '1': { text: 'running', color: 'green', index: 0 },
+                '2': { text: 'starting', color: 'yellow', index: 1 },
+                '3': { text: 'pending/paused', color: 'orange', index: 2 },
+                '4': { text: 'stopped', color: 'red', index: 3 },
+              } }]),
+          winSvcRunning:
+            panel.stat.new('Services running')
+            + panel.stat.withTargets([query.prometheus.new(cfg.datasource, 'count(windows_service_state{state="running", instance=~"$instance"} == 1)')])
+            + panel.stat.withOptions({ reduceOptions: { values: false, calcs: ['lastNotNull'] }, colorMode: 'value' }),
         },
       },
       {

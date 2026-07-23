@@ -267,7 +267,7 @@ local serversTable(c, capacity=false) =
     // via the dashboard variable instead.
     { id: 'filterFieldsByName', options: { include: { names:
       [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else []) } } },
+      + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else [cl]) } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options:
       if capacity then {
@@ -275,9 +275,9 @@ local serversTable(c, capacity=false) =
         indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
         renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
       } else {
-        excludeByName: { 'Value #A': true, 'Value #E': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, 'Value #B': 3, 'Value #C': 4, 'Value #D': 5, board: 6 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
+        excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
+        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
+        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
       } },
   ])
   + panel.table.withOverrides(
@@ -301,6 +301,7 @@ local serversTable(c, capacity=false) =
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
+         ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}' }] }]),
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
        ])

@@ -10,6 +10,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
+local query = import 'custom/query.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
 
@@ -796,6 +797,22 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
         height: 7,
         presence: { query: 'node_systemd_unit_state{instance=~"$instance"}', label: 'instance' },
         elements: {
+          // curated units (collector-side allowlist: salt/alloy/ssh/docker/
+          // kubelet/gdm/...) — one row per unit, colored by state.
+          svcTimeline:
+            panel.base('state-timeline', 'Service state')
+            + panel.withTargets([
+              query.prometheus.new(cfg.datasource, 'max by (name) ((node_systemd_unit_state{state="active", instance=~"$instance"} == 1) * 1 or (node_systemd_unit_state{state="activating", instance=~"$instance"} == 1) * 2 or (node_systemd_unit_state{state="deactivating", instance=~"$instance"} == 1) * 2 or (node_systemd_unit_state{state="inactive", instance=~"$instance"} == 1) * 3 or (node_systemd_unit_state{state="failed", instance=~"$instance"} == 1) * 4)')
+              + query.prometheus.withLegendFormat('{{name}}'),
+            ])
+            + panel.withOptions({ legend: { showLegend: true, displayMode: 'list', placement: 'bottom' }, rowHeight: 0.85 })
+            + panel.withFieldConfigDefaults({ custom: { fillOpacity: 72, lineWidth: 0 } })
+            + panel.withMappings([{ 'type': 'value', options: {
+                '1': { text: 'active', color: 'green', index: 0 },
+                '2': { text: 'transitioning', color: 'yellow', index: 1 },
+                '3': { text: 'inactive', color: 'text', index: 2 },
+                '4': { text: 'failed', color: 'red', index: 3 },
+              } }]),
           servicesActive: signals.servicesActive.asStat('Active services'),
           servicesFailed: signals.servicesFailed.asTable('Failed services'),
         },
