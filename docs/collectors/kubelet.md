@@ -1,0 +1,122 @@
+# kubelet
+
+- **source**: k8s-monitoring control-plane scrape
+- **patterns**: `kubelet_.*`
+
+## Consuming signals
+
+| Lib | Signal | Metrics |
+| --- | --- | --- |
+| kubernetes.cluster | kubeletErrors | `kubelet_runtime_operations_errors_total` |
+| kubernetes.cluster | kubeletPods | `kubelet_running_pods` |
+
+## Live metrics (108)
+
+- `kubelet_active_pods`
+- `kubelet_certificate_manager_client_expiration_renew_errors`
+- `kubelet_certificate_manager_client_ttl_seconds`
+- `kubelet_cgroup_manager_duration_seconds_bucket`
+- `kubelet_cgroup_manager_duration_seconds_count`
+- `kubelet_cgroup_manager_duration_seconds_sum`
+- `kubelet_cgroup_version`
+- `kubelet_container_log_filesystem_used_bytes`
+- `kubelet_containers_per_pod_count_bucket`
+- `kubelet_containers_per_pod_count_count`
+- `kubelet_containers_per_pod_count_sum`
+- `kubelet_cpu_manager_exclusive_cpu_allocation_count`
+- `kubelet_cpu_manager_pinning_errors_total`
+- `kubelet_cpu_manager_pinning_requests_total`
+- `kubelet_cpu_manager_shared_pool_size_millicores`
+- `kubelet_desired_pods`
+- `kubelet_evented_pleg_connection_error_count`
+- `kubelet_evented_pleg_connection_latency_seconds_bucket`
+- `kubelet_evented_pleg_connection_latency_seconds_count`
+- `kubelet_evented_pleg_connection_latency_seconds_sum`
+- `kubelet_evented_pleg_connection_success_count`
+- `kubelet_first_network_pod_start_sli_duration_seconds`
+- `kubelet_graceful_shutdown_end_time_seconds`
+- `kubelet_graceful_shutdown_start_time_seconds`
+- `kubelet_http_inflight_requests`
+- `kubelet_http_requests_duration_seconds_bucket`
+- `kubelet_http_requests_duration_seconds_count`
+- `kubelet_http_requests_duration_seconds_sum`
+- `kubelet_http_requests_total`
+- `kubelet_image_garbage_collected_total`
+- `kubelet_image_pull_duration_seconds_bucket`
+- `kubelet_image_pull_duration_seconds_count`
+- `kubelet_image_pull_duration_seconds_sum`
+- `kubelet_lifecycle_handler_http_fallbacks_total`
+- `kubelet_managed_ephemeral_containers`
+- `kubelet_memory_manager_pinning_errors_total`
+- `kubelet_memory_manager_pinning_requests_total`
+- `kubelet_mirror_pods`
+- `kubelet_node_name`
+- `kubelet_node_startup_duration_seconds`
+- `kubelet_node_startup_post_registration_duration_seconds`
+- `kubelet_node_startup_pre_kubelet_duration_seconds`
+- `kubelet_node_startup_pre_registration_duration_seconds`
+- `kubelet_node_startup_registration_duration_seconds`
+- `kubelet_orphan_pod_cleaned_volumes`
+- `kubelet_orphan_pod_cleaned_volumes_errors`
+- `kubelet_orphaned_runtime_pods_total`
+- `kubelet_pleg_discard_events`
+- `kubelet_pleg_last_seen_seconds`
+- `kubelet_pleg_relist_duration_seconds_bucket`
+- `kubelet_pleg_relist_duration_seconds_count`
+- `kubelet_pleg_relist_duration_seconds_sum`
+- `kubelet_pleg_relist_interval_seconds_bucket`
+- `kubelet_pleg_relist_interval_seconds_count`
+- `kubelet_pleg_relist_interval_seconds_sum`
+- `kubelet_pod_in_progress_resizes`
+- `kubelet_pod_start_duration_seconds_bucket`
+- `kubelet_pod_start_duration_seconds_count`
+- `kubelet_pod_start_duration_seconds_sum`
+- `kubelet_pod_start_sli_duration_seconds_bucket`
+- `kubelet_pod_start_sli_duration_seconds_count`
+- `kubelet_pod_start_sli_duration_seconds_sum`
+- `kubelet_pod_start_total_duration_seconds_bucket`
+- `kubelet_pod_start_total_duration_seconds_count`
+- `kubelet_pod_start_total_duration_seconds_sum`
+- `kubelet_pod_status_sync_duration_seconds_bucket`
+- `kubelet_pod_status_sync_duration_seconds_count`
+- `kubelet_pod_status_sync_duration_seconds_sum`
+- `kubelet_pod_worker_duration_seconds_bucket`
+- `kubelet_pod_worker_duration_seconds_count`
+- `kubelet_pod_worker_duration_seconds_sum`
+- `kubelet_pod_worker_start_duration_seconds_bucket`
+- `kubelet_pod_worker_start_duration_seconds_count`
+- `kubelet_pod_worker_start_duration_seconds_sum`
+- `kubelet_restarted_pods_total`
+- `kubelet_run_podsandbox_duration_seconds_bucket`
+- `kubelet_run_podsandbox_duration_seconds_count`
+- `kubelet_run_podsandbox_duration_seconds_sum`
+- `kubelet_run_podsandbox_errors_total`
+- `kubelet_running_containers`
+- `kubelet_running_pods`
+- `kubelet_runtime_operations_duration_seconds_bucket`
+- `kubelet_runtime_operations_duration_seconds_count`
+- `kubelet_runtime_operations_duration_seconds_sum`
+- `kubelet_runtime_operations_errors_total`
+- `kubelet_runtime_operations_total`
+- `kubelet_sleep_action_terminated_early_total`
+- `kubelet_started_containers_errors_total`
+- `kubelet_started_containers_total`
+- `kubelet_started_pods_errors_total`
+- `kubelet_started_pods_total`
+- `kubelet_started_user_namespaced_pods_errors_total`
+- `kubelet_started_user_namespaced_pods_total`
+- `kubelet_topology_manager_admission_duration_ms_bucket`
+- `kubelet_topology_manager_admission_duration_ms_count`
+- `kubelet_topology_manager_admission_duration_ms_sum`
+- `kubelet_topology_manager_admission_errors_total`
+- `kubelet_topology_manager_admission_requests_total`
+- `kubelet_volume_metric_collection_duration_seconds_bucket`
+- `kubelet_volume_metric_collection_duration_seconds_count`
+- `kubelet_volume_metric_collection_duration_seconds_sum`
+- `kubelet_volume_stats_available_bytes`
+- `kubelet_volume_stats_capacity_bytes`
+- `kubelet_volume_stats_inodes`
+- `kubelet_volume_stats_inodes_free`
+- `kubelet_volume_stats_inodes_used`
+- `kubelet_volume_stats_used_bytes`
+- `kubelet_working_pods`
