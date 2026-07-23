@@ -412,7 +412,7 @@ local cpusTable(c) =
   + panel.table.withTargets([
     tq(c, '(count by (' + nl + ') (last_over_time(node_cpu_seconds_total{mode="idle", ' + s + '}[$__range]))) or '
         + '(count by (' + nl + ') (last_over_time(windows_cpu_time_total{mode="idle", ' + s + '}[$__range])))'),
-    tq(c, '(sum by (' + nl + ', model_name) (last_over_time(node_cpu_info{' + s + '}[$__range]))) or '
+    tq(c, '(sum by (' + nl + ', model_name) (last_over_time(node_cpu_info{model_name!="", ' + s + '}[$__range]))) or '
         + '(sum by (' + nl + ', model_name) (label_replace(last_over_time(ohm_cpu_hertz{' + s + '}[$__range]), "model_name", "$1", "hardware", "(.+)")))'),
     query.prometheus.new(c.datasource,
       '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '

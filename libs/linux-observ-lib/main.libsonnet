@@ -227,7 +227,7 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
           ovDevice: labelStat('Device', 'sum by (device) (label_join((label_replace(node_dmi_info{' + inst + ', product_version!~"Default string|System Version|System Product Name|To Be Filled.*|"}, "dev", "$1", "product_version", "(.+)")) or (label_replace(node_dmi_info{' + inst + ', product_version=~"Default string|System Version|System Product Name|To Be Filled.*|"}, "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))', 'device'),
           ovOs: labelStat('OS', 'node_os_info{' + inst + '}', 'pretty_name'),
           ovKernel: labelStat('Kernel', 'node_uname_info{' + inst + '}', 'release'),
-          ovModel: labelStat('CPU Model', 'sum by (model_name) (node_cpu_info{' + inst + '})', 'model_name'),
+          ovModel: labelStat('CPU Model', 'sum by (model_name) (node_cpu_info{model_name!="", ' + inst + '})', 'model_name'),
           ovArch: labelStat('Arch', 'node_uname_info{' + inst + '}', 'machine'),
           ovType: labelStat('Type', 'label_replace(label_replace(sum by (product_name) (node_dmi_info{' + inst + '}), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")', 'kind'),
           ovCores: numStat('Cores', 'count(node_cpu_seconds_total{mode="idle", ' + inst + '})', 'short'),
