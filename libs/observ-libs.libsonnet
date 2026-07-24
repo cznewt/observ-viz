@@ -23,6 +23,10 @@
     kubelet: import 'libs/kubernetes-observ-lib/kubelet.libsonnet',
     cadvisor: import 'libs/cadvisor-observ-lib/main.libsonnet',
   },
+  iot: {
+    // Home Assistant device/entity telemetry (hass_* from home_assistant_exporter)
+    devices: import 'libs/iot-observ-lib/main.libsonnet',
+  },
   automation: {
     // salt jobs pack (salt-grafana architecture, Alloy edition — see
     // libs/salt-observ-lib/README.md); salt-job-view drill-down is the
