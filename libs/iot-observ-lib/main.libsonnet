@@ -1,8 +1,11 @@
-// observ-viz IoT / ESP devices pack (hand-written).
-// Consumes the home_assistant_exporter job (hass_* metrics from the
-// gedu-prg-haos box): device inventory + availability + battery, ZHA mesh
-// health, and sensor entity values joined to their class/unit via
-// hass_entity_info (join key entity_id).
+// observ-viz Home Assistant pack (hand-written).
+// Consumes the home_assistant_exporter job (hass_* metrics from the HAOS box):
+// Core tab = inventory + availability + battery + sensor entity values (class
+// metadata joined from hass_entity_info by entity_id); optional per-family
+// device tabs, gated on the matching devices existing:
+//   ESP        -> hass_device_info{manufacturer=~"Espressif.*"}
+//   Zigbee     -> hass_device_info{integration="zha"} (+ ZHA mesh health)
+//   Bluetooth  -> hass_device_info{integration="bluetooth"}
 // Usage:
 //   g.libs.iot.devices.new({}).grafana.dashboard
 local pack = import 'libs/common-lib/pack.libsonnet';
@@ -14,9 +17,9 @@ local query = import 'custom/query.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'iot-esp-devices',
-      dashboardTitle: 'IoT Devices',
-      dashboardTags: ['iot', 'esp', 'home-assistant', 'cluster-level'],
+      uid: 'home-assistant',
+      dashboardTitle: 'Home Assistant',
+      dashboardTags: ['iot', 'home-assistant', 'cluster-level'],
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster"',
       varMetric: 'hass_device_info',
@@ -41,25 +44,28 @@ local query = import 'custom/query.libsonnet';
       devices: sig('Devices', 'count(hass_device_info{%(queriesSelector)s})', 'short', 'devices'),
       available: sig('Available', 'count(hass_device_available{%(queriesSelector)s} == 1) or vector(0)', 'short', 'available'),
       lowBattery: sig('Low battery', 'count(hass_device_battery_remaining{%(queriesSelector)s} < 20) or vector(0)', 'short', 'low battery'),
-      meshLqi: sig('ZHA mesh LQI', 'avg(hass_zha_mesh_lqi{%(queriesSelector)s})', 'short', 'mesh LQI'),
+      haUp: sig('Home Assistant up', 'sum(up{job="homeassistant", %(queriesSelector)s}) or vector(0)', 'short', 'up'),
       temperature: sig('Temperature', classExpr('temperature'), 'celsius', '{{entity_name}}'),
       humidity: sig('Humidity', classExpr('humidity'), 'percent', '{{entity_name}}'),
       pressure: sig('Pressure', classExpr('pressure'), 'pressurehpa', '{{entity_name}}'),
       battery: sig('Battery', 'hass_device_battery_remaining{%(queriesSelector)s}', 'percent'),
+      meshLqi: sig('ZHA mesh LQI', 'avg(hass_zha_mesh_lqi{%(queriesSelector)s})', 'short', 'mesh LQI'),
       zhaLqi: sig('ZHA link quality', 'hass_zha_device_lqi{%(queriesSelector)s}', 'short'),
       zhaRssi: sig('ZHA RSSI', 'hass_zha_device_rssi{%(queriesSelector)s}', 'dBm'),
     };
 
     // Device inventory joined by device_id: identity labels from the info
-    // metric, availability / battery / last activity as value columns.
+    // metric (optionally family-filtered), availability / battery / last
+    // activity as value columns.
     local tq(expr) =
       query.prometheus.new(cfg.datasource, expr)
       + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
     local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
-    local devicesTable =
-      panel.table.new('Devices')
+    local devicesTable(title, filter='') =
+      local infoSel = s + (if filter != '' then ', ' + filter else '');
+      panel.table.new(title)
       + panel.table.withTargets([
-        tq('hass_device_info{' + s + '}'),                                    // A: identity
+        tq('hass_device_info{' + infoSel + '}'),                              // A: identity
         tq('sum by (device_id) (hass_device_available{' + s + '})'),          // B: available
         tq('sum by (device_id) (hass_device_battery_remaining{' + s + '})'),  // C: battery
         tq('sum by (device_id) (hass_device_last_activity{' + s + '} * 1000)'),  // D: last activity (ms)
@@ -68,6 +74,9 @@ local query = import 'custom/query.libsonnet';
         { id: 'labelsToFields' },
         { id: 'filterFieldsByName', options: { include: { names: ['device_id', 'device_name', 'manufacturer', 'model', 'integration', 'sw_version', 'Value #B', 'Value #C', 'Value #D'] } } },
         { id: 'seriesToColumns', options: { byField: 'device_id' } },
+        // inner join on the (filtered) identity: drop rows the info query
+        // did not return (i.e. other device families).
+        { id: 'filterByValue', options: { filters: [{ fieldName: 'device_name', config: { id: 'isNotNull', options: {} } }], match: 'all', type: 'include' } },
         { id: 'organize', options: {
           excludeByName: { device_id: true, 'Value #A': true },
           indexByName: { device_name: 0, manufacturer: 1, model: 2, integration: 3, sw_version: 4, 'Value #B': 5, 'Value #C': 6, 'Value #D': 7 },
@@ -93,16 +102,24 @@ local query = import 'custom/query.libsonnet';
         ov('Last activity', [{ id: 'unit', value: 'dateTimeFromNow' }, { id: 'custom.width', value: 130 }]),
       ]);
 
+    // entity values for one device family (value -> entity_info -> device_info chain)
+    local familyEntities(title, filter) =
+      signal.new(title, 'prometheus', cfg.datasource,
+        'hass_entity_value{%(queriesSelector)s}'
+        + ' * on (cluster, entity_id) group_left(entity_name, device_id) (hass_entity_info{%(queriesSelector)s} == 1)'
+        + ' * on (cluster, device_id) group_left() (hass_device_info{' + filter + ', %(queriesSelector)s} == 1)',
+        'short').filteringSelector(s).withLegendFormat('{{entity_name}}');
+
     pack.build(cfg, signals, [
       {
-        title: 'Overview',
+        title: 'Core',
         width: 6,
         height: 5,
         elements: {
+          haUp: signals.haUp.asStat('Home Assistant up'),
           devices: signals.devices.asStat('Devices'),
           available: signals.available.asStat('Available'),
           lowBattery: signals.lowBattery.asStat('Low battery'),
-          meshLqi: signals.meshLqi.asStat('ZHA mesh LQI'),
         },
       },
       {
@@ -110,7 +127,7 @@ local query = import 'custom/query.libsonnet';
         width: 24,
         height: 10,
         elements: {
-          devicesTable: devicesTable,
+          allDevices: devicesTable('Devices'),
         },
       },
       {
@@ -124,17 +141,8 @@ local query = import 'custom/query.libsonnet';
           battery: signals.battery.asTimeSeries('Battery'),
         },
       },
-      {
-        title: 'ZHA mesh',
-        width: 12,
-        height: 8,
-        elements: {
-          zhaLqi: signals.zhaLqi.asTimeSeries('Link quality (LQI)'),
-          zhaRssi: signals.zhaRssi.asTimeSeries('RSSI'),
-        },
-      },
     ], [
-      alert.rule.group('iot-devices', [
+      alert.rule.group('home-assistant', [
         alert.rule.new(
           'IotDeviceUnavailable',
           'hass_device_available' + rsBrace + ' == 0',
@@ -158,5 +166,37 @@ local query = import 'custom/query.libsonnet';
           }
         ),
       ]),
+    ], [], [
+      {
+        title: 'ESP Devices',
+        width: 24,
+        height: 9,
+        presence: { query: 'hass_device_info{manufacturer=~"Espressif.*", cluster=~"$cluster"}', label: 'device_id' },
+        elements: {
+          espDevices: devicesTable('ESP devices', 'manufacturer=~"Espressif.*"'),
+          espEntities: familyEntities('ESP entity values', 'manufacturer=~"Espressif.*"').asTimeSeries('ESP entity values'),
+        },
+      },
+      {
+        title: 'Zigbee Devices',
+        width: 12,
+        height: 8,
+        presence: { query: 'hass_device_info{integration="zha", cluster=~"$cluster"}', label: 'device_id' },
+        elements: {
+          zigbeeDevices: devicesTable('Zigbee devices', 'integration="zha"'),
+          meshLqi: signals.meshLqi.asStat('ZHA mesh LQI'),
+          zhaLqi: signals.zhaLqi.asTimeSeries('Link quality (LQI)'),
+          zhaRssi: signals.zhaRssi.asTimeSeries('RSSI'),
+        },
+      },
+      {
+        title: 'Bluetooth Devices',
+        width: 24,
+        height: 9,
+        presence: { query: 'hass_device_info{integration="bluetooth", cluster=~"$cluster"}', label: 'device_id' },
+        elements: {
+          bluetoothDevices: devicesTable('Bluetooth devices', 'integration="bluetooth"'),
+        },
+      },
     ]),
 }
