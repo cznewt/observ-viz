@@ -11,7 +11,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-syncthing',
       dashboardTitle: 'Syncthing',
-      dashboardTags: ['syncthing', 'sync'],
+      dashboardTags: ['syncthing', 'sync', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job", instance=~"$instance"',
       varMetric: 'syncthing_connections_active',

@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-mysql',
       dashboardTitle: 'MySQL',
-      dashboardTags: ['mysql', 'database'],
+      dashboardTags: ['mysql', 'database', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'mysql_up',

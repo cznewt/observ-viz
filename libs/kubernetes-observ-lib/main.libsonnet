@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-kube-pod',
       dashboardTitle: 'Kubernetes pod',
-      dashboardTags: ['kubernetes', 'pod'],
+      dashboardTags: ['kubernetes', 'pod', 'app-level'],
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',
       varMetric: 'kube_pod_info',

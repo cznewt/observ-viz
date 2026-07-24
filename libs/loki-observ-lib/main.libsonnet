@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-loki',
       dashboardTitle: 'Loki',
-      dashboardTags: ['loki', 'lgtm', 'grafana'],
+      dashboardTags: ['loki', 'lgtm', 'grafana', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'loki_build_info',

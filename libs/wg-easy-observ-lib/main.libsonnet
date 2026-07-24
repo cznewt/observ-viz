@@ -16,6 +16,11 @@ local query = import 'custom/query.libsonnet';
       uid: 'network-wireguard--wg-easy',
       dashboardTitle: 'Wireguard Controller',
       dashboardTags: ['wireguard', 'wg-easy', 'vpn', 'cluster-level'],
+      links: [
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+      ],
+
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster", job=~"$job", instance=~"$instance"',
       varMetric: 'wireguard_configured_peers',

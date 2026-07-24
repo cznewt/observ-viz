@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-postgres',
       dashboardTitle: 'PostgreSQL',
-      dashboardTags: ['postgres', 'database'],
+      dashboardTags: ['postgres', 'database', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'pg_up',

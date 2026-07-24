@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-docker',
       dashboardTitle: 'Docker containers',
-      dashboardTags: ['docker', 'containers'],
+      dashboardTags: ['docker', 'containers', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'cadvisor_version_info',

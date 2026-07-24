@@ -29,6 +29,8 @@ local query = import 'custom/query.libsonnet';
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       links: [
         { title: 'Job view (states / return / trace)', type: 'link', icon: 'doc', url: '/d/salt-job-view', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-job drill-down: postgres TreeView + Tempo trace', tags: [] },
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';

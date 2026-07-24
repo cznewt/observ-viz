@@ -11,7 +11,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-prometheus',
       dashboardTitle: 'Prometheus',
-      dashboardTags: ['prometheus', 'infra'],
+      dashboardTags: ['prometheus', 'infra', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'prometheus_build_info',

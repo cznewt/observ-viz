@@ -15,6 +15,11 @@ local query = import 'custom/query.libsonnet';
       uid: 'network-unifi-control',
       dashboardTitle: 'Unifi Controller',
       dashboardTags: ['unifi', 'unpoller', 'network', 'cluster-level'],
+      links: [
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+      ],
+
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster", job=~"$job"',
       varMetric: 'unpoller_device_info',

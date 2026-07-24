@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-cadvisor',
       dashboardTitle: 'Container resources',
-      dashboardTags: ['kubernetes', 'cadvisor'],
+      dashboardTags: ['kubernetes', 'cadvisor', 'app-level'],
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',
       varMetric: 'container_cpu_usage_seconds_total',  // allowlisted with job+namespace

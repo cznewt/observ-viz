@@ -18,7 +18,7 @@ local dashboard = import 'custom/dashboard.libsonnet';
     local cfg = {
       uid: 'observ-viz-guardian',
       dashboardTitle: 'Personal Computer',
-      dashboardTags: ['guardian', 'parental-control', 'inventory', 'activity'],
+      dashboardTags: ['guardian', 'parental-control', 'inventory', 'activity', 'app-level'],
       // both boards land in the existing "Parental Control" folder — same
       // instance-specific uid the family-link-exporter (Android Device) board
       // pins; override for a different Grafana.
@@ -205,7 +205,7 @@ local dashboard = import 'custom/dashboard.libsonnet';
     local kidCfg = cfg {
       uid: kidUid,
       dashboardTitle: 'Kid overview',
-      dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown'],
+      dashboardTags: ['guardian', 'parental-control', 'activity', 'drilldown', 'app-level'],
       // guardian_app_running_seconds carries the stamped identity labels, so it
       // drives a family -> child cascade (the kid, across devices); $user and
       // $instance chain off the child for the Loki panels (log lines carry

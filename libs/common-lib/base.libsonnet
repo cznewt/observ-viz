@@ -11,6 +11,14 @@ local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
+
+// Hierarchy traversal (dashboard-level dropdowns by level tag): cluster-level
+// boards link up to the env-level boards and across to their sibling
+// cluster-level boards (includeVars carries $cluster over).
+local clusterTraversalLinks = [
+  { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+  { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+];
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
@@ -614,7 +622,7 @@ local storagePie(c) =
           ['App', 'Pods', 'Alerts']
         );
       local servers = serversTable(c);
-      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['cluster-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
@@ -690,10 +698,7 @@ local storagePie(c) =
         } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
-      + dashboard.withLinks([
-        { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
-        { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
-      ]);
+      + dashboard.withLinks(clusterTraversalLinks);
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },

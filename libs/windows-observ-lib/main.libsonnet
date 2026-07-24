@@ -36,7 +36,7 @@ local query = import 'custom/query.libsonnet';
         tags: [],
       }],
       dashboardTitle: 'Windows Server',
-      dashboardTags: ['windows'],
+      dashboardTags: ['windows', 'node-level'],
       // fleet board: every Windows host in the selected cluster(s) at once.
       fleetUid: 'compute-windows-fleet',
       fleetTitle: 'Windows Fleet Overview',
@@ -459,7 +459,7 @@ local query = import 'custom/query.libsonnet';
     local fleetCfg = cfg {
       uid: cfg.fleetUid,
       dashboardTitle: cfg.fleetTitle,
-      dashboardTags: cfg.dashboardTags + ['fleet', 'overview'],
+      dashboardTags: ['windows', 'fleet', 'overview', 'env-level'],
       // fleet-wide: cluster is multi-select (defaults to All) and there is no
       // $instance — a row's Instance cell drills into the per-host board instead.
       selector: 'job=~"$job", cluster=~"$cluster"',

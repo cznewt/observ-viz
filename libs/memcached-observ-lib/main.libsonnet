@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-memcached',
       dashboardTitle: 'Memcached',
-      dashboardTags: ['memcached', 'database'],
+      dashboardTags: ['memcached', 'database', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'memcached_up',

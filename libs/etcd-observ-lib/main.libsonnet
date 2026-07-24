@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-etcd',
       dashboardTitle: 'etcd',
-      dashboardTags: ['etcd', 'database', 'kv'],
+      dashboardTags: ['etcd', 'database', 'kv', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'etcd_server_has_leader',

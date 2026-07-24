@@ -11,7 +11,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-mimir',
       dashboardTitle: 'Mimir',
-      dashboardTags: ['mimir', 'lgtm', 'grafana'],
+      dashboardTags: ['mimir', 'lgtm', 'grafana', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'cortex_build_info',

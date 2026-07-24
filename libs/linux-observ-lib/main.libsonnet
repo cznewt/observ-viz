@@ -33,7 +33,7 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
         tags: [],
       }],
       dashboardTitle: 'Linux Server',
-      dashboardTags: ['linux', 'node'],
+      dashboardTags: ['linux', 'node', 'node-level'],
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build).
       selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',

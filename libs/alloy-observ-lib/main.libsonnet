@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-alloy',
       dashboardTitle: 'Alloy',
-      dashboardTags: ['alloy', 'collector', 'grafana'],
+      dashboardTags: ['alloy', 'collector', 'grafana', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'alloy_build_info',

@@ -18,7 +18,12 @@ local query = import 'custom/query.libsonnet';
     local cfg = {
       uid: 'observ-viz-kube-cluster',
       dashboardTitle: 'Kubernetes cluster',
-      dashboardTags: ['kubernetes', 'cluster'],
+      dashboardTags: ['kubernetes', 'cluster', 'cluster-level'],
+      links: [
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+      ],
+
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster"',
       varMetric: 'kube_node_info',

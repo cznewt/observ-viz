@@ -12,7 +12,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-redis',
       dashboardTitle: 'Redis',
-      dashboardTags: ['redis', 'database'],
+      dashboardTags: ['redis', 'database', 'app-level'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'redis_up',
