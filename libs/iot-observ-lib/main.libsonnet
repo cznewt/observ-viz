@@ -61,7 +61,7 @@ local query = import 'custom/query.libsonnet';
       query.prometheus.new(cfg.datasource, expr)
       + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
     local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
-    local devicesTable(title, filter='') =
+    local devicesTable(title, filter='', zha=false) =
       local infoSel = s + (if filter != '' then ', ' + filter else '');
       panel.table.new(title)
       + panel.table.withTargets([
@@ -69,18 +69,23 @@ local query = import 'custom/query.libsonnet';
         tq('sum by (device_id) (hass_device_available{' + s + '})'),          // B: available
         tq('sum by (device_id) (hass_device_battery_remaining{' + s + '})'),  // C: battery
         tq('sum by (device_id) (hass_device_last_activity{' + s + '} * 1000)'),  // D: last activity (ms)
-      ])
+      ] + (if zha then [
+        // range queries -> Trend #E/#F sparkline columns via timeSeriesTable
+        query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_lqi{' + s + '})'),
+        query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_rssi{' + s + '})'),
+      ] else []))
       + panel.table.withTransformations([
+        { id: 'timeSeriesTable', options: {} },
         { id: 'labelsToFields' },
-        { id: 'filterFieldsByName', options: { include: { names: ['device_id', 'device_name', 'manufacturer', 'model', 'integration', 'sw_version', 'Value #B', 'Value #C', 'Value #D'] } } },
+        { id: 'filterFieldsByName', options: { include: { names: ['device_id', 'device_name', 'manufacturer', 'model', 'integration', 'sw_version', 'Value #B', 'Value #C', 'Value #D', 'Trend #E', 'Trend #F'] } } },
         { id: 'seriesToColumns', options: { byField: 'device_id' } },
         // inner join on the (filtered) identity: drop rows the info query
         // did not return (i.e. other device families).
         { id: 'filterByValue', options: { filters: [{ fieldName: 'device_name', config: { id: 'isNotNull', options: {} } }], match: 'all', type: 'include' } },
         { id: 'organize', options: {
           excludeByName: { device_id: true, 'Value #A': true },
-          indexByName: { device_name: 0, manufacturer: 1, model: 2, integration: 3, sw_version: 4, 'Value #B': 5, 'Value #C': 6, 'Value #D': 7 },
-          renameByName: { device_name: 'Device', manufacturer: 'Manufacturer', model: 'Model', integration: 'Integration', sw_version: 'Firmware', 'Value #B': 'Available', 'Value #C': 'Battery', 'Value #D': 'Last activity' },
+          indexByName: { device_name: 0, manufacturer: 1, model: 2, integration: 3, sw_version: 4, 'Value #B': 5, 'Value #C': 6, 'Trend #E': 7, 'Trend #F': 8, 'Value #D': 9 },
+          renameByName: { device_name: 'Device', manufacturer: 'Manufacturer', model: 'Model', integration: 'Integration', sw_version: 'Firmware', 'Value #B': 'Available', 'Value #C': 'Battery', 'Trend #E': 'LQI', 'Trend #F': 'RSSI', 'Value #D': 'Last activity' },
         } },
         { id: 'sortBy', options: { sort: [{ field: 'Device', desc: false }] } },
       ])
@@ -100,6 +105,15 @@ local query = import 'custom/query.libsonnet';
           ] } },
         ]),
         ov('Last activity', [{ id: 'unit', value: 'dateTimeFromNow' }, { id: 'custom.width', value: 130 }]),
+        ov('LQI', [
+          { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+          { id: 'color', value: { mode: 'fixed', fixedColor: 'green' } },
+        ]),
+        ov('RSSI', [
+          { id: 'unit', value: 'dBm' },
+          { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+          { id: 'color', value: { mode: 'fixed', fixedColor: 'blue' } },
+        ]),
       ]);
 
     // entity values for one device family (value -> entity_info -> device_info chain)
@@ -185,7 +199,7 @@ local query = import 'custom/query.libsonnet';
         // element keys are laid out alphabetically — prefix to pin the order:
         // full-width table first, mesh health below.
         elements: {
-          a_zigbee_devices: devicesTable('Zigbee devices', 'integration="zha"'),
+          a_zigbee_devices: devicesTable('Zigbee devices', 'integration="zha"', zha=true),
           b_zha_lqi: signals.zhaLqi.asTimeSeries('Link quality (LQI)'),
           c_zha_rssi: signals.zhaRssi.asTimeSeries('RSSI'),
         },
