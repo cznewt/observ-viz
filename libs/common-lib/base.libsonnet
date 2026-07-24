@@ -388,27 +388,27 @@ local gpusTable(c) =
     query.prometheus.new(c.datasource, keyed('celsius', 'GPU Core')),
     tq(c, 'max by (key) (label_join(last_over_time(' + g('bytes', 'GPU Memory Total|D3D Shared Memory Total') + '[$__range]), ' + joinKey + '))'),
     tq(c, keyed('watts', 'GPU Package|GPU Power')),
-    tq(c, keyed('hertz', 'GPU Core')),
+    query.prometheus.new(c.datasource, keyed('hertz', 'GPU Core')),
     query.prometheus.new(c.datasource, keyed('load_percent', 'GPU Core|D3D 3D')),
     query.prometheus.new(c.datasource, '100 * ' + keyed('bytes', 'GPU Memory Used|D3D Shared Memory Used') + ' / ' + keyed('bytes', 'GPU Memory Total|D3D Shared Memory Total')),
   ])
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Trend #B', 'Value #C', 'Value #D', 'Value #E', 'Trend #F', 'Trend #G'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: ['key', nl, 'hardware', 'Trend #B', 'Value #C', 'Value #D', 'Trend #E', 'Trend #F', 'Trend #G'] } } },
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Trend #G': 3, 'Value #C': 4, 'Value #E': 5, 'Value #D': 6, 'Trend #B': 7 },
-      renameByName: { [nl]: 'Node', hardware: 'GPU', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Value #E': 'Freq', 'Value #D': 'Power', 'Trend #B': 'Temp' },
+      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Trend #G': 3, 'Value #C': 4, 'Trend #E': 5, 'Value #D': 6, 'Trend #B': 7 },
+      renameByName: { [nl]: 'Node', hardware: 'GPU Model', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Trend #E': 'Freq', 'Value #D': 'Power', 'Trend #B': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
   + panel.table.withOverrides([
-    ov('GPU', [{ id: 'custom.width', value: 320 }]),
+    ov('GPU Model', [{ id: 'custom.width', value: 320 }]),
     ov('Load %|Mem %', pctSpark),
     ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
-    ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
+    ov('Freq', freqSpark),
     ov('Power', [{ id: 'unit', value: 'watt' }, { id: 'custom.width', value: 80 }]),
     ov('Temp', tempSpark),
   ]);
