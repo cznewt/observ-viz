@@ -2,7 +2,7 @@
  "uid": "kspan-traces",
  "title": "Cluster Events (kspan)",
  "schemaVersion": 39,
- "version": 1,
+ "version": 2,
  "editable": true,
  "tags": [
   "kubernetes",
@@ -53,7 +53,7 @@
       "type": "tempo",
       "uid": "newt-tempo"
      },
-     "query": "{rootName=~\"(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)[.].*\"}",
+     "query": "{ name =~ \"(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)\\\\..*\" }",
      "queryType": "traceql",
      "limit": 50,
      "tableType": "traces"
