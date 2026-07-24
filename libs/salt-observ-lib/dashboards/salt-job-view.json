@@ -369,26 +369,52 @@
  "templating": {
   "list": [
    {
-    "hide": 2,
-    "label": "",
     "name": "JID",
-    "query": "",
-    "skipUrlSync": false,
-    "type": "constant"
+    "label": "JID",
+    "type": "query",
+    "datasource": {
+     "type": "postgres",
+     "uid": "gedu-salt-pg"
+    },
+    "query": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
+    "refresh": 2,
+    "sort": 0,
+    "includeAll": false,
+    "multi": false,
+    "options": [],
+    "current": {}
    },
    {
-    "hide": 2,
     "name": "Name",
-    "query": "",
-    "skipUrlSync": false,
-    "type": "constant"
+    "label": "Job",
+    "type": "query",
+    "datasource": {
+     "type": "postgres",
+     "uid": "gedu-salt-pg"
+    },
+    "query": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
+    "refresh": 2,
+    "sort": 0,
+    "includeAll": false,
+    "multi": false,
+    "options": [],
+    "current": {}
    },
    {
-    "hide": 2,
     "name": "traceID",
-    "query": "",
-    "skipUrlSync": false,
-    "type": "constant"
+    "label": "traceID",
+    "type": "query",
+    "datasource": {
+     "type": "postgres",
+     "uid": "gedu-salt-pg"
+    },
+    "query": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
+    "refresh": 2,
+    "sort": 0,
+    "includeAll": false,
+    "multi": false,
+    "options": [],
+    "current": {}
    }
   ]
  },

@@ -1,0 +1,94 @@
+{
+ "uid": "kspan-traces",
+ "title": "Cluster Events (kspan)",
+ "schemaVersion": 39,
+ "version": 1,
+ "editable": true,
+ "tags": [
+  "kubernetes",
+  "kspan",
+  "traces",
+  "app-level"
+ ],
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "templating": {
+  "list": []
+ },
+ "links": [
+  {
+   "title": "Salt Jobs",
+   "type": "link",
+   "icon": "dashboard",
+   "url": "/d/salt-jobs-overview",
+   "keepTime": true,
+   "targetBlank": false,
+   "asDropdown": false,
+   "includeVars": false,
+   "tooltip": "Salt job observability",
+   "tags": []
+  }
+ ],
+ "panels": [
+  {
+   "id": 1,
+   "type": "traces",
+   "title": "Kubernetes object events (kspan)",
+   "datasource": {
+    "type": "tempo",
+    "uid": "newt-tempo"
+   },
+   "gridPos": {
+    "h": 12,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "tempo",
+      "uid": "newt-tempo"
+     },
+     "query": "{rootName=~\"(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)[.].*\"}",
+     "queryType": "traceql",
+     "limit": 50,
+     "tableType": "traces"
+    }
+   ],
+   "options": {}
+  },
+  {
+   "id": 2,
+   "type": "traces",
+   "title": "All recent traces (kspan + salt jobs)",
+   "datasource": {
+    "type": "tempo",
+    "uid": "newt-tempo"
+   },
+   "gridPos": {
+    "h": 12,
+    "w": 24,
+    "x": 0,
+    "y": 12
+   },
+   "targets": [
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "tempo",
+      "uid": "newt-tempo"
+     },
+     "query": "{}",
+     "queryType": "traceql",
+     "limit": 50,
+     "tableType": "traces"
+    }
+   ],
+   "options": {}
+  }
+ ]
+}
