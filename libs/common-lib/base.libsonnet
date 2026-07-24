@@ -82,6 +82,14 @@ local pctSpark = [
   ] } },
 ];
 
+// frequency sparkline (CPUs table): plain single-color trend, hertz.
+local freqSpark = [
+  { id: 'unit', value: 'hertz' },
+  { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+  { id: 'color', value: { mode: 'fixed', fixedColor: 'blue' } },
+  { id: 'custom.width', value: 110 },
+];
+
 local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
 
 local dsVar =
@@ -392,7 +400,7 @@ local gpusTable(c) =
     { id: 'seriesToColumns', options: { byField: 'key' } },
     { id: 'organize', options: {
       excludeByName: { key: true, 'Value #A': true },
-      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Value #C': 3, 'Trend #G': 4, 'Value #E': 5, 'Value #D': 6, 'Trend #B': 7 },
+      indexByName: { [nl]: 0, hardware: 1, 'Trend #F': 2, 'Trend #G': 3, 'Value #C': 4, 'Value #E': 5, 'Value #D': 6, 'Trend #B': 7 },
       renameByName: { [nl]: 'Node', hardware: 'GPU', 'Trend #F': 'Load %', 'Value #C': 'Memory', 'Trend #G': 'Mem %', 'Value #E': 'Freq', 'Value #D': 'Power', 'Trend #B': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
@@ -429,8 +437,9 @@ local cpusTable(c) =
     // x86_64, so stamp it.
     tq(c, '(sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))) or '
         + '(sum by (' + nl + ', machine) (label_replace(last_over_time(windows_os_info{' + s + '}[$__range]), "machine", "x86_64", "", "")))'),
-    tq(c, '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
-        + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
+    query.prometheus.new(c.datasource,
+      '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
+      + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
     query.prometheus.new(c.datasource,
       '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
       + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
@@ -438,12 +447,12 @@ local cpusTable(c) =
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Trend #C', 'Value #E', 'Trend #F'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Trend #C', 'Trend #E', 'Trend #F'] } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
       excludeByName: { 'Value #B': true, 'Value #D': true },
-      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Value #E': 5, 'Trend #C': 6 },
-      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Value #E': 'Freq', 'Trend #C': 'Temp' },
+      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Trend #E': 5, 'Trend #C': 6 },
+      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Trend #E': 'Freq', 'Trend #C': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -451,7 +460,7 @@ local cpusTable(c) =
     ov('CPUs', [{ id: 'custom.width', value: 60 }]),
     ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
     ov('Arch', [{ id: 'custom.width', value: 90 }]),
-    ov('Freq', [{ id: 'unit', value: 'hertz' }, { id: 'custom.width', value: 90 }]),
+    ov('Freq', freqSpark),
     ov('CPU %', pctSpark),
     ov('Temp', tempSpark),
   ]);
