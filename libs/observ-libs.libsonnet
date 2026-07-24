@@ -23,6 +23,12 @@
     kubelet: import 'libs/kubernetes-observ-lib/kubelet.libsonnet',
     cadvisor: import 'libs/cadvisor-observ-lib/main.libsonnet',
   },
+  automation: {
+    // salt jobs pack (salt-grafana architecture, Alloy edition — see
+    // libs/salt-observ-lib/README.md); salt-job-view drill-down is the
+    // ported JSON board in libs/salt-observ-lib/dashboards/.
+    salt: import 'libs/salt-observ-lib/main.libsonnet',
+  },
   databases: {
     sql: {
       postgres: import 'libs/postgres-observ-lib/main.libsonnet',
