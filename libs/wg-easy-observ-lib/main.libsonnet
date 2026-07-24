@@ -15,11 +15,11 @@ local query = import 'custom/query.libsonnet';
     local cfg = {
       uid: 'network-wireguard--wg-easy',
       dashboardTitle: 'Wireguard Controller',
-      dashboardTags: ['wireguard', 'wg-easy', 'vpn'],
+      dashboardTags: ['wireguard', 'wg-easy', 'vpn', 'cluster-level'],
       datasource: '${datasource}',
-      selector: 'job=~"$job", instance=~"$instance"',
+      selector: 'cluster=~"$cluster", job=~"$job", instance=~"$instance"',
       varMetric: 'wireguard_configured_peers',
-      varLabels: ['instance'],
+      varLabels: ['cluster', 'instance'],
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;

@@ -14,10 +14,11 @@ local query = import 'custom/query.libsonnet';
     local cfg = {
       uid: 'network-unifi-control',
       dashboardTitle: 'Unifi Controller',
-      dashboardTags: ['unifi', 'unpoller', 'network'],
+      dashboardTags: ['unifi', 'unpoller', 'network', 'cluster-level'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      selector: 'cluster=~"$cluster", job=~"$job"',
       varMetric: 'unpoller_device_info',
+      varLabels: ['cluster'],
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
