@@ -446,7 +446,7 @@ local cpusTable(c) =
       '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
       + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
     // G: active cpufreq scaling governor (linux only; windows rows stay blank)
-    tq(c, 'count by (' + nl + ', governor) (' + lot('node_cpu_scaling_governor{' + s + '}') + ' == 1)'),
+    tq(c, 'count by (' + nl + ', governor) (last_over_time(node_cpu_scaling_governor{' + s + '}[$__range]) == 1)'),
   ])
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
