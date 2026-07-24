@@ -179,14 +179,15 @@ local query = import 'custom/query.libsonnet';
       },
       {
         title: 'Zigbee Devices',
-        width: 12,
+        width: 24,
         height: 8,
         presence: { query: 'hass_device_info{integration="zha", cluster=~"$cluster"}', label: 'device_id' },
+        // element keys are laid out alphabetically — prefix to pin the order:
+        // full-width table first, mesh health below.
         elements: {
-          zigbeeDevices: devicesTable('Zigbee devices', 'integration="zha"'),
-          meshLqi: signals.meshLqi.asStat('ZHA mesh LQI'),
-          zhaLqi: signals.zhaLqi.asTimeSeries('Link quality (LQI)'),
-          zhaRssi: signals.zhaRssi.asTimeSeries('RSSI'),
+          a_zigbee_devices: devicesTable('Zigbee devices', 'integration="zha"'),
+          b_zha_lqi: signals.zhaLqi.asTimeSeries('Link quality (LQI)'),
+          c_zha_rssi: signals.zhaRssi.asTimeSeries('RSSI'),
         },
       },
       {
