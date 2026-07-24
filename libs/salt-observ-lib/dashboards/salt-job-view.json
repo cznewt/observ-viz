@@ -209,7 +209,7 @@
       "uid": "newt-mimir"
      },
      "editorMode": "builder",
-     "expr": "salt_job_duration_seconds{job_name=\"$Name\"}",
+     "expr": "salt_job_duration{job_name=\"$Name\"}",
      "format": "time_series",
      "hide": false,
      "legendFormat": "{{job_name}}",
