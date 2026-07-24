@@ -87,6 +87,26 @@ local query = import 'custom/query.libsonnet';
         ov('Failed states', [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }]),
       ]);
 
+    // Engine → Alloy → Loki/Mimir pipeline self-metrics (job="salt-events-pipeline",
+    // instance = the master host; no cluster label — one series per master).
+    local psig(name, expr, unit) =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector('job="salt-events-pipeline"').withLegendFormat('{{instance}}');
+    local pipeSignals = {
+      eventsReceived: psig('Events received', 'rate(loki_source_api_entries_written{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      eventsShipped: psig('Events shipped to Loki', 'rate(loki_write_sent_entries_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      eventsDropped: psig('Events dropped', 'rate(loki_write_dropped_entries_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      rwFailed: psig('Remote-write failed samples', 'rate(prometheus_remote_storage_samples_failed_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+    };
+
+    // Latest job traces straight from Tempo (TraceQL search; every trace id is
+    // the zero-padded jid, same ids the events/log lines link to).
+    local tracesPanel =
+      panel.traces.new('Recent job traces')
+      + panel.traces.withTargets([
+        query.base('tempo', { query: '{}', queryType: 'traceql', limit: 20, tableType: 'traces' })
+        + query.withDatasource('newt-tempo'),
+      ]);
+
     // Raw enriched event stream (jid, summary counts, traceID → Tempo derived link).
     local eventsLog =
       panel.logs.new('Job events')
@@ -131,6 +151,25 @@ local query = import 'custom/query.libsonnet';
         height: 10,
         elements: {
           eventsLog: eventsLog,
+        },
+      },
+      {
+        title: 'Traces',
+        width: 24,
+        height: 10,
+        elements: {
+          tracesPanel: tracesPanel,
+        },
+      },
+      {
+        title: 'Engine',
+        width: 12,
+        height: 7,
+        elements: {
+          eventsReceived: pipeSignals.eventsReceived.asTimeSeries('Events received (engine → alloy)'),
+          eventsShipped: pipeSignals.eventsShipped.asTimeSeries('Events shipped to Loki'),
+          eventsDropped: pipeSignals.eventsDropped.asTimeSeries('Events dropped'),
+          rwFailed: pipeSignals.rwFailed.asTimeSeries('Remote-write failed samples'),
         },
       },
     ], [
