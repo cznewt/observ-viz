@@ -445,16 +445,18 @@ local cpusTable(c) =
     query.prometheus.new(c.datasource,
       '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
       + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
+    // G: active cpufreq scaling governor (linux only; windows rows stay blank)
+    tq(c, 'count by (' + nl + ', governor) (' + lot('node_cpu_scaling_governor{' + s + '}') + ' == 1)'),
   ])
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
     { id: 'labelsToFields' },
-    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'Value #A', 'Trend #C', 'Trend #E', 'Trend #F'] } } },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'model_name', 'machine', 'governor', 'Value #A', 'Trend #C', 'Trend #E', 'Trend #F'] } } },
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
-      excludeByName: { 'Value #B': true, 'Value #D': true },
-      indexByName: { [nl]: 0, model_name: 1, 'Trend #F': 2, 'Value #A': 3, machine: 4, 'Trend #E': 5, 'Trend #C': 6 },
-      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Trend #E': 'Freq', 'Trend #C': 'Temp' },
+      excludeByName: { 'Value #B': true, 'Value #D': true, 'Value #G': true },
+      indexByName: { [nl]: 0, model_name: 1, 'Trend #F': 2, 'Value #A': 3, machine: 4, governor: 5, 'Trend #E': 6, 'Trend #C': 7 },
+      renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', governor: 'Governor', 'Trend #E': 'Freq', 'Trend #C': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
   ])
@@ -462,6 +464,7 @@ local cpusTable(c) =
     ov('CPUs', [{ id: 'custom.width', value: 60 }]),
     ov('CPU Model', [{ id: 'custom.width', value: 380 }]),
     ov('Arch', [{ id: 'custom.width', value: 90 }]),
+    ov('Governor', [{ id: 'custom.width', value: 110 }]),
     ov('Freq', freqSpark),
     ov('CPU %', pctSpark),
     ov('Temp', tempSpark),
