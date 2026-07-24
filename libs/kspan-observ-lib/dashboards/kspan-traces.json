@@ -2,20 +2,51 @@
  "uid": "kspan-traces",
  "title": "Cluster Events (kspan)",
  "schemaVersion": 39,
- "version": 2,
+ "version": 3,
  "editable": true,
  "tags": [
-  "kubernetes",
+  "cluster-level",
   "kspan",
-  "traces",
-  "app-level"
+  "kubernetes",
+  "traces"
  ],
  "time": {
   "from": "now-6h",
   "to": "now"
  },
  "templating": {
-  "list": []
+  "list": [
+   {
+    "name": "cluster",
+    "label": "Cluster",
+    "type": "custom",
+    "query": ".*,gedu-prg,newt-prg",
+    "includeAll": false,
+    "multi": false,
+    "options": [
+     {
+      "text": "All",
+      "value": ".*",
+      "selected": true
+     },
+     {
+      "text": "gedu-prg",
+      "value": "gedu-prg",
+      "selected": false
+     },
+     {
+      "text": "newt-prg",
+      "value": "newt-prg",
+      "selected": false
+     }
+    ],
+    "current": {
+     "text": "All",
+     "value": ".*",
+     "selected": true
+    }
+   }
+  ]
  },
  "links": [
   {
@@ -29,6 +60,34 @@
    "includeVars": false,
    "tooltip": "Salt job observability",
    "tags": []
+  },
+  {
+   "title": "Environment",
+   "type": "dashboards",
+   "icon": "dashboard",
+   "url": "",
+   "keepTime": true,
+   "targetBlank": false,
+   "asDropdown": true,
+   "includeVars": false,
+   "tooltip": "Environment-level boards",
+   "tags": [
+    "env-level"
+   ]
+  },
+  {
+   "title": "Cluster boards",
+   "type": "dashboards",
+   "icon": "dashboard",
+   "url": "",
+   "keepTime": true,
+   "targetBlank": false,
+   "asDropdown": true,
+   "includeVars": true,
+   "tooltip": "Boards for this cluster",
+   "tags": [
+    "cluster-level"
+   ]
   }
  ],
  "panels": [
@@ -53,7 +112,7 @@
       "type": "tempo",
       "uid": "newt-tempo"
      },
-     "query": "{ name =~ \"(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)\\\\..*\" }",
+     "query": "{ resource.cluster =~ \"$cluster\" && name =~ \"(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)\\\\..*\" }",
      "queryType": "traceql",
      "limit": 50,
      "tableType": "traces"
@@ -82,7 +141,7 @@
       "type": "tempo",
       "uid": "newt-tempo"
      },
-     "query": "{}",
+     "query": "{ resource.cluster =~ \"$cluster\" }",
      "queryType": "traceql",
      "limit": 50,
      "tableType": "traces"
