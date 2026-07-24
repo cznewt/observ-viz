@@ -245,10 +245,13 @@ local serversTable(c, capacity=false) =
   local qMemTotal =
     tq(c, '(max ' + byNode + ' (' + lot('node_memory_MemTotal_bytes{' + s + '}') + ')) or '
         + '(max ' + byNode + ' (' + lot('windows_memory_physical_total_bytes{' + s + '}') + '))');
-  // physical vs virtual via DMI product_name (QEMU/KVM/VMware patterns);
-  // windows_exporter has no DMI metric, so Windows rows stay blank.
+  // physical vs virtual via DMI product_name (QEMU/KVM/VMware patterns).
+  // Windows has no DMI metric — infer physical from a real CPU temp sensor
+  // (OhmGraphite/LibreHardwareMonitor exposes none inside VMs); boxes without
+  // sensors stay blank rather than guessing.
   local qKind =
-    tq(c, 'label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (' + lot('node_dmi_info{' + s + '}') + '), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")');
+    tq(c, '(label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (' + lot('node_dmi_info{' + s + '}') + '), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")) or '
+        + '(label_replace(group by (' + cl + ', ' + nl + ') (' + lot('ohm_cpu_celsius{' + s + '}') + ' and on(' + cl + ', ' + nl + ') ' + lot('windows_os_info{' + s + '}') + '), "kind", "physical", "", ""))');
   // vendor + product from DMI ("LENOVO Legion 5 Pro 16ACH6H"); firmware
   // garbage values fall back from product_version to product_name. Windows
   // has no DMI metric — blank there.
