@@ -25,7 +25,7 @@ Alloy edition — Vector and the flask tempo-relay are replaced by the
 ## Dashboards
 
 `dashboards/*.json` (classic schema, adapted from upstream: datasource UIDs pinned,
-`salt_duration`→`salt_job_duration_seconds`): deploy with
+`salt_duration`→`salt_job_duration`): deploy with
 
     curl -X POST "$GRAFANA_URL/api/dashboards/db" -H "Authorization: Bearer $GRAFANA_TOKEN" \
       -H "Content-Type: application/json" \

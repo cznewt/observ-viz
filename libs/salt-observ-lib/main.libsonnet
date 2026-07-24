@@ -1,7 +1,7 @@
 // observ-viz salt jobs pack (hand-written).
 // Consumes the salt-grafana-Alloy pipeline (see README.md): the saltext alloy
 // engine enriches job-return events into
-//   - salt_job_{duration_seconds,success,states_total,states_changed,states_failed}
+//   - salt_job_{duration,success,total_states,changed_states,failed_states}
 //     gauges (labels cluster/id/fun/job_name) via the master-pod Alloy, and
 //   - {job="salt_events"} Loki lines (traceID deep-links to Tempo).
 // The postgres/tempo drill-down lives in the ported salt-job-view board
@@ -39,10 +39,10 @@ local query = import 'custom/query.libsonnet';
     local signals = {
       minionsReporting: sig('Minions reporting', 'count(salt_job_success{%(queriesSelector)s})', 'short', 'minions'),
       minionsFailing: sig('Minions failing', 'count(salt_job_success{%(queriesSelector)s} == 0) or vector(0)', 'short', 'failing'),
-      statesFailed: sig('States failed', 'sum(salt_job_states_failed{%(queriesSelector)s})', 'short', 'failed'),
-      statesChanged: sig('States changed', 'sum(salt_job_states_changed{%(queriesSelector)s})', 'short', 'changed'),
-      duration: sig('Job duration', 'salt_job_duration_seconds{%(queriesSelector)s}', 's'),
-      failedByJob: sig('States failed', 'salt_job_states_failed{%(queriesSelector)s}', 'short'),
+      statesFailed: sig('States failed', 'sum(salt_job_failed_states{%(queriesSelector)s})', 'short', 'failed'),
+      statesChanged: sig('States changed', 'sum(salt_job_changed_states{%(queriesSelector)s})', 'short', 'changed'),
+      duration: sig('Job duration', 'salt_job_duration{%(queriesSelector)s}', 's'),
+      failedByJob: sig('States failed', 'salt_job_failed_states{%(queriesSelector)s}', 'short'),
       success: sig('Job success', 'salt_job_success{%(queriesSelector)s}', 'short'),
     };
 
@@ -56,7 +56,7 @@ local query = import 'custom/query.libsonnet';
     local jobsTable =
       panel.table.new('Last jobs')
       + panel.table.withTargets([
-        tq('salt_job_duration_seconds{' + cfg.selector + '}'),  // A: identity + duration
+        tq('salt_job_duration{' + cfg.selector + '}'),  // A: identity + duration
       ])
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
@@ -73,7 +73,7 @@ local query = import 'custom/query.libsonnet';
     local failingTable =
       panel.table.new('Failing (last run)')
       + panel.table.withTargets([
-        tq('salt_job_states_failed{' + cfg.selector + '} > 0'),
+        tq('salt_job_failed_states{' + cfg.selector + '} > 0'),
       ])
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
@@ -148,7 +148,7 @@ local query = import 'custom/query.libsonnet';
         ),
         alert.rule.new(
           'SaltStatesFailing',
-          'max by (cluster, id, job_name) (salt_job_states_failed' + rsBrace + ') > 0',
+          'max by (cluster, id, job_name) (salt_job_failed_states' + rsBrace + ') > 0',
           '15m',
           'warning',
           {},
