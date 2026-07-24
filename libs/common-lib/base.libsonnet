@@ -87,7 +87,6 @@ local freqSpark = [
   { id: 'unit', value: 'hertz' },
   { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
   { id: 'color', value: { mode: 'fixed', fixedColor: 'blue' } },
-  { id: 'custom.width', value: 110 },
 ];
 
 local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
@@ -451,7 +450,7 @@ local cpusTable(c) =
     { id: 'seriesToColumns', options: { byField: nl } },
     { id: 'organize', options: {
       excludeByName: { 'Value #B': true, 'Value #D': true },
-      indexByName: { [nl]: 0, 'Trend #F': 1, 'Value #A': 2, model_name: 3, machine: 4, 'Trend #E': 5, 'Trend #C': 6 },
+      indexByName: { [nl]: 0, model_name: 1, 'Trend #F': 2, 'Value #A': 3, machine: 4, 'Trend #E': 5, 'Trend #C': 6 },
       renameByName: { [nl]: 'Node', 'Trend #F': 'CPU %', 'Value #A': 'CPUs', model_name: 'CPU Model', machine: 'Arch', 'Trend #E': 'Freq', 'Trend #C': 'Temp' },
     } },
     { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
