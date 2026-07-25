@@ -34,6 +34,8 @@
     salt: import 'libs/salt-observ-lib/main.libsonnet',
     // Alcali-style per-minion highstate conformity (same gauges)
     conformity: import 'libs/salt-observ-lib/conformity.libsonnet',
+    // fleet view: minion presence + jobs + conformity tabs
+    infrastructure: import 'libs/salt-observ-lib/infrastructure.libsonnet',
   },
   databases: {
     sql: {
