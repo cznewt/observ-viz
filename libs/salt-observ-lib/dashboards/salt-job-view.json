@@ -16,55 +16,25 @@
  "templating": {
   "list": [
    {
+    "type": "textbox",
     "name": "JID",
     "label": "JID",
-    "type": "query",
-    "datasource": {
-     "type": "grafana-postgresql-datasource",
-     "uid": "gedu-salt-pg"
+    "query": "",
+    "current": {
+     "text": "",
+     "value": ""
     },
-    "query": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
-    "refresh": 1,
-    "sort": 0,
-    "includeAll": false,
-    "multi": false,
-    "options": [],
-    "current": {},
-    "definition": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100"
+    "description": "Empty = latest state job. Click a row in Recent jobs to set."
    },
    {
+    "type": "textbox",
     "name": "Name",
-    "label": "Job",
-    "type": "query",
-    "datasource": {
-     "type": "grafana-postgresql-datasource",
-     "uid": "gedu-salt-pg"
-    },
-    "query": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
-    "refresh": 1,
-    "sort": 0,
-    "includeAll": false,
-    "multi": false,
-    "options": [],
-    "current": {},
-    "definition": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'"
-   },
-   {
-    "name": "traceID",
-    "label": "traceID",
-    "type": "query",
-    "datasource": {
-     "type": "grafana-postgresql-datasource",
-     "uid": "gedu-salt-pg"
-    },
-    "query": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
-    "refresh": 1,
-    "sort": 0,
-    "includeAll": false,
-    "multi": false,
-    "options": [],
-    "current": {},
-    "definition": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value"
+    "label": "Job name",
+    "query": "highstate",
+    "current": {
+     "text": "highstate",
+     "value": "highstate"
+    }
    }
   ]
  },
@@ -84,18 +54,18 @@
  ],
  "panels": [
   {
-   "id": 1,
+   "id": 10,
    "type": "table",
-   "title": "Job states \u2014 $JID",
+   "title": "Recent jobs (click a row to inspect)",
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "gedu-salt-pg"
-   },
-   "gridPos": {
-    "h": 14,
-    "w": 12,
-    "x": 0,
-    "y": 0
    },
    "targets": [
     {
@@ -104,7 +74,94 @@
       "type": "grafana-postgresql-datasource",
       "uid": "gedu-salt-pg"
      },
-     "rawSql": "SELECT\n  key AS state,\n  (value->>'__run_num__')::int AS run,\n  CASE WHEN (value->>'result')::boolean IS NOT TRUE THEN 'failed'\n       WHEN value->'changes' IS NOT NULL AND value->'changes' != '{}'::jsonb THEN 'changed'\n       ELSE 'unchanged' END AS status,\n  round((value->>'duration')::numeric, 1) AS duration_ms,\n  value->>'comment' AS comment\nFROM salt_returns, jsonb_each(return::jsonb) AS kv(key, value)\nWHERE jid = '$JID' AND jsonb_typeof(return::jsonb) = 'object' AND jsonb_typeof(value) = 'object'\nORDER BY run",
+     "format": "table",
+     "rawSql": "SELECT j.jid AS \"JID\", COALESCE(NULLIF(j.load->'arg'->>0,''),'highstate') AS \"Job\", j.load->>'fun' AS \"Function\", to_timestamp(substring(j.jid,1,14),'YYYYMMDDHH24MISS') AS \"Started\", (SELECT count(*) FROM salt_returns r WHERE r.jid = j.jid) AS \"Returns\" FROM jids j WHERE (load->>'fun' LIKE 'state.%' OR load->>'fun' LIKE 'runner.state.%') ORDER BY j.jid DESC LIMIT 50"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "JID"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Inspect this job",
+          "url": "/d/salt-job-view?var-JID=${__data.fields.JID}&var-Name=${__data.fields.Job}"
+         }
+        ]
+       },
+       {
+        "id": "custom.width",
+        "value": 220
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Started"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeAsIso"
+       },
+       {
+        "id": "custom.width",
+        "value": 180
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Returns"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 100
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true
+   }
+  },
+  {
+   "id": 1,
+   "type": "table",
+   "title": "Job states",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "gedu-salt-pg"
+   },
+   "gridPos": {
+    "h": 14,
+    "w": 12,
+    "x": 0,
+    "y": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "gedu-salt-pg"
+     },
+     "rawSql": "SELECT\n  key AS state,\n  (value->>'__run_num__')::int AS run,\n  CASE WHEN (value->>'result')::boolean IS NOT TRUE THEN 'failed'\n       WHEN value->'changes' IS NOT NULL AND value->'changes' != '{}'::jsonb THEN 'changed'\n       ELSE 'unchanged' END AS status,\n  round((value->>'duration')::numeric, 1) AS duration_ms,\n  value->>'comment' AS comment\nFROM salt_returns, jsonb_each(return::jsonb) AS kv(key, value)\nWHERE jid = COALESCE(NULLIF('$JID',''), (SELECT MAX(jid) FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%')) AND jsonb_typeof(return::jsonb) = 'object' AND jsonb_typeof(value) = 'object'\nORDER BY run",
      "format": "table"
     }
    ],
@@ -216,7 +273,7 @@
     "h": 14,
     "w": 12,
     "x": 12,
-    "y": 0
+    "y": 8
    },
    "targets": [
     {
@@ -225,11 +282,12 @@
       "type": "tempo",
       "uid": "newt-tempo"
      },
-     "query": "$traceID",
+     "query": "000000000000$JID",
      "queryType": "traceql"
     }
    ],
-   "options": {}
+   "options": {},
+   "description": "Pick a job in Recent jobs first (trace id = zero-padded jid)."
   },
   {
    "id": 3,
@@ -243,7 +301,7 @@
     "h": 8,
     "w": 12,
     "x": 0,
-    "y": 14
+    "y": 22
    },
    "targets": [
     {
@@ -276,7 +334,7 @@
     "h": 8,
     "w": 12,
     "x": 12,
-    "y": 14
+    "y": 22
    },
    "targets": [
     {
@@ -285,7 +343,7 @@
       "type": "grafana-postgresql-datasource",
       "uid": "gedu-salt-pg"
      },
-     "rawSql": "SELECT jsonb_pretty(full_ret::jsonb) AS full_ret FROM salt_returns WHERE jid = '$JID' LIMIT 1",
+     "rawSql": "SELECT jsonb_pretty(full_ret::jsonb) AS full_ret FROM salt_returns WHERE jid = COALESCE(NULLIF('$JID',''), (SELECT MAX(jid) FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%')) LIMIT 1",
      "format": "table"
     }
    ],
