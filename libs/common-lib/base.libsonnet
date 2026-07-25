@@ -638,51 +638,106 @@ local storagePie(c) =
   home:: {
     new(config={}):
       local c = defaults + config;
-      // Clusters table: nodes + total CPUs + cluster CPU% gauge + total memory +
-      // cluster Mem% gauge + firing alerts, joined per cluster (count node_cpu idle
-      // series = cores; sum MemTotal = RAM bytes; CPU%/Mem% aggregated like the
-      // per-node Servers table, but averaged/summed across the whole cluster).
-      local clusters =
-        panel.table.new('Clusters')
-        + panel.table.withTargets([
-          tq(c, 'count((' + c.nodeMetric + clBrace(c) + ') or (' + c.windowsNodeMetric + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
-          tq(c, 'count(ALERTS{alertstate="firing"' + clAnd(c) + '}) by (' + c.clusterLabel + ')'),
-          tq(c, 'count((node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}) or (windows_cpu_time_total{mode="idle"' + clAnd(c) + '})) by (' + c.clusterLabel + ')'),
-          tq(c, 'sum((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_memory_physical_total_bytes' + clBrace(c) + ')) by (' + c.clusterLabel + ')'),
-          tq(c, '(1 - avg by (' + c.clusterLabel + ') ((rate(node_cpu_seconds_total{mode="idle"' + clAnd(c) + '}[5m])) or (rate(windows_cpu_time_total{mode="idle"' + clAnd(c) + '}[5m])))) * 100'),
-          tq(c, '(1 - sum by (' + c.clusterLabel + ') ((node_memory_MemAvailable_bytes' + clBrace(c) + ') or (windows_memory_available_bytes' + clBrace(c) + ')) / sum by (' + c.clusterLabel + ') ((node_memory_MemTotal_bytes' + clBrace(c) + ') or (windows_memory_physical_total_bytes' + clBrace(c) + '))) * 100'),
-        ])
-        + panel.table.withTransformations([
-          { id: 'labelsToFields' },
-          { id: 'filterFieldsByName', options: { include: { names: [c.clusterLabel, 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F'] } } },
-          { id: 'seriesToColumns', options: { byField: c.clusterLabel } },
-          { id: 'organize', options: {
-            indexByName: { [c.clusterLabel]: 0, 'Value #A': 1, 'Value #C': 2, 'Value #E': 3, 'Value #D': 4, 'Value #F': 5, 'Value #B': 6 },
-            renameByName: { [c.clusterLabel]: 'Cluster', 'Value #A': 'Nodes', 'Value #B': 'Alerts', 'Value #C': 'CPUs', 'Value #D': 'Memory', 'Value #E': 'CPU %', 'Value #F': 'Mem %' },
-          } },
-        ])
-        + panel.table.withOverrides([
-          ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}' }] }]),
-          ov('Memory', [{ id: 'unit', value: 'bytes' }]),
-          ov('CPU %|Mem %', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+      local cl = c.clusterLabel;
+      local nl = c.nodeLabel;
+      local s = clComma(c);  // cluster=~"$cluster" — row-scoped inside the repeat
+      local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
+      local legend(l) = { spec+: { query+: { spec+: { legendFormat: l } } } };
+
+      // summary stat for one (repeated) cluster row
+      local stat(title, expr, unit='short', decimals=0) =
+        panel.stat.new(title)
+        + panel.stat.withTargets([query.prometheus.new(c.datasource, expr)])
+        + panel.stat.withUnit(unit)
+        + panel.stat.withDecimals(decimals);
+      local pctStat(title, expr) =
+        stat(title, expr, 'percent')
+        + panel.stat.withThresholds([
+          { color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 90 },
         ]);
-      // env-wide firing/pending alert instances (its own tab).
-      local alerts = alertPanels.list('Alerts', groupMode='custom', groupBy=[c.clusterLabel]);
-      local apps =
-        countTable(
+
+      // per-node horizontal bar gauge (Linux + Windows unioned), one bar per node
+      local nodeBars(title, expr, unit, steps, max=null) =
+        panel.barGauge.new(title)
+        + panel.barGauge.withTargets([query.prometheus.new(c.datasource, expr) + legend('{{' + nl + '}}')])
+        + panel.barGauge.withOptions({
+          orientation: 'horizontal',
+          displayMode: 'basic',
+          valueMode: 'color',
+          reduceOptions: { values: false, calcs: ['lastNotNull'] },
+        })
+        + panel.barGauge.withUnit(unit)
+        + panel.barGauge.withMin(0)
+        + (if max != null then panel.barGauge.withMax(max) else {})
+        + panel.barGauge.withThresholds(steps);
+      local pctSteps = [{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 90 }];
+      local tempSteps = [{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 85 }];
+
+      local elements = {
+        // cluster summary band
+        nodes: stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))'),
+        cpus: stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))'),
+        cpuPct: pctStat('CPU %', '(1 - avg((rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])) or (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval])))) * 100'),
+        mem: stat('Memory', 'sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))', 'bytes'),
+        memPct: pctStat('Mem %', '(1 - sum((node_memory_MemAvailable_bytes{' + s + '}) or (windows_memory_available_bytes{' + s + '})) / sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))) * 100'),
+        alertsStat: stat('Alerts', 'count(ALERTS{alertstate="firing", ' + s + '}) or vector(0)')
+                    + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]),
+        // per-node band
+        barCpu: nodeBars('CPU % by node',
+          '(100 * (1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])))) or '
+          + '(100 * (1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))))', 'percent', pctSteps, 100),
+        barMem: nodeBars('Memory % by node',
+          '(100 * (1 - node_memory_MemAvailable_bytes{' + s + '} / node_memory_MemTotal_bytes{' + s + '})) or '
+          + '(100 * (1 - windows_memory_available_bytes{' + s + '} / windows_memory_physical_total_bytes{' + s + '}))', 'percent', pctSteps, 100),
+        barDisk: nodeBars('Root disk % by node',
+          '(100 - 100 * min by (' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s + '} / node_filesystem_size_bytes{mountpoint="/", ' + s + '})) or '
+          + '(100 - 100 * min by (' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s + '} / windows_logical_disk_size_bytes{volume="C:", ' + s + '}))', 'percent', pctSteps, 100),
+        barTemp: nodeBars('CPU temp by node',
+          '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
+          + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))', 'celsius', tempSteps),
+        // env-wide tabs
+        alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
+        apps: countTable(
           c, 'Applications', c.appLabel,
           'count(up{' + c.appLabel + '=~".+"' + selComma(c) + '}) by (' + c.appLabel + ')',
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+"' + selComma(c) + '}) by (' + c.appLabel + ')',
           ['App', 'Workloads', 'Alerts']
-        );
-      // tables split into their own tabs (Clusters first), Clusters full height.
-      local dash = board(c.uidHome, 'Home Dashboard', c.tags + ['env-level'], [dsVar], [
-        { title: 'Clusters', width: 24, height: 24, elements: { clusters: clusters } },
-        { title: 'Alerts', width: 24, height: 24, elements: { alerts: alerts } },
-        { title: 'Applications', width: 24, height: 12, elements: { apps: apps } },
-      ], asTabs=true)
+        ),
+      };
+
+      // one row per selected cluster (repeat over the multi cluster var):
+      // summary stats on top, per-node bar gauges underneath.
+      local clusterRow =
+        layout.rows.row('$cluster', layout.grid.new() + layout.grid.withItems([
+          grid.item('nodes', 0, 0, 4, 4),
+          grid.item('cpus', 4, 0, 4, 4),
+          grid.item('cpuPct', 8, 0, 4, 4),
+          grid.item('mem', 12, 0, 4, 4),
+          grid.item('memPct', 16, 0, 4, 4),
+          grid.item('alertsStat', 20, 0, 4, 4),
+          grid.item('barCpu', 0, 4, 6, 10),
+          grid.item('barMem', 6, 4, 6, 10),
+          grid.item('barDisk', 12, 4, 6, 10),
+          grid.item('barTemp', 18, 4, 6, 10),
+        ]))
+        + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
+
+      local dash =
+        dashboard.new('Home Dashboard')
+        + dashboard.withUid(c.uidHome)
+        + dashboard.withTags(c.tags + ['env-level'])
+        + dashboard.withVariables([dsVar, clusterVar(c, true)])
+        + dashboard.withElements(elements)
+        + dashboard.withLayout(
+          layout.tabs.new() + layout.tabs.withTabs([
+            layout.tabs.tab('Clusters', layout.rows.new() + layout.rows.withRows([clusterRow])),
+            layout.tabs.tab('Alerts', layout.grid.new() + layout.grid.withItems([grid.item('alerts', 0, 0, 24, 24)])),
+            layout.tabs.tab('Applications', layout.grid.new() + layout.grid.withItems([grid.item('apps', 0, 0, 24, 12)])),
+          ])
+        )
       + dashboard.withLinks([
         { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
+        { title: 'Cluster Detail', type: 'link', icon: 'dashboard', url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Detail of the selected cluster', tags: [] },
       ]);
       {
         config: c,
