@@ -23,7 +23,10 @@ local query = import 'custom/query.libsonnet';
       uid: 'compute-windows-overview',
       // back-link to the fleet view, keeping the selected cluster (node filter
       // reset to All so the whole cluster shows).
-      links: [{
+      links: [
+      { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+      { title: 'Node boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Node-level boards', tags: ['node-level'] },
+      {
         title: 'Cluster Detail',
         type: 'link',
         icon: 'dashboard',
