@@ -630,7 +630,7 @@ local storagePie(c) =
           ['App', 'Pods', 'Alerts']
         );
       local servers = serversTable(c);
-      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidCluster, 'Cluster Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)

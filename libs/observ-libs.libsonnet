@@ -32,6 +32,8 @@
     // libs/salt-observ-lib/README.md); salt-job-view drill-down is the
     // ported JSON board in libs/salt-observ-lib/dashboards/.
     salt: import 'libs/salt-observ-lib/main.libsonnet',
+    // Alcali-style per-minion highstate conformity (same gauges)
+    conformity: import 'libs/salt-observ-lib/conformity.libsonnet',
   },
   databases: {
     sql: {
