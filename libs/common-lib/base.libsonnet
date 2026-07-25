@@ -641,7 +641,6 @@ local storagePie(c) =
       local cl = c.clusterLabel;
       local nl = c.nodeLabel;
       local s = clComma(c);  // cluster=~"$cluster" — row-scoped inside the repeat
-      local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
       local legend(l) = { spec+: { query+: { spec+: { legendFormat: l } } } };
 
       // summary stat for one (repeated) cluster row
@@ -658,7 +657,7 @@ local storagePie(c) =
 
       // per-node horizontal bar gauge (Linux + Windows unioned), one bar per node
       local nodeBars(title, expr, unit, steps, max=null) =
-        panel.barGauge.new(title)
+        panel.barGauge.new('')
         + panel.barGauge.withTargets([query.prometheus.new(c.datasource, expr) + legend('{{' + nl + '}}')])
         + panel.barGauge.withOptions({
           orientation: 'horizontal',
@@ -669,9 +668,9 @@ local storagePie(c) =
         + panel.barGauge.withUnit(unit)
         + panel.barGauge.withMin(0)
         + (if max != null then panel.barGauge.withMax(max) else {})
-        + panel.barGauge.withThresholds(steps);
+        + panel.barGauge.withThresholds(steps)
+        + { spec+: { description: title } };
       local pctSteps = [{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 90 }];
-      local tempSteps = [{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 85 }];
 
       local elements = {
         // cluster summary band
@@ -692,9 +691,6 @@ local storagePie(c) =
         barDisk: nodeBars('Root disk % by node',
           '(100 - 100 * min by (' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s + '} / node_filesystem_size_bytes{mountpoint="/", ' + s + '})) or '
           + '(100 - 100 * min by (' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s + '} / windows_logical_disk_size_bytes{volume="C:", ' + s + '}))', 'percent', pctSteps, 100),
-        barTemp: nodeBars('CPU temp by node',
-          '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
-          + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))', 'celsius', tempSteps),
         // env-wide tabs
         alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
         apps: countTable(
@@ -715,10 +711,9 @@ local storagePie(c) =
           grid.item('mem', 12, 0, 4, 4),
           grid.item('memPct', 16, 0, 4, 4),
           grid.item('alertsStat', 20, 0, 4, 4),
-          grid.item('barCpu', 0, 4, 6, 10),
-          grid.item('barMem', 6, 4, 6, 10),
-          grid.item('barDisk', 12, 4, 6, 10),
-          grid.item('barTemp', 18, 4, 6, 10),
+          grid.item('barCpu', 0, 4, 8, 10),
+          grid.item('barMem', 8, 4, 8, 10),
+          grid.item('barDisk', 16, 4, 8, 10),
         ]))
         + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
 
