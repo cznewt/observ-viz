@@ -906,7 +906,6 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
         { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
-        { title: 'Linux host', type: 'link', icon: 'dashboard', url: '/d/' + cfg.uid, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-host Linux board', tags: [] },
       ],
     };
     local fs = fleetCfg.selector;

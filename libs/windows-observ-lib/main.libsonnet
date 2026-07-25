@@ -473,7 +473,6 @@ local query = import 'custom/query.libsonnet';
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
         { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
-        { title: 'Windows host', type: 'link', icon: 'dashboard', url: '/d/' + cfg.uid, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-host Windows board', tags: [] },
       ],
     };
     local fs = fleetCfg.selector;
