@@ -762,6 +762,7 @@ local storagePie(c) =
           ])
         )
       + dashboard.withLinks([
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
         { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
         { title: 'Cluster Detail', type: 'link', icon: 'dashboard', url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Detail of the selected cluster', tags: [] },
       ]);
@@ -787,12 +788,13 @@ local storagePie(c) =
           ['App', 'Pods', 'Alerts']
         );
       local servers = serversTable(c);
-      local dash = board(c.uidCluster, 'Cluster Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
       + dashboard.withLinks([
         { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
         { title: 'Cluster Detail', type: 'link', icon: 'dashboard', url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Detail of the selected cluster', tags: [] },
         { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for the selected cluster', tags: ['cluster-level'] },
       ]);

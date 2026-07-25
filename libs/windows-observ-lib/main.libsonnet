@@ -467,6 +467,10 @@ local query = import 'custom/query.libsonnet';
       varMulti: true,
       lokiDatasource: false,  // no logs on this board -> no Loki variable
       docTabs: false,  // Signals/Runbooks already ship on the per-host board
+      links: [
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Windows host', type: 'link', icon: 'dashboard', url: '/d/' + cfg.uid, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-host Windows board', tags: [] },
+      ],
     };
     local fs = fleetCfg.selector;
     local byNode = 'by (cluster, instance)';
