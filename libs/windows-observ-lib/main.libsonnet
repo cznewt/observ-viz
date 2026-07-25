@@ -39,7 +39,7 @@ local query = import 'custom/query.libsonnet';
       dashboardTags: ['windows', 'node-level'],
       // fleet board: every Windows host in the selected cluster(s) at once.
       fleetUid: 'compute-windows-fleet',
-      fleetTitle: 'Windows Fleet Overview',
+      fleetTitle: 'Windows Computers',
       // both boards land in Infrastructure / Compute, beside Linux Server (the
       // loader creates the nested folders). Shared by cfg + fleetCfg.
       folderUid: 'observ-viz-compute',
@@ -459,7 +459,7 @@ local query = import 'custom/query.libsonnet';
     local fleetCfg = cfg {
       uid: cfg.fleetUid,
       dashboardTitle: cfg.fleetTitle,
-      dashboardTags: ['windows', 'fleet', 'overview', 'env-level'],
+      dashboardTags: ['windows', 'fleet', 'overview', 'cluster-level'],
       // fleet-wide: cluster is multi-select (defaults to All) and there is no
       // $instance — a row's Instance cell drills into the per-host board instead.
       selector: 'job=~"$job", cluster=~"$cluster"',
@@ -469,6 +469,7 @@ local query = import 'custom/query.libsonnet';
       docTabs: false,  // Signals/Runbooks already ship on the per-host board
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
         { title: 'Windows host', type: 'link', icon: 'dashboard', url: '/d/' + cfg.uid, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-host Windows board', tags: [] },
       ],
     };
