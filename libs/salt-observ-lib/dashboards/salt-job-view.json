@@ -23,12 +23,8 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": {
-     "refId": "PgVariableQuery",
-     "rawSql": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
-     "format": "table"
-    },
-    "refresh": 2,
+    "query": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
+    "refresh": 1,
     "sort": 0,
     "includeAll": false,
     "multi": false,
@@ -44,12 +40,8 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": {
-     "refId": "PgVariableQuery",
-     "rawSql": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
-     "format": "table"
-    },
-    "refresh": 2,
+    "query": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
+    "refresh": 1,
     "sort": 0,
     "includeAll": false,
     "multi": false,
@@ -65,12 +57,8 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": {
-     "refId": "PgVariableQuery",
-     "rawSql": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
-     "format": "table"
-    },
-    "refresh": 2,
+    "query": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
+    "refresh": 1,
     "sort": 0,
     "includeAll": false,
     "multi": false,
