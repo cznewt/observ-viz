@@ -201,6 +201,22 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
       batteryPower: sig('Power draw', 'node_power_supply_power_watt{%(queriesSelector)s}', 'watt', '{{instance}} / {{power_supply}}'),
       batteryVoltage: sig('Battery voltage', 'node_power_supply_voltage_volt{%(queriesSelector)s}', 'volt', '{{instance}} / {{power_supply}}'),
 
+      // --- Updates / expiry (optional tab) ---
+      // apt_* + x509_* + batocerapkg_* come from the salt alloy formula's
+      // textfile collectors (node-textfile-metrics.timer); pacman_updates_pending
+      // is batocera's own (misc-alloy). All are "silent breakage" signals: an
+      // expired repo key or cert fails apt/kubelet long before anyone notices.
+      updatesPending: sig('Updates pending', 'sum without (origin, arch) (apt_upgrades_pending{%(queriesSelector)s}) or pacman_updates_pending{%(queriesSelector)s}', 'short'),
+      updatesByOrigin: sig('Updates by origin', 'apt_upgrades_pending{%(queriesSelector)s}', 'short', '{{origin}}'),
+      updatesSecurity: sig('Security updates', 'apt_security_upgrades_pending{%(queriesSelector)s}', 'short'),
+      updatesAutoremove: sig('Autoremovable', 'apt_autoremove_pending{%(queriesSelector)s}', 'short'),
+      rebootRequired: sig('Reboot required', 'node_reboot_required{%(queriesSelector)s}', 'short'),
+      packageListAge: sig('Package list age', 'time() - apt_package_cache_timestamp_seconds{%(queriesSelector)s}', 's'),
+      gamePackages: sig('Game packages installed', 'batocerapkg_packages_installed{%(queriesSelector)s}', 'short'),
+      gameUpdatesPending: sig('Game updates pending', 'batocerapkg_updates_pending{%(queriesSelector)s} or pacman_updates_pending{%(queriesSelector)s}', 'short'),
+      keyringExpiry: sig('Repo key expires in', 'apt_keyring_expiry_timestamp_seconds{%(queriesSelector)s} - time()', 's', '{{keyring}}'),
+      certExpiry: sig('Certificate expires in', 'x509_cert_expiry_timestamp_seconds{%(queriesSelector)s} - time()', 's', '{{subject}}'),
+
       // --- Logs (optional tab; loki journal for the node) ---
       nodeLogs: lsig('Journal', '{%(queriesSelector)s}'),
     };
@@ -821,6 +837,38 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
         },
       },
       {
+        title: 'Updates',
+        width: 12,
+        height: 7,
+        // any node carrying the textfile collectors (deb) or batocera's pacman
+        // exporter. `or` so one probe covers both fleets.
+        presence: { query: 'apt_upgrades_pending{instance=~"$instance"} or pacman_updates_pending{instance=~"$instance"} or apt_keyring_expiry_timestamp_seconds{instance=~"$instance"}', label: 'instance' },
+        elements: {
+          updPending: signals.updatesPending.asStat('Updates pending')
+                      + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 1 }, { color: 'orange', value: 25 }]),
+          updSecurity: signals.updatesSecurity.asStat('Security updates')
+                       + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'red', value: 1 }]),
+          updReboot: numStat('Reboot required', 'max(node_reboot_required{' + inst + '})', 'short')
+                     + panel.stat.withMappings([{ 'type': 'value', options: {
+                         '0': { text: 'no', color: 'green', index: 0 },
+                         '1': { text: 'REBOOT', color: 'red', index: 1 },
+                       } }]),
+          updListAge: signals.packageListAge.asStat('Package list age')
+                      + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 172800 }, { color: 'orange', value: 604800 }]),
+          updAutoremove: signals.updatesAutoremove.asStat('Autoremovable'),
+          updGamePending: signals.gameUpdatesPending.asStat('Game updates pending'),
+          // trend, so a growing backlog (or a stuck unattended-upgrades) is visible
+          updTrend: signals.updatesByOrigin.asTimeSeries('Pending updates by origin'),
+          // expiry tables: seconds remaining, red once inside the danger window
+          updKeyring: signals.keyringExpiry.asTable('Repo signing keys')
+                      + panel.table.withUnit('s')
+                      + panel.table.withThresholds([{ color: 'red', value: null }, { color: 'orange', value: 2592000 }, { color: 'green', value: 7776000 }]),
+          updCerts: signals.certExpiry.asTable('Certificates')
+                    + panel.table.withUnit('s')
+                    + panel.table.withThresholds([{ color: 'red', value: null }, { color: 'orange', value: 1814400 }, { color: 'green', value: 5184000 }]),
+        },
+      },
+      {
         title: 'Logs',
         width: 24,
         height: 10,
@@ -899,8 +947,15 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
         ftq('max ' + byNode + ' ((1 - node_filesystem_avail_bytes{' + fs + realFs + '} / node_filesystem_size_bytes{' + fs + realFs + '}) * 100)'),
         ftq('max ' + byNode + ' (node_procs_running{' + fs + '})'),
         ftq('max ' + byNode + ' (node_load1{' + fs + '})'),
+        // J/K are RANGE queries on purpose: timeSeriesTable turns each series
+        // into a "Trend #<refId>" frame column that renders as a sparkline, so
+        // a growing patch backlog is visible per host without leaving the board.
+        // `or pacman_updates_pending` folds the batocera fleet into one column.
+        query.prometheus.new(fleetCfg.datasource, 'sum ' + byNode + ' (apt_upgrades_pending{' + fs + '}) or max ' + byNode + ' (pacman_updates_pending{' + fs + '})'),
+        query.prometheus.new(fleetCfg.datasource, 'max ' + byNode + ' (apt_security_upgrades_pending{' + fs + '})'),
       ])
       + panel.table.withTransformations([
+        { id: 'timeSeriesTable', options: {} },
         { id: 'labelsToFields' },
         { id: 'filterFieldsByName', options: { include: { names: [
           'cluster',
@@ -915,6 +970,8 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
           'Value #G',
           'Value #H',
           'Value #I',
+          'Trend #J',
+          'Trend #K',
         ] } } },
         { id: 'seriesToColumns', options: { byField: 'instance' } },
         { id: 'organize', options: {
@@ -933,6 +990,8 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
             'Value #G': 9,
             'Value #H': 10,
             'Value #I': 11,
+            'Trend #J': 12,
+            'Trend #K': 13,
           },
           renameByName: {
             cluster: 'Cluster',
@@ -947,6 +1006,8 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
             'Value #G': 'Disk %',
             'Value #H': 'Processes',
             'Value #I': 'Load 1m',
+            'Trend #J': 'Updates',
+            'Trend #K': 'Security',
           },
         } },
       ])
@@ -964,6 +1025,19 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
           { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
           { id: 'min', value: 0 },
           { id: 'max', value: 100 },
+        ]),
+        // pending-patch backlog per host, as a sparkline + its current value
+        fov('^Updates$', [
+          { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+          { id: 'custom.width', value: 130 },
+          { id: 'color', value: { mode: 'fixed', fixedColor: 'blue' } },
+          { id: 'min', value: 0 },
+        ]),
+        fov('^Security$', [
+          { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+          { id: 'custom.width', value: 130 },
+          { id: 'color', value: { mode: 'fixed', fixedColor: 'red' } },
+          { id: 'min', value: 0 },
         ]),
       ]);
 
