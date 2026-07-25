@@ -676,7 +676,12 @@ local storagePie(c) =
         + panel.barGauge.withMin(0)
         + (if max != null then panel.barGauge.withMax(max) else {})
         + panel.barGauge.withThresholds(steps)
-        + { spec+: { description: title } };
+        // downward nav lives on the data: bar click -> cluster detail, scoped
+        // to the row's cluster and the clicked node
+        + { spec+: { fieldConfig+: { defaults+: { links: [{
+            title: 'Node in cluster detail',
+            url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}&var-instance=${__field.labels.' + nl + '}',
+          }] } }, description: title } };
       local pctSteps = [{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 90 }];
 
       local elements = {
