@@ -666,6 +666,11 @@ local storagePie(c) =
           displayMode: 'basic',
           valueMode: 'color',
           reduceOptions: { values: false, calcs: ['lastNotNull'] },
+          // bar height follows the node count: bars share the panel, never
+          // thinner than minVizHeight — beyond that the panel scrolls
+          sizing: 'auto',
+          minVizHeight: 18,
+          maxVizHeight: 42,
         })
         + panel.barGauge.withUnit(unit)
         + panel.barGauge.withMin(0)
