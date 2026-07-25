@@ -641,7 +641,7 @@ local storagePie(c) =
       local cl = c.clusterLabel;
       local nl = c.nodeLabel;
       local s = clComma(c);  // cluster=~"$cluster" — row-scoped inside the repeat
-      local s2 = clComma(c) + ', ' + nl + '=~"$instance"';  // node-scoped (Nodes tab rows)
+      local s2 = clComma(c) + ', ' + nl + '=~"$node"';  // node-scoped (nested node rows)
       local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
       local legend(l) = { spec+: { query+: { spec+: { legendFormat: l } } } };
 
@@ -713,45 +713,51 @@ local storagePie(c) =
         ),
       };
 
-      // one row per selected cluster (repeat over the multi cluster var):
-      // summary stats on top, per-node bar gauges underneath.
+      // nested double repeat (v2 rows nest + rows carry their own variables):
+      // outer row per cluster owns a row-local multi "node" var scoped by the
+      // row's $cluster; inner rows repeat over it, one row per node, with a
+      // show-only-if-data guard so mis-scoped clones never render.
+      local nodeLocalVar =
+        variable.query.new('node')
+        + variable.query.withLabel('Node')
+        + variable.query.withLabelValues(nl, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
+        + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent
+        + { spec+: { hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
       local clusterRow =
-        layout.rows.row('$cluster', layout.grid.new() + layout.grid.withItems([
-          grid.item('nodes', 0, 0, 4, 4),
-          grid.item('cpus', 4, 0, 4, 4),
-          grid.item('cpuPct', 8, 0, 4, 4),
-          grid.item('mem', 12, 0, 4, 4),
-          grid.item('memPct', 16, 0, 4, 4),
-          grid.item('alertsStat', 20, 0, 4, 4),
-          grid.item('barCpu', 0, 4, 8, 10),
-          grid.item('barMem', 8, 4, 8, 10),
-          grid.item('barDisk', 16, 4, 8, 10),
+        layout.rows.row('$cluster', layout.rows.new() + layout.rows.withRows([
+          layout.rows.row('', layout.grid.new() + layout.grid.withItems([
+            grid.item('nodes', 0, 0, 4, 4),
+            grid.item('cpus', 4, 0, 4, 4),
+            grid.item('cpuPct', 8, 0, 4, 4),
+            grid.item('mem', 12, 0, 4, 4),
+            grid.item('memPct', 16, 0, 4, 4),
+            grid.item('alertsStat', 20, 0, 4, 4),
+            grid.item('barCpu', 0, 4, 8, 10),
+            grid.item('barMem', 8, 4, 8, 10),
+            grid.item('barDisk', 16, 4, 8, 10),
+          ])) + { spec+: { hideHeader: true } },
+          layout.rows.row('$node', layout.grid.new() + layout.grid.withItems([
+            grid.item('nCpu', 0, 0, 4, 4),
+            grid.item('nMem', 4, 0, 4, 4),
+            grid.item('nDisk', 8, 0, 4, 4),
+            grid.item('nTemp', 12, 0, 4, 4),
+            grid.item('nUptime', 16, 0, 4, 4),
+            grid.item('nAlerts', 20, 0, 4, 4),
+          ]))
+          + { spec+: { repeat: { mode: 'variable', value: 'node' } } }
+          + layout.showIfData(),
         ]))
-        + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
-      // one row per selected node — variables evaluate globally, so a true
-      // nested repeat (nodes inside each cluster row) is not possible; the
-      // Nodes tab is the second repeat axis instead.
-      local nodeRow =
-        layout.rows.row('$instance', layout.grid.new() + layout.grid.withItems([
-          grid.item('nCpu', 0, 0, 4, 4),
-          grid.item('nMem', 4, 0, 4, 4),
-          grid.item('nDisk', 8, 0, 4, 4),
-          grid.item('nTemp', 12, 0, 4, 4),
-          grid.item('nUptime', 16, 0, 4, 4),
-          grid.item('nAlerts', 20, 0, 4, 4),
-        ]))
-        + { spec+: { repeat: { mode: 'variable', value: 'instance' } } };
+        + { spec+: { repeat: { mode: 'variable', value: 'cluster' }, variables: [nodeLocalVar] } };
 
       local dash =
         dashboard.new('Home Dashboard')
         + dashboard.withUid(c.uidHome)
         + dashboard.withTags(c.tags + ['env-level'])
-        + dashboard.withVariables([dsVar, clusterVar(c, true), instanceVar(c)])
+        + dashboard.withVariables([dsVar, clusterVar(c, true)])
         + dashboard.withElements(elements)
         + dashboard.withLayout(
           layout.tabs.new() + layout.tabs.withTabs([
             layout.tabs.tab('Clusters', layout.rows.new() + layout.rows.withRows([clusterRow])),
-            layout.tabs.tab('Nodes', layout.rows.new() + layout.rows.withRows([nodeRow])),
             layout.tabs.tab('Alerts', layout.grid.new() + layout.grid.withItems([grid.item('alerts', 0, 0, 24, 24)])),
             layout.tabs.tab('Applications', layout.grid.new() + layout.grid.withItems([grid.item('apps', 0, 0, 24, 12)])),
           ])
