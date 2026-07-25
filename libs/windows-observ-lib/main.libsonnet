@@ -38,7 +38,7 @@ local query = import 'custom/query.libsonnet';
       dashboardTitle: 'Windows Server',
       dashboardTags: ['windows', 'node-level'],
       // fleet board: every Windows host in the selected cluster(s) at once.
-      fleetUid: 'compute-windows-fleet',
+      fleetUid: 'windows-computers',
       fleetTitle: 'Windows Computers',
       // both boards land in Infrastructure / Compute, beside Linux Server (the
       // loader creates the nested folders). Shared by cfg + fleetCfg.
