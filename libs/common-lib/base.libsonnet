@@ -108,12 +108,6 @@ local instanceVar(c) =
 // hidden node-count variable: resolves to the number of nodes in the current
 // cluster+node selection (query_result + regex extract) — drives the
 // selection-sized layout buckets.
-// hidden kube-presence variable: non-empty when kube-state-metrics reports
-// nodes for the selected cluster — gates the kube-board link row.
-local hasKubeVar(c) =
-  variable.query.new('has_kube')
-  + variable.query.withLabelValues(c.clusterLabel, 'kube_node_info{' + clComma(c) + '}')
-  + { spec+: { hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
 local nodeCountVar(c) =
   variable.query.new('nodecount')
   // count_values folds the node count into label "n", so the proven
@@ -671,21 +665,16 @@ local storagePie(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c), hasKubeVar(c)], [
+      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
         // servers/cpus/gpus share one height per selection-size bucket.
         local computeStack(h) = [
           grid.item('servers', 0, 0, 24, h),
           grid.item('cpus', 0, h, 24, h),
           grid.item('gpus', 0, 2 * h, 24, h),
         ];
-        local kubeLink =
-          panel.text.new('Kubernetes')
-          + panel.text.withOptions({ mode: 'markdown', content: '### [Kubernetes cluster board \u2192](/d/observ-viz-kube-cluster?var-cluster=$cluster)\n\nkube-state-metrics is reporting for this cluster.' });
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), kubeLink: kubeLink }, buckets: {
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
           n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
-        }, extraRows: [
-          condRow([condVar('has_kube', 'notEquals', '')], [grid.item('kubeLink', 0, 0, 24, 3)]),
-        ] },
+        } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
           grid.item('nics', 0, 0, 24, 10),
           grid.item('netRx', 0, 10, 12, 8),
@@ -714,7 +703,9 @@ local storagePie(c) =
         } },
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
-      + dashboard.withLinks(clusterTraversalLinks);
+      + dashboard.withLinks(clusterTraversalLinks + [
+        { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/observ-viz-kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
+      ]);
       {
         config: c,
         grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },
