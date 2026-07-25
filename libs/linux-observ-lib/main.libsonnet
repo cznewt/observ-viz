@@ -217,7 +217,7 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
       + panel.stat.withOptions({ reduceOptions: { values: false, calcs: ['lastNotNull'] }, colorMode: 'value' })
       + panel.stat.withUnit(unit);
     local inst = 'instance=~"$instance"';
-    pack.build(cfg, signals, [
+    local main = pack.build(cfg, signals, [
       // generic system facts, mirroring the cluster-detail tables.
       {
         title: 'Overview',
@@ -835,5 +835,175 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
           nodeAlertTimeline: alertPanels.timeline('Alert state', cfg.datasource, 'instance=~"$instance"'),
         },
       },
-    ]),
+    ]);
+
+    // ── Linux Computers (fleet board): every host at once — one row per node,
+    //    drilling into the per-host board above. node_exporter mirror of the
+    //    windows-observ-lib fleet board.
+    local fleetCfg = cfg {
+      uid: 'linux-computers',
+      dashboardTitle: 'Linux Computers',
+      dashboardTags: ['linux', 'fleet', 'overview', 'cluster-level'],
+      // fleet-wide: cluster is multi-select (defaults to All) and there is no
+      // $instance — a row's Instance cell drills into the per-host board instead.
+      selector: 'job=~"$job", cluster=~"$cluster"',
+      varLabels: ['cluster'],
+      varMulti: true,
+      primaryTabTitle: 'Fleet',
+      lokiDatasource: false,  // no logs on this board -> no Loki variable
+      docTabs: false,  // Signals/Runbooks already ship on the per-host board
+      links: [
+        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Linux host', type: 'link', icon: 'dashboard', url: '/d/' + cfg.uid, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-host Linux board', tags: [] },
+      ],
+    };
+    local fs = fleetCfg.selector;
+    local byNode = 'by (cluster, instance)';
+    // pseudo-filesystems must not drive the fleet's max() disk column
+    local realFs = ', fstype!~"tmpfs|ramfs|overlay|squashfs|iso9660"';
+
+    local fsig(name, expr, unit, legend='{{instance}}') =
+      signal.new(name, 'prometheus', fleetCfg.datasource, expr, unit).filteringSelector(fs).withLegendFormat(legend);
+    // instant table query (labels -> columns, one Value per target), as in common-lib/base.
+    local ftq(expr) =
+      query.prometheus.new(fleetCfg.datasource, expr)
+      + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
+    local fov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+
+    local fleetSignals = {
+      fCpu: fsig('CPU utilisation', '1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", %(queriesSelector)s}[$__rate_interval]))', 'percentunit'),
+      fMem: fsig('Memory utilisation', '1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{%(queriesSelector)s}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{%(queriesSelector)s})', 'percentunit'),
+      fNetSent: fsig('Network sent', 'max ' + byNode + ' (rate(node_network_transmit_bytes_total{%(queriesSelector)s, device!~"lo|veth.*"}[$__rate_interval]))', 'Bps', '{{instance}} / sent'),
+      fNetRecv: fsig('Network received', 'max ' + byNode + ' (rate(node_network_receive_bytes_total{%(queriesSelector)s, device!~"lo|veth.*"}[$__rate_interval]))', 'Bps', '{{instance}} / received'),
+      fDiskRead: fsig('Disk read', 'max ' + byNode + ' (rate(node_disk_read_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} / read'),
+      fDiskWrite: fsig('Disk write', 'max ' + byNode + ' (rate(node_disk_written_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} / write'),
+      fDiskReadIops: fsig('Disk read IOPS', 'max ' + byNode + ' (rate(node_disk_reads_completed_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', '{{instance}} / read'),
+      fDiskWriteIops: fsig('Disk write IOPS', 'max ' + byNode + ' (rate(node_disk_writes_completed_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', '{{instance}} / write'),
+    };
+
+    // one row per host, joined from instant queries. A carries no value — it is
+    // here for its nodename (hostname) / pretty_name (OS) labels only.
+    local fleetTable =
+      panel.table.new('Servers')
+      + panel.table.withTargets([
+        ftq('node_uname_info{' + fs + '} * on (cluster, instance) group_left(pretty_name) node_os_info{' + fs + '}'),
+        ftq('max ' + byNode + ' (time() - node_boot_time_seconds{' + fs + '})'),
+        ftq('count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + fs + '})'),
+        ftq('(1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + fs + '}[$__rate_interval]))) * 100'),
+        ftq('max ' + byNode + ' (node_memory_MemTotal_bytes{' + fs + '})'),
+        ftq('(1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + fs + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + fs + '})) * 100'),
+        ftq('max ' + byNode + ' ((1 - node_filesystem_avail_bytes{' + fs + realFs + '} / node_filesystem_size_bytes{' + fs + realFs + '}) * 100)'),
+        ftq('max ' + byNode + ' (node_procs_running{' + fs + '})'),
+        ftq('max ' + byNode + ' (node_load1{' + fs + '})'),
+      ])
+      + panel.table.withTransformations([
+        { id: 'labelsToFields' },
+        { id: 'filterFieldsByName', options: { include: { names: [
+          'cluster',
+          'instance',
+          'nodename',
+          'pretty_name',
+          'Value #B',
+          'Value #C',
+          'Value #D',
+          'Value #E',
+          'Value #F',
+          'Value #G',
+          'Value #H',
+          'Value #I',
+        ] } } },
+        { id: 'seriesToColumns', options: { byField: 'instance' } },
+        { id: 'organize', options: {
+          // the join repeats the cluster column once per extra target.
+          excludeByName: { 'Value #A': true } + { ['cluster ' + i]: true for i in std.range(2, 9) },
+          indexByName: {
+            cluster: 0,
+            instance: 1,
+            nodename: 2,
+            pretty_name: 3,
+            'Value #B': 4,
+            'Value #C': 5,
+            'Value #D': 6,
+            'Value #E': 7,
+            'Value #F': 8,
+            'Value #G': 9,
+            'Value #H': 10,
+            'Value #I': 11,
+          },
+          renameByName: {
+            cluster: 'Cluster',
+            instance: 'Instance',
+            nodename: 'Hostname',
+            pretty_name: 'OS',
+            'Value #B': 'Uptime',
+            'Value #C': 'Cores',
+            'Value #D': 'CPU %',
+            'Value #E': 'Memory',
+            'Value #F': 'Mem %',
+            'Value #G': 'Disk %',
+            'Value #H': 'Processes',
+            'Value #I': 'Load 1m',
+          },
+        } },
+      ])
+      + panel.table.withOverrides([
+        // drill straight to the per-host board, carrying cluster + datasource.
+        fov('^Instance$', [{ id: 'links', value: [{
+          title: 'Drill into ${__value.raw}',
+          url: '/d/' + cfg.uid + '?var-cluster=${__data.fields["Cluster"]}&var-instance=${__value.raw}&${datasource:queryparam}',
+        }] }]),
+        fov('^Uptime$', [{ id: 'unit', value: 'dtdurations' }]),
+        fov('^Memory$', [{ id: 'unit', value: 'bytes' }]),
+        fov('^Load 1m$', [{ id: 'decimals', value: 2 }]),
+        fov('CPU %|Mem %|Disk %', [
+          { id: 'unit', value: 'percent' },
+          { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
+          { id: 'min', value: 0 },
+          { id: 'max', value: 100 },
+        ]),
+      ]);
+
+    local fts(title, targets, unit) =
+      panel.timeSeries.new(title)
+      + panel.timeSeries.withTargets(targets)
+      + panel.timeSeries.withUnit(unit);
+
+    local fleet = pack.build(fleetCfg, fleetSignals, [
+      {
+        title: 'Fleet',
+        width: 24,
+        height: 12,
+        elements: { servers: fleetTable },
+      },
+      {
+        title: 'Utilisation',
+        width: 12,
+        height: 7,
+        elements: {
+          fleetCpu: fleetSignals.fCpu.asTimeSeries('CPU utilisation by host'),
+          fleetMem: fleetSignals.fMem.asTimeSeries('Memory utilisation by host'),
+        },
+      },
+      {
+        title: 'Traffic',
+        width: 8,
+        height: 7,
+        elements: {
+          fleetNet: fts('Network by host (busiest NIC)', [fleetSignals.fNetSent.asTarget(), fleetSignals.fNetRecv.asTarget()], 'Bps'),
+          fleetDiskBytes: fts('Disk read/write by host', [fleetSignals.fDiskRead.asTarget(), fleetSignals.fDiskWrite.asTarget()], 'Bps'),
+          fleetDiskIops: fts('Disk IO by host', [fleetSignals.fDiskReadIops.asTarget(), fleetSignals.fDiskWriteIops.asTarget()], 'iops'),
+        },
+      },
+    ], [], []);
+
+    // expose both boards; render-lib emits every entry in grafana.dashboards.
+    main {
+      grafana+: {
+        dashboards: {
+          [cfg.uid + '.json']: main.grafana.dashboard,
+          [fleetCfg.uid + '.json']: fleet.grafana.dashboard,
+        },
+      },
+    },
 }
