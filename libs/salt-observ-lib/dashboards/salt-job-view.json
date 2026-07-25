@@ -2,7 +2,7 @@
  "uid": "salt-job-view",
  "title": "Salt / Job View",
  "schemaVersion": 39,
- "version": 1,
+ "version": 2,
  "editable": true,
  "tags": [
   "salt",
@@ -23,13 +23,18 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
+    "query": {
+     "refId": "PgVariableQuery",
+     "rawSql": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100",
+     "format": "table"
+    },
     "refresh": 2,
     "sort": 0,
     "includeAll": false,
     "multi": false,
     "options": [],
-    "current": {}
+    "current": {},
+    "definition": "SELECT DISTINCT jid AS __value FROM salt_returns WHERE fun LIKE 'state.%' OR fun LIKE 'runner.state.%' ORDER BY __value DESC LIMIT 100"
    },
    {
     "name": "Name",
@@ -39,13 +44,18 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
+    "query": {
+     "refId": "PgVariableQuery",
+     "rawSql": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'",
+     "format": "table"
+    },
     "refresh": 2,
     "sort": 0,
     "includeAll": false,
     "multi": false,
     "options": [],
-    "current": {}
+    "current": {},
+    "definition": "SELECT COALESCE(NULLIF(load->'arg'->>0,''),'highstate') AS __value FROM jids WHERE jid = '$JID'"
    },
    {
     "name": "traceID",
@@ -55,13 +65,18 @@
      "type": "grafana-postgresql-datasource",
      "uid": "gedu-salt-pg"
     },
-    "query": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
+    "query": {
+     "refId": "PgVariableQuery",
+     "rawSql": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value",
+     "format": "table"
+    },
     "refresh": 2,
     "sort": 0,
     "includeAll": false,
     "multi": false,
     "options": [],
-    "current": {}
+    "current": {},
+    "definition": "SELECT LPAD(REPLACE('$JID','_',''), 32, '0') AS __value"
    }
   ]
  },
