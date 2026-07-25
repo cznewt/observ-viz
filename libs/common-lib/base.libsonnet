@@ -649,12 +649,12 @@ local storagePie(c) =
         panel.stat.new(title)
         + panel.stat.withTargets([query.prometheus.new(c.datasource, expr)])
         + panel.stat.withUnit(unit)
-        + panel.stat.withDecimals(decimals)
-        // every stat in a cluster row links into that cluster's detail
-        + { spec+: { fieldConfig+: { defaults+: { links: [{
-            title: 'Cluster detail',
-            url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}',
-          }] } } } };
+        + panel.stat.withDecimals(decimals);
+      // data link on a stat (v2 path: vizConfig.spec.fieldConfig)
+      local dlink(url) = { spec+: { vizConfig+: { spec+: { fieldConfig+: { defaults+: { links: [{ title: 'Open', url: url }] } } } } } };
+      // cluster rows drill into the row's cluster; node rows into the node
+      local clusterLink = dlink('/d/' + c.uidClusterDetail + '?var-cluster=${cluster}');
+      local nodeLink = dlink('/d/' + c.uidClusterDetail + '?var-cluster=${__field.labels.' + cl + '}&var-instance=${__field.labels.' + nl + '}');
       local pctStat(title, expr) =
         stat(title, expr, 'percent')
         + panel.stat.withThresholds([
@@ -664,22 +664,22 @@ local storagePie(c) =
 
       local elements = {
         // cluster summary band
-        nodes: stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))'),
-        cpus: stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))'),
-        cpuPct: pctStat('CPU %', '(1 - avg((rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])) or (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval])))) * 100'),
-        mem: stat('Memory', 'sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))', 'bytes'),
-        memPct: pctStat('Mem %', '(1 - sum((node_memory_MemAvailable_bytes{' + s + '}) or (windows_memory_available_bytes{' + s + '})) / sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))) * 100'),
+        nodes: stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))') + clusterLink,
+        cpus: stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))') + clusterLink,
+        cpuPct: pctStat('CPU %', '(1 - avg((rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])) or (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval])))) * 100') + clusterLink,
+        mem: stat('Memory', 'sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))', 'bytes') + clusterLink,
+        memPct: pctStat('Mem %', '(1 - sum((node_memory_MemAvailable_bytes{' + s + '}) or (windows_memory_available_bytes{' + s + '})) / sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))) * 100') + clusterLink,
         alertsStat: stat('Alerts', 'count(ALERTS{alertstate="firing", ' + s + '}) or vector(0)')
-                    + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]),
+                    + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]) + clusterLink,
         // per-node stats (Nodes tab, row-repeated over $instance)
-        nCpu: pctStat('CPU %', '(100 * (1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s2 + '}[$__rate_interval])))) or (100 * (1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s2 + '}[$__rate_interval]))))'),
-        nMem: pctStat('Mem %', '(100 * (1 - node_memory_MemAvailable_bytes{' + s2 + '} / node_memory_MemTotal_bytes{' + s2 + '})) or (100 * (1 - windows_memory_available_bytes{' + s2 + '} / windows_memory_physical_total_bytes{' + s2 + '}))'),
-        nDisk: pctStat('Root disk %', '(100 - 100 * min by (' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s2 + '} / node_filesystem_size_bytes{mountpoint="/", ' + s2 + '})) or (100 - 100 * min by (' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s2 + '} / windows_logical_disk_size_bytes{volume="C:", ' + s2 + '}))'),
-        nTemp: stat('CPU temp', '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s2 + '})) or (max by (' + nl + ') (ohm_cpu_celsius{' + s2 + '}))', 'celsius')
-               + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 85 }]),
-        nUptime: stat('Uptime', '(max by (' + nl + ') (time() - node_boot_time_seconds{' + s2 + '})) or (max by (' + nl + ') (time() - windows_system_boot_time_timestamp{' + s2 + '}))', 's')
-                 + panel.stat.withDecimals(1),
-        nAlerts: stat('Alerts', 'count(ALERTS{alertstate="firing", ' + s2 + '}) or vector(0)')
+        nCpu: pctStat('CPU %', '(100 * (1 - avg by (' + cl + ', ' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s2 + '}[$__rate_interval])))) or (100 * (1 - avg by (' + cl + ', ' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s2 + '}[$__rate_interval]))))') + nodeLink,
+        nMem: pctStat('Mem %', '(100 * (1 - node_memory_MemAvailable_bytes{' + s2 + '} / node_memory_MemTotal_bytes{' + s2 + '})) or (100 * (1 - windows_memory_available_bytes{' + s2 + '} / windows_memory_physical_total_bytes{' + s2 + '}))') + nodeLink,
+        nDisk: pctStat('Root disk %', '(100 - 100 * min by (' + cl + ', ' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s2 + '} / node_filesystem_size_bytes{mountpoint="/", ' + s2 + '})) or (100 - 100 * min by (' + cl + ', ' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s2 + '} / windows_logical_disk_size_bytes{volume="C:", ' + s2 + '}))') + nodeLink,
+        nTemp: stat('CPU temp', '(max by (' + cl + ', ' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s2 + '})) or (max by (' + cl + ', ' + nl + ') (ohm_cpu_celsius{' + s2 + '}))', 'celsius')
+               + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 85 }]) + nodeLink,
+        nUptime: stat('Uptime', '(max by (' + cl + ', ' + nl + ') (time() - node_boot_time_seconds{' + s2 + '})) or (max by (' + cl + ', ' + nl + ') (time() - windows_system_boot_time_timestamp{' + s2 + '}))', 's')
+                 + panel.stat.withDecimals(1) + nodeLink,
+        nAlerts: stat('Alerts', 'count by (' + cl + ', ' + nl + ') (ALERTS{alertstate="firing", ' + s2 + '}) or vector(0)')
                  + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]),
         // env-wide tabs
         alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
