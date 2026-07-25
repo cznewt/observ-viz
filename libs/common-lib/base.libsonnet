@@ -641,8 +641,6 @@ local storagePie(c) =
       local cl = c.clusterLabel;
       local nl = c.nodeLabel;
       local s = clComma(c);  // cluster=~"$cluster" — row-scoped inside the repeat
-      local s2 = clComma(c) + ', ' + nl + '=~"$instance"';  // node-scoped (Nodes tab rows)
-      local cpuChips = '.*coretemp.*|.*k10temp.*|.*zenpower.*|.*cpu_thermal.*|pci0000:00_0000:00:18_3';
       local legend(l) = { spec+: { query+: { spec+: { legendFormat: l } } } };
 
       // summary stat for one (repeated) cluster row
@@ -650,7 +648,12 @@ local storagePie(c) =
         panel.stat.new(title)
         + panel.stat.withTargets([query.prometheus.new(c.datasource, expr)])
         + panel.stat.withUnit(unit)
-        + panel.stat.withDecimals(decimals);
+        + panel.stat.withDecimals(decimals)
+        // every stat in a cluster row links into that cluster's detail
+        + { spec+: { fieldConfig+: { defaults+: { links: [{
+            title: 'Cluster detail',
+            url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}',
+          }] } } } };
       local pctStat(title, expr) =
         stat(title, expr, 'percent')
         + panel.stat.withThresholds([
@@ -703,16 +706,6 @@ local storagePie(c) =
         barDisk: nodeBars('Root disk % by node',
           '(100 - 100 * min by (' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s + '} / node_filesystem_size_bytes{mountpoint="/", ' + s + '})) or '
           + '(100 - 100 * min by (' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s + '} / windows_logical_disk_size_bytes{volume="C:", ' + s + '}))', 'percent', pctSteps, 100),
-        // per-node stats (Nodes tab, row-repeated over $instance)
-        nCpu: pctStat('CPU %', '(100 * (1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s2 + '}[$__rate_interval])))) or (100 * (1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s2 + '}[$__rate_interval]))))'),
-        nMem: pctStat('Mem %', '(100 * (1 - node_memory_MemAvailable_bytes{' + s2 + '} / node_memory_MemTotal_bytes{' + s2 + '})) or (100 * (1 - windows_memory_available_bytes{' + s2 + '} / windows_memory_physical_total_bytes{' + s2 + '}))'),
-        nDisk: pctStat('Root disk %', '(100 - 100 * min by (' + nl + ') (node_filesystem_avail_bytes{mountpoint="/", ' + s2 + '} / node_filesystem_size_bytes{mountpoint="/", ' + s2 + '})) or (100 - 100 * min by (' + nl + ') (windows_logical_disk_free_bytes{volume="C:", ' + s2 + '} / windows_logical_disk_size_bytes{volume="C:", ' + s2 + '}))'),
-        nTemp: stat('CPU temp', '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s2 + '})) or (max by (' + nl + ') (ohm_cpu_celsius{' + s2 + '}))', 'celsius')
-               + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 85 }]),
-        nUptime: stat('Uptime', '(max by (' + nl + ') (time() - node_boot_time_seconds{' + s2 + '})) or (max by (' + nl + ') (time() - windows_system_boot_time_timestamp{' + s2 + '}))', 's')
-                 + panel.stat.withDecimals(1),
-        nAlerts: stat('Alerts', 'count(ALERTS{alertstate="firing", ' + s2 + '}) or vector(0)')
-                 + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]),
         // env-wide tabs
         alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
         apps: countTable(
@@ -738,37 +731,22 @@ local storagePie(c) =
           grid.item('barDisk', 16, 4, 8, 10),
         ]))
         + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
-      // one row per selected node — variables evaluate globally, so a true
-      // nested repeat (nodes inside each cluster row) is not possible; the
-      // Nodes tab is the second repeat axis instead.
-      local nodeRow =
-        layout.rows.row('$instance', layout.grid.new() + layout.grid.withItems([
-          grid.item('nCpu', 0, 0, 4, 4),
-          grid.item('nMem', 4, 0, 4, 4),
-          grid.item('nDisk', 8, 0, 4, 4),
-          grid.item('nTemp', 12, 0, 4, 4),
-          grid.item('nUptime', 16, 0, 4, 4),
-          grid.item('nAlerts', 20, 0, 4, 4),
-        ]))
-        + { spec+: { repeat: { mode: 'variable', value: 'instance' } } };
 
       local dash =
         dashboard.new('Home Dashboard')
         + dashboard.withUid(c.uidHome)
         + dashboard.withTags(c.tags + ['env-level'])
-        + dashboard.withVariables([dsVar, clusterVar(c, true), instanceVar(c)])
+        + dashboard.withVariables([dsVar, clusterVar(c, true)])
         + dashboard.withElements(elements)
         + dashboard.withLayout(
           layout.tabs.new() + layout.tabs.withTabs([
             layout.tabs.tab('Clusters', layout.rows.new() + layout.rows.withRows([clusterRow])),
-            layout.tabs.tab('Nodes', layout.rows.new() + layout.rows.withRows([nodeRow])),
             layout.tabs.tab('Alerts', layout.grid.new() + layout.grid.withItems([grid.item('alerts', 0, 0, 24, 24)])),
             layout.tabs.tab('Applications', layout.grid.new() + layout.grid.withItems([grid.item('apps', 0, 0, 24, 12)])),
           ])
         )
       + dashboard.withLinks([
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Clusters', type: 'link', icon: 'dashboard', url: '/d/' + c.uidCluster, keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All clusters overview', tags: [] },
       ]);
       {
         config: c,
