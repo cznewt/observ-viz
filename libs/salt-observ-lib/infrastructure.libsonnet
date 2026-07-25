@@ -51,7 +51,18 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
       online: sig('Online', 'count(salt_minion_online{%(queriesSelector)s} == 1) or vector(0)', 'short', 'online'),
       offline: sig('Offline', 'count(salt_minion_online{%(queriesSelector)s} == 0) or vector(0)', 'short', 'offline'),
       onlineTrend: sig('Online minions', 'count by (cluster) (salt_minion_online{%(queriesSelector)s} == 1) or vector(0)', 'short', '{{cluster}}'),
+      statusSeries: sig('Minion status', 'salt_minion_online{%(queriesSelector)s}', 'short', '{{cluster}} · {{id}}'),
     };
+
+    // one row per cluster/minion, online/offline over the dashboard range
+    local statusTimeline =
+      panel.stateTimeline.new('Minion status timeline')
+      + panel.stateTimeline.withTargets([signals.statusSeries.asTarget()])
+      + panel.stateTimeline.withOptions({ showValue: 'never', mergeValues: true, rowHeight: 0.8, legend: { showLegend: true, displayMode: 'list', placement: 'bottom' } })
+      + panel.stateTimeline.withMappings([{ type: 'value', options: {
+        '0': { text: 'offline', color: 'red' },
+        '1': { text: 'online', color: 'green' },
+      } }]);
 
     local tq(expr) =
       query.prometheus.new(cfg.datasource, expr)
@@ -104,11 +115,11 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
         },
       },
       {
-        title: 'Trend',
+        title: 'Timeline',
         width: 24,
-        height: 7,
+        height: 14,
         elements: {
-          onlineTrend: signals.onlineTrend.asTimeSeries('Online minions'),
+          statusTimeline: statusTimeline,
         },
       },
     ], [
