@@ -642,6 +642,8 @@ local storagePie(c) =
       ], asTabs=true)
       + dashboard.withLinks([
         { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
+        { title: 'Cluster Detail', type: 'link', icon: 'dashboard', url: '/d/' + c.uidClusterDetail + '?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Detail of the selected cluster', tags: [] },
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for the selected cluster', tags: ['cluster-level'] },
       ]);
       {
         config: c,
