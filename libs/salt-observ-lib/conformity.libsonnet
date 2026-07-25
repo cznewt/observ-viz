@@ -2,9 +2,9 @@
 // Alcali-style conformity view over the salt_job_* gauges (see main.libsonnet):
 // per minion, the LAST highstate (job_name="highstate") within the dashboard
 // range decides the bucket —
-//   conform      failed == 0 && changed == 0
-//   changed      failed == 0 && changed  > 0
-//   non-conform  failed  > 0
+//   conform      success && failed == 0 && changed == 0
+//   changed      success && failed == 0 && changed  > 0   (drift / would-change)
+//   non-conform  failed > 0 || !success (crashed, rejected by concurrent run)
 // last_over_time($__range) keeps minions visible whose highstate ran days ago
 // (the gauges themselves only hold the latest run).
 // Usage:
@@ -40,12 +40,19 @@ local query = import 'custom/query.libsonnet';
     local sig(name, expr, unit, legend='{{id}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
 
+    // per-minion aggregates (bare label sets so and/or match cleanly);
+    // "bad" = failed states OR the job itself did not succeed (crashed,
+    // rejected by a concurrent run, ...)
+    local agg(m) = 'max by (cluster, id) (' + (lotq % m) + ')';
+    local F = agg('salt_job_failed_states');
+    local S = agg('salt_job_success');
+    local C = agg('salt_job_changed_states');
     local signals = {
-      minions: sig('Minions', 'count(' + (lotq % 'salt_job_total_states') + ')', 'short', 'minions'),
-      conform: sig('Conform', 'count((' + (lotq % 'salt_job_failed_states') + ' == 0) and (' + (lotq % 'salt_job_changed_states') + ' == 0)) or vector(0)', 'short', 'conform'),
-      changed: sig('Changed', 'count((' + (lotq % 'salt_job_failed_states') + ' == 0) and (' + (lotq % 'salt_job_changed_states') + ' > 0)) or vector(0)', 'short', 'changed'),
-      nonconform: sig('Non-conform', 'count(' + (lotq % 'salt_job_failed_states') + ' > 0) or vector(0)', 'short', 'non-conform'),
-      conformityPct: sig('Conformity', '100 * (count(' + (lotq % 'salt_job_failed_states') + ' == 0) or vector(0)) / count(' + (lotq % 'salt_job_failed_states') + ')', 'percent', 'conformity'),
+      minions: sig('Minions', 'count(' + S + ')', 'short', 'minions'),
+      conform: sig('Conform', 'count(((' + F + ') == 0) and ((' + S + ') == 1) and ((' + C + ') == 0)) or vector(0)', 'short', 'conform'),
+      changed: sig('Changed', 'count(((' + C + ') > 0) and ((' + F + ') == 0) and ((' + S + ') == 1)) or vector(0)', 'short', 'changed'),
+      nonconform: sig('Non-conform', 'count(((' + F + ') > 0) or ((' + S + ') == 0)) or vector(0)', 'short', 'non-conform'),
+      conformityPct: sig('Conformity', '100 * (count(((' + F + ') == 0) and ((' + S + ') == 1)) or vector(0)) / count(' + S + ')', 'percent', 'conformity'),
       failedByMinion: sig('Failed states', lotq % 'salt_job_failed_states', 'short'),
       changedByMinion: sig('Changed states', lotq % 'salt_job_changed_states', 'short'),
       durationByMinion: sig('Highstate duration', lotq % 'salt_job_duration', 's'),
@@ -62,18 +69,21 @@ local query = import 'custom/query.libsonnet';
     local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
     local conformityTable =
       panel.table.new('Conformity by minion')
+      // join key is cluster/id — a bare id is NOT fleet-unique (both site
+      // masters are id="master")
       + panel.table.withTargets([
-        tq('sum by (cluster, id) (' + lot('salt_job_total_states') + ')'),  // A: identity + totals
-        tq('sum by (id) (2 * (' + lot('salt_job_failed_states') + ' > bool 0) + (' + lot('salt_job_changed_states') + ' > bool 0) * (' + lot('salt_job_failed_states') + ' == bool 0))'),  // B: status
-        tq('sum by (id) (' + lot('salt_job_changed_states') + ')'),  // C: changed
-        tq('sum by (id) (' + lot('salt_job_failed_states') + ')'),  // D: failed
-        tq('sum by (id) (' + lot('salt_job_duration') + ')'),  // E: duration
+        tq('label_join(sum by (cluster, id) (' + lot('salt_job_total_states') + '), "key", "/", "cluster", "id")'),  // A: identity + totals
+        tq('sum by (key) (label_join(2 * clamp_max((' + lot('salt_job_failed_states') + ' > bool 0) + (' + lot('salt_job_success') + ' == bool 0), 1) + (' + lot('salt_job_changed_states') + ' > bool 0) * (' + lot('salt_job_failed_states') + ' == bool 0) * (' + lot('salt_job_success') + ' == bool 1), "key", "/", "cluster", "id"))'),  // B: status (2 bad / 1 changed / 0 conform)
+        tq('sum by (key) (label_join(' + lot('salt_job_changed_states') + ', "key", "/", "cluster", "id"))'),  // C: changed
+        tq('sum by (key) (label_join(' + lot('salt_job_failed_states') + ', "key", "/", "cluster", "id"))'),  // D: failed
+        tq('sum by (key) (label_join(' + lot('salt_job_duration') + ', "key", "/", "cluster", "id"))'),  // E: duration
       ])
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
-        { id: 'filterFieldsByName', options: { include: { names: ['cluster', 'id', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E'] } } },
-        { id: 'seriesToColumns', options: { byField: 'id' } },
+        { id: 'filterFieldsByName', options: { include: { names: ['cluster', 'id', 'key', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E'] } } },
+        { id: 'seriesToColumns', options: { byField: 'key' } },
         { id: 'organize', options: {
+          excludeByName: { key: true },
           indexByName: { cluster: 0, id: 1, 'Value #B': 2, 'Value #A': 3, 'Value #C': 4, 'Value #D': 5, 'Value #E': 6 },
           renameByName: { cluster: 'Cluster', id: 'Minion', 'Value #B': 'Status', 'Value #A': 'States', 'Value #C': 'Changed', 'Value #D': 'Failed', 'Value #E': 'Duration' },
         } },
@@ -139,7 +149,7 @@ local query = import 'custom/query.libsonnet';
       alert.rule.group('salt-conformity', [
         alert.rule.new(
           'SaltMinionNonConformant',
-          'max by (cluster, id) (salt_job_failed_states{job_name="highstate"' + (if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '') + '}) > 0',
+          '(max by (cluster, id) (salt_job_failed_states{job_name="highstate"' + (if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '') + '}) > 0) or (max by (cluster, id) (salt_job_success{job_name="highstate"' + (if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '') + '}) == 0)',
           '1h',
           'warning',
           {},
