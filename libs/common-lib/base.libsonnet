@@ -464,6 +464,82 @@ local cpusTable(c) =
     ov('Temp', tempSpark),
   ]);
 
+// Batteries table (clusterDetail Compute tab): physical nodes with a real
+// battery — Linux powersupplyclass (BAT*/battery; HID peripheral batteries
+// excluded) unioned with Windows OhmGraphite battery sensors. Charge as a
+// gauge, Health = full-charge vs design capacity (energy Wh, charge Ah or
+// 100-degradation — whichever the node exposes), capacity/cycles/draw/AC.
+// Diskless clusters simply render an empty table.
+local batteriesTable(c) =
+  local nl = c.nodeLabel;
+  local s = clComma(c) + ', ' + nl + '=~"$instance"';
+  local bat = 'power_supply=~"BAT.*|battery"';
+  local lotr(m, sel) = 'max by (' + nl + ') (last_over_time(' + m + '{' + sel + ', ' + s + '}[$__range]))';
+  panel.table.new('Batteries')
+  + panel.table.withTargets([
+    // A: charge percent
+    tq(c, '(' + lotr('node_power_supply_capacity', bat) + ') or (' + lotr('ohm_battery_level_percent', 'sensor="Charge Level"') + ')'),
+    // B: health % (full vs design)
+    tq(c, '(100 * (' + lotr('node_power_supply_energy_full', bat) + ') / (' + lotr('node_power_supply_energy_full_design', bat) + ')) or '
+        + '(100 * (' + lotr('node_power_supply_charge_full', bat) + ') / (' + lotr('node_power_supply_charge_full_design', bat) + ')) or '
+        + '(100 - (' + lotr('ohm_battery_level_percent', 'sensor="Degradation Level"') + '))'),
+    // C: full-charge capacity (Wh; Ah-only linux batteries stay blank)
+    tq(c, '(' + lotr('node_power_supply_energy_full', bat) + ') or (' + lotr('ohm_battery_watt_hours', 'sensor="Fully-Charged Capacity"') + ')'),
+    // D: design capacity (Wh)
+    tq(c, '(' + lotr('node_power_supply_energy_full_design', bat) + ') or (' + lotr('ohm_battery_watt_hours', 'sensor="Designed Capacity"') + ')'),
+    // E: charge cycles (linux only)
+    tq(c, lotr('node_power_supply_cyclecount', bat)),
+    // F: draw/charge rate sparkline
+    query.prometheus.new(c.datasource,
+      '(max by (' + nl + ') (node_power_supply_power_watt{' + bat + ', ' + s + '})) or '
+      + '(max by (' + nl + ') (ohm_battery_watts{sensor="Charge/Discharge Rate", ' + s + '}))'),
+    // G: on AC (linux only)
+    tq(c, 'max by (' + nl + ') (last_over_time(node_power_supply_online{power_supply=~"AC.*|ADP.*", ' + s + '}[$__range]))'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: [nl, 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Trend #F', 'Value #G'] } } },
+    { id: 'seriesToColumns', options: { byField: nl } },
+    { id: 'organize', options: {
+      indexByName: { [nl]: 0, 'Value #A': 1, 'Value #B': 2, 'Value #C': 3, 'Value #D': 4, 'Value #E': 5, 'Trend #F': 6, 'Value #G': 7 },
+      renameByName: { [nl]: 'Node', 'Value #A': 'Charge', 'Value #B': 'Health', 'Value #C': 'Capacity', 'Value #D': 'Design', 'Value #E': 'Cycles', 'Trend #F': 'Power', 'Value #G': 'AC' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Node', desc: false }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('Charge', [
+      { id: 'unit', value: 'percent' }, { id: 'custom.width', value: 180 },
+      { id: 'min', value: 0 }, { id: 'max', value: 100 }, { id: 'decimals', value: 0 },
+      { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
+      { id: 'thresholds', value: { mode: 'absolute', steps: [
+        { color: 'red', value: null }, { color: 'yellow', value: 20 }, { color: 'green', value: 50 },
+      ] } },
+    ]),
+    ov('Health', [
+      { id: 'unit', value: 'percent' }, { id: 'custom.width', value: 90 }, { id: 'decimals', value: 0 },
+      { id: 'custom.cellOptions', value: { type: 'color-text' } },
+      { id: 'thresholds', value: { mode: 'absolute', steps: [
+        { color: 'red', value: null }, { color: 'yellow', value: 70 }, { color: 'green', value: 85 },
+      ] } },
+    ]),
+    ov('Capacity', [{ id: 'unit', value: 'watth' }, { id: 'custom.width', value: 100 }, { id: 'decimals', value: 1 }]),
+    ov('Design', [{ id: 'unit', value: 'watth' }, { id: 'custom.width', value: 100 }, { id: 'decimals', value: 1 }]),
+    ov('Cycles', [{ id: 'custom.width', value: 80 }]),
+    ov('Power', [
+      { id: 'unit', value: 'watt' },
+      { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme' } },
+      { id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } },
+    ]),
+    ov('AC', [
+      { id: 'custom.width', value: 90 },
+      { id: 'mappings', value: [{ type: 'value', options: {
+        '1': { text: 'AC', color: 'green' }, '0': { text: 'battery', color: 'orange' },
+      } }] },
+      { id: 'custom.cellOptions', value: { type: 'color-text' } },
+    ]),
+  ]);
+
 // physical Disks table (clusterDetail Storage tab): drive name + temperature.
 // Linux: node_hwmon nvme/drivetemp chips (composite sensor temp1; chip id as
 // the name — node_exporter has no model label). Windows: OhmGraphite
@@ -671,8 +747,9 @@ local storagePie(c) =
           grid.item('servers', 0, 0, 24, h),
           grid.item('cpus', 0, h, 24, h),
           grid.item('gpus', 0, 2 * h, 24, h),
+          grid.item('batteries', 0, 3 * h, 24, h),
         ];
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c) }, buckets: {
+        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), batteries: batteriesTable(c) }, buckets: {
           n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
         } },
         { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
