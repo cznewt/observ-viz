@@ -40,10 +40,10 @@
  },
  "links": [
   {
-   "title": "Salt Jobs",
+   "title": "Salt Infrastructure",
    "type": "link",
    "icon": "dashboard",
-   "url": "/d/salt-jobs-overview",
+   "url": "/d/salt-infrastructure",
    "keepTime": true,
    "targetBlank": false,
    "asDropdown": false,

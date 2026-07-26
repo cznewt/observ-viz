@@ -29,8 +29,6 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       links: [
-        { title: 'Salt Jobs', type: 'link', icon: 'dashboard', url: '/d/salt-jobs-overview?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'All jobs / engine / traces', tags: [] },
-        { title: 'Conformity', type: 'link', icon: 'dashboard', url: '/d/salt-conformity?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-minion highstate conformity', tags: [] },
         { title: 'Job view (states / return / trace)', type: 'link', icon: 'doc', url: '/d/salt-job-view', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-job drill-down: states, full return, Tempo trace', tags: [] },
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
         { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
@@ -41,8 +39,10 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
 
     // the sibling packs expose their raw panels via grafana.elements — their
     // queries filter on $cluster/$id/${datasource}, which this board defines too
-    local jobs = jobsPack.new({}).grafana.elements;
-    local conf = confPack.new({}).grafana.elements;
+    local jobsLib = jobsPack.new({});
+    local confLib = confPack.new({});
+    local jobs = jobsLib.grafana.elements;
+    local conf = confLib.grafana.elements;
 
     local sig(name, expr, unit, legend='{{id}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(s).withLegendFormat(legend);
@@ -92,7 +92,7 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
           } }] },
           { id: 'custom.cellOptions', value: { type: 'color-background', mode: 'basic' } },
         ]),
-        ov('Minion', [{ id: 'links', value: [{ title: 'Salt jobs for this minion', url: '/d/salt-jobs-overview?var-cluster=${__data.fields.Cluster}&var-id=${__data.fields.Minion}' }] }]),
+        ov('Minion', [{ id: 'links', value: [{ title: 'Salt jobs for this minion', url: '/d/' + cfg.uid + '?var-cluster=${__data.fields.Cluster}&var-id=${__data.fields.Minion}' }] }]),
       ]);
 
     pack.build(cfg, signals, [
@@ -136,27 +136,52 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
           }
         ),
       ]),
-    ], [], [
+    ] + jobsLib.prometheus.alerts + confLib.prometheus.alerts, [], [
       {
         title: 'Jobs',
-        width: 24,
+        width: 12,
         height: 9,
         presence: { query: 'salt_job_success{cluster=~"$cluster"}', label: 'id' },
+        // element keys are laid out alphabetically — prefix to pin the order
         elements: {
-          a_jobs: jobs.jobsTable,
-          b_failing: jobs.failingTable,
-          c_duration: jobs.duration,
-          d_failed: jobs.failedByJob,
+          a_minionsReporting: jobs.minionsReporting,
+          b_minionsFailing: jobs.minionsFailing,
+          c_statesFailed: jobs.statesFailed,
+          d_statesChanged: jobs.statesChanged,
+          e_jobs: jobs.jobsTable,
+          f_failing: jobs.failingTable,
+          g_duration: jobs.duration,
+          h_failed: jobs.failedByJob,
+          i_events: jobs.eventsLog,
+          j_traces: jobs.tracesPanel,
         },
       },
       {
         title: 'Conformity',
-        width: 24,
-        height: 11,
+        width: 12,
+        height: 9,
         presence: { query: 'salt_job_success{job_name="highstate", cluster=~"$cluster"}', label: 'id' },
         elements: {
-          a_conformity: conf.conformityTable,
-          b_trend: conf.a_conformityPct,
+          a_minions: conf.minions,
+          b_conform: conf.conform,
+          c_changed: conf.changed,
+          d_nonconform: conf.nonconform,
+          e_conformity: conf.conformityTable,
+          f_pct: conf.a_conformityPct,
+          g_failed: conf.b_failed,
+          h_changed: conf.c_changed,
+        },
+      },
+      {
+        title: 'Pipeline',
+        width: 12,
+        height: 7,
+        presence: { query: 'salt_job_success{cluster=~"$cluster"}', label: 'id' },
+        elements: {
+          a_eventsReceived: jobs.eventsReceived,
+          b_eventsShipped: jobs.eventsShipped,
+          c_eventsDropped: jobs.eventsDropped,
+          d_rwFailed: jobs.rwFailed,
         },
       },
     ]),

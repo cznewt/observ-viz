@@ -111,7 +111,7 @@ local query = import 'custom/query.libsonnet';
         ]),
         ov('States', [{ id: 'custom.width', value: 100 }]),
         ov('Duration', [{ id: 'unit', value: 's' }, { id: 'custom.width', value: 110 }]),
-        ov('Minion', [{ id: 'links', value: [{ title: 'Salt jobs for this minion', url: '/d/salt-jobs-overview?var-cluster=${__data.fields.Cluster}&var-id=${__data.fields.Minion}' }] }]),
+        ov('Minion', [{ id: 'links', value: [{ title: 'Salt jobs for this minion', url: '/d/salt-infrastructure?var-cluster=${__data.fields.Cluster}&var-id=${__data.fields.Minion}' }] }]),
       ]);
 
     pack.build(cfg, signals, [
