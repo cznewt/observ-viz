@@ -105,9 +105,9 @@ local query = import 'custom/query.libsonnet';
     local tracesPanel =
       panel.traces.new('Recent job traces')
       + panel.traces.withTargets([
-        // scope to salt job traces: kspan emits far more spans and an
-        // unfiltered {} search crowds them out of the result window
-        query.base('tempo', { query: '{ span.jid != "" && resource.cluster =~ "$cluster" }', queryType: 'traceql', limit: 20, tableType: 'traces' })
+        // state runs only (upstream salt-grafana traced state.apply/highstate,
+        // not every job) — and kspan's stream would crowd out an unfiltered {}
+        query.base('tempo', { query: '{ span.fun =~ "state\\..*" && resource.cluster =~ "$cluster" }', queryType: 'traceql', limit: 20, tableType: 'traces' })
         + query.withDatasource('newt-tempo'),
       ]);
 
