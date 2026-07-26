@@ -677,7 +677,15 @@ local storagePie(c) =
         ]);
 
 
+      // explicit drill line at the top of each repeated cluster row: the stat
+      // data links only surface when you click the value itself
+      local clusterDrill =
+        panel.text.new('')
+        + panel.text.withOptions({ mode: 'markdown', content:
+          '#### $cluster &nbsp; [Cluster detail →](/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all)'
+          + ' &nbsp;·&nbsp; [Nodes →](/d/' + c.uidCluster + '?var-cluster=$cluster)' });
       local elements = {
+        clusterDrill: clusterDrill,
         // cluster summary band
         nodes: stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))') + clusterLink,
         cpus: stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))') + clusterLink,
@@ -710,12 +718,13 @@ local storagePie(c) =
       // summary stats on top, per-node bar gauges underneath.
       local clusterRow =
         layout.rows.row('$cluster', layout.grid.new() + layout.grid.withItems([
-          grid.item('nodes', 0, 0, 4, 4),
-          grid.item('cpus', 4, 0, 4, 4),
-          grid.item('cpuPct', 8, 0, 4, 4),
-          grid.item('mem', 12, 0, 4, 4),
-          grid.item('memPct', 16, 0, 4, 4),
-          grid.item('alertsStat', 20, 0, 4, 4),
+          grid.item('clusterDrill', 0, 0, 24, 3),
+          grid.item('nodes', 0, 3, 4, 4),
+          grid.item('cpus', 4, 3, 4, 4),
+          grid.item('cpuPct', 8, 3, 4, 4),
+          grid.item('mem', 12, 3, 4, 4),
+          grid.item('memPct', 16, 3, 4, 4),
+          grid.item('alertsStat', 20, 3, 4, 4),
         ]))
         + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
       // one row per selected node — variables evaluate globally, so a true
