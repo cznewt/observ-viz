@@ -853,7 +853,7 @@ local storagePie(c) =
         { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
       + dashboard.withLinks(clusterTraversalLinks + [
-        { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/observ-viz-kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
+        { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
       ]);
       {
         config: c,

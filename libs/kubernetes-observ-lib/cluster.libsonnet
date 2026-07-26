@@ -16,7 +16,7 @@ local query = import 'custom/query.libsonnet';
 {
   new(config={}):
     local cfg = {
-      uid: 'observ-viz-kube-cluster',
+      uid: 'kube-cluster',
       dashboardTitle: 'Kubernetes cluster',
       dashboardTags: ['kubernetes', 'cluster', 'cluster-level'],
       links: [
