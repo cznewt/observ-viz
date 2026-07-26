@@ -313,7 +313,10 @@ local serversTable(c, capacity=false) =
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
-         ov('Cluster', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}' }] }]),
+         ov('Cluster', [{ id: 'links', value: [
+           { title: 'Cluster detail (this node)', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=${__data.fields["Node"]}' },
+           { title: 'Cluster detail (all nodes)', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' },
+         ] }]),
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
        ])
@@ -761,7 +764,6 @@ local storagePie(c) =
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
       + dashboard.withLinks([
-        { title: 'Home', type: 'link', icon: 'dashboard', url: '/d/' + c.uidHome + '', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Environment home', tags: [] },
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
       ]);
       {
