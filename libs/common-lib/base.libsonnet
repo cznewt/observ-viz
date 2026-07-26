@@ -296,7 +296,14 @@ local serversTable(c, capacity=false) =
     // drill link: cluster comes from the dashboard variable (single value on the
     // detail board; on the multi-cluster overview "All" still resolves the node
     // via the fleet-unique var-instance).
-    [ov('Node', [{ id: 'links', value: [{ title: '${__value.raw}', url: '/d/${__data.fields["Board"]}?${cluster:queryparam}&var-instance=${__value.raw}' }] }])]
+    // capacity flavor has no Cluster column (single-select board) -> the
+    // dashboard variable is the cluster; the overview carries the row's own
+    // cluster instead, since its $cluster is multi/All.
+    [ov('Node', [{ id: 'links', value: [{
+      title: '${__value.raw}',
+      url: '/d/${__data.fields["Board"]}?var-instance=${__value.raw}&' +
+           (if capacity then '${cluster:queryparam}' else 'var-cluster=${__data.fields["Cluster"]}'),
+    }] }])]
     + (if capacity then [
          ov('CPU %|Mem %', pctSpark),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
