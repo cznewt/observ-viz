@@ -105,7 +105,9 @@ local query = import 'custom/query.libsonnet';
     local tracesPanel =
       panel.traces.new('Recent job traces')
       + panel.traces.withTargets([
-        query.base('tempo', { query: '{}', queryType: 'traceql', limit: 20, tableType: 'traces' })
+        // scope to salt job traces: kspan emits far more spans and an
+        // unfiltered {} search crowds them out of the result window
+        query.base('tempo', { query: '{ span.jid != "" && resource.cluster =~ "$cluster" }', queryType: 'traceql', limit: 20, tableType: 'traces' })
         + query.withDatasource('newt-tempo'),
       ]);
 
