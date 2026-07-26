@@ -288,7 +288,10 @@ local serversTable(c, capacity=false) =
         renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
       } else {
         excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7 },
+        // every field needs an explicit index — unindexed ones (the excluded
+        // join-suffixed cluster copies) otherwise take the low slots and push
+        // the real Cluster column out of first place
+        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7, 'Value #A': 8, 'Value #E': 9, [cl + ' 2']: 10, [cl + ' 3']: 11, [cl + ' 4']: 12, [cl + ' 5']: 13 },
         renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
       } },
   ])
@@ -320,10 +323,12 @@ local serversTable(c, capacity=false) =
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
          ov('Memory', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
        ] else [
-         ov('Cluster', [{ id: 'links', value: [
-           { title: 'Cluster detail (this node)', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=${__data.fields["Node"]}' },
-           { title: 'Cluster detail (all nodes)', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' },
-         ] }]),
+         // single link: multiple links turn the cell into a popup menu instead
+         // of a plain clickable value
+         ov('Cluster', [
+           { id: 'links', value: [{ title: 'Cluster detail', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' }] },
+           { id: 'custom.width', value: 150 },
+         ]),
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
          ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
        ])
