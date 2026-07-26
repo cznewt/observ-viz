@@ -25,6 +25,7 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
       selector: 'cluster=~"$cluster", master=~"$master", id=~"$id"',
       varMetric: 'salt_minion_online',
       varLabels: ['cluster', 'master', 'id'],
+      lokiDatasource: true,  // the Jobs tab's events panel reads ${loki_datasource}
       primaryTabTitle: 'Minions',
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
