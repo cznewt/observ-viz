@@ -106,8 +106,10 @@ local query = import 'custom/query.libsonnet';
       panel.traces.new('Recent job traces')
       + panel.traces.withTargets([
         // state runs only (upstream salt-grafana traced state.apply/highstate,
-        // not every job) — and kspan's stream would crowd out an unfiltered {}
-        query.base('tempo', { query: '{ span.fun =~ "state\\\\..*" && resource.cluster =~ "$cluster" }', queryType: 'traceql', limit: 20, tableType: 'traces' })
+        // not every job) — and kspan's stream would crowd out an unfiltered {}.
+        // :pipe, not $cluster: a multi-value var interpolates as {a,b} in this
+        // string context, which is not a regex and silently matches nothing.
+        query.base('tempo', { query: '{ span.fun =~ "state\\\\..*" && resource.cluster =~ "${cluster:pipe}" }', queryType: 'traceql', limit: 20, tableType: 'traces' })
         + query.withDatasource('newt-tempo'),
       ]);
 
