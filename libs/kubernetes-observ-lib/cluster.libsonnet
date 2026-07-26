@@ -27,6 +27,7 @@ local query = import 'custom/query.libsonnet';
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster"',
       varMetric: 'kube_node_info',
+      tracesDatasource: 'newt-tempo',  // site Tempo (kspan + salt job spans)
       varLabels: ['cluster'],
       varMulti: false,
       podBoardUid: 'observ-viz-kube-pod',  // per-row drill target
@@ -264,6 +265,15 @@ local query = import 'custom/query.libsonnet';
         ov('Capacity', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 100 }]),
       ]);
 
+    // Tempo traces panel (TraceQL search) — same shape as the standalone
+    // kspan board, scoped to this board's $cluster.
+    local tracesPanel(title, traceql) =
+      panel.traces.new(title)
+      + panel.traces.withTargets([
+        query.base('tempo', { query: traceql, queryType: 'traceql', limit: 50, tableType: 'traces' })
+        + query.withDatasource(cfg.tracesDatasource),
+      ]);
+
     pack.build(cfg, signals, [
       {
         title: 'Overview',
@@ -296,5 +306,22 @@ local query = import 'custom/query.libsonnet';
         },
       },
       { title: 'Storage', width: 24, height: 7, elements: { pvcs: pvcTable } },
-    ], alerts, rules),
+    ], alerts, rules, [
+      // kspan turns k8s object events into OTLP spans (component/kspan ->
+      // the site's Alloy -> Tempo); the tab shows only where kspan is running,
+      // gated on its deployment being reported by kube-state-metrics.
+      {
+        title: 'Cluster Events',
+        width: 24,
+        height: 11,
+        presence: { query: 'kube_deployment_status_replicas_available{deployment="kspan", cluster=~"$cluster"}', label: 'cluster' },
+        elements: {
+          a_kspanObjects: tracesPanel(
+            'Kubernetes object events (kspan)',
+            '{ resource.cluster =~ "$cluster" && name =~ "(Deployment|Pod|ReplicaSet|StatefulSet|DaemonSet|Job|Service|Node)\\..*" }'
+          ),
+          b_kspanAll: tracesPanel('All recent traces (kspan + salt jobs)', '{ resource.cluster =~ "$cluster" }'),
+        },
+      },
+    ]),
 }
