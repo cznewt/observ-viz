@@ -13,6 +13,7 @@
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local query = import 'custom/query.libsonnet';
@@ -375,6 +376,16 @@ local query = import 'custom/query.libsonnet';
       ]),
     ], [
       // optional tabs — render only when their metrics/logs are present.
+      {
+        title: 'Share',
+        width: 12,
+        height: 7,
+        presence: { query: 'syncthing_connections_active{instance=~"$instance"}', label: 'instance' },
+        // syncthing observ-lib panels, scoped to this host (see the linux board)
+        elements:
+          local st = syncthingLib.new({ datasource: cfg.datasource, selector: 'instance=~"$instance"', docTabs: false }).grafana.elements;
+          { ['st_' + k]: st[k] for k in std.objectFields(st) if std.substr(k, 0, 4) != 'doc_' },
+      },
       {
         title: 'Workload',
         width: 12,

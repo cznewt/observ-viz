@@ -13,6 +13,7 @@ local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local query = import 'custom/query.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
+local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
 
 {
   new(config={}):
@@ -809,6 +810,17 @@ local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
           batteryPower: signals.batteryPower.asTimeSeries('Power draw'),
           batteryVoltage: signals.batteryVoltage.asTimeSeries('Battery voltage'),
         },
+      },
+      {
+        title: 'Share',
+        width: 12,
+        height: 7,
+        presence: { query: 'syncthing_connections_active{instance=~"$instance"}', label: 'instance' },
+        // panels from the syncthing observ-lib, scoped to this node — the pack's
+        // own $job var means syncthing there, which is not this board's $job
+        elements:
+          local st = syncthingLib.new({ datasource: cfg.datasource, selector: 'instance=~"$instance"', docTabs: false }).grafana.elements;
+          { ['st_' + k]: st[k] for k in std.objectFields(st) if std.substr(k, 0, 4) != 'doc_' },
       },
       {
         title: 'Services',
