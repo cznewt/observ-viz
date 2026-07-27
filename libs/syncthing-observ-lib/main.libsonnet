@@ -20,9 +20,9 @@ local query = import 'custom/query.libsonnet';
       ],
       docTabs: true,
       datasource: '${datasource}',
-      selector: 'job=~"$job", instance=~"$instance"',
+      selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'syncthing_connections_active',
-      varLabels: ['instance'],
+      varLabels: ['cluster', 'instance'],
       ruleSelector: '',
     } + config;
 
@@ -39,7 +39,7 @@ local query = import 'custom/query.libsonnet';
       connectionsActive: sig('Active connections', 'syncthing_connections_active{%(queriesSelector)s} * on (instance, device) group_left(name) syncthing_config_device_info{%(queriesSelector)s}', 'short', '{{instance}} / {{name}}'),
       sentBytes: sig('Sent', 'rate(syncthing_protocol_sent_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
       recvBytes: sig('Received', 'rate(syncthing_protocol_recv_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{device}}'),
-      folderState: sig('Folder state', 'syncthing_model_folder_state{%(queriesSelector)s}', 'short', '{{instance}} / {{folder}}'),
+      folderState: sig('Folder state', 'syncthing_model_folder_state{%(queriesSelector)s}', 'short', '{{cluster}} / {{instance}} / {{folder}}'),
       folderProcessed: sig('Folder processed', 'rate(syncthing_model_folder_processed_bytes_total{%(queriesSelector)s}[$__rate_interval])', 'Bps', '{{instance}} / {{folder}}'),
       conflicts: sig('Conflicts', 'sum by (instance, folder) (rate(syncthing_model_folder_conflicts_total{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{instance}} / {{folder}}'),
       pullSeconds: sig('Pull time', 'rate(syncthing_model_folder_pull_seconds_total{%(queriesSelector)s}[$__rate_interval])', 's', '{{instance}} / {{folder}}'),
@@ -56,7 +56,7 @@ local query = import 'custom/query.libsonnet';
       query.prometheus.new(cfg.datasource, expr)
       + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
     local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
-    local jk = '"key", "|", "instance", "folder"';
+    local jk = '"key", "|", "cluster", "instance", "folder"';
     local sum(t, scope='local') =
       'sum by (key) (label_join(syncthing_model_folder_summary{scope="' + scope + '", type="' + t + '", ' + cfg.selector + '}, ' + jk + '))';
     local foldersTable =
@@ -72,19 +72,19 @@ local query = import 'custom/query.libsonnet';
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
         { id: 'filterFieldsByName', options: { include: { names: [
-          'key', 'instance', 'folder', 'label', 'path', 'type', 'paused',
+          'key', 'cluster', 'instance', 'folder', 'label', 'path', 'type', 'paused',
           'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F',
         ] } } },
         { id: 'seriesToColumns', options: { byField: 'key' } },
         { id: 'organize', options: {
           excludeByName: { key: true, 'Value #A': true, folder: true },
           indexByName: {
-            instance: 0, label: 1, path: 2, type: 3, 'Value #F': 4, 'Value #C': 5,
-            'Value #D': 6, 'Value #B': 7, 'Value #E': 8, paused: 9,
-            key: 10, folder: 11, 'Value #A': 12,
+            cluster: 0, instance: 1, label: 2, path: 3, type: 4, 'Value #F': 5, 'Value #C': 6,
+            'Value #D': 7, 'Value #B': 8, 'Value #E': 9, paused: 10,
+            key: 11, folder: 12, 'Value #A': 13,
           },
           renameByName: {
-            instance: 'Host', label: 'Folder', path: 'Path', type: 'Mode',
+            cluster: 'Cluster', instance: 'Host', label: 'Folder', path: 'Path', type: 'Mode',
             'Value #F': 'State', 'Value #C': 'Files', 'Value #D': 'Dirs',
             'Value #B': 'Local size', 'Value #E': 'Global size', paused: 'Paused',
           },
@@ -92,6 +92,7 @@ local query = import 'custom/query.libsonnet';
         { id: 'sortBy', options: { sort: [{ field: 'Host', desc: false }] } },
       ])
       + panel.table.withOverrides([
+        ov('^Cluster$', [{ id: 'custom.width', value: 120 }]),
         ov('^Folder$', [{ id: 'custom.width', value: 190 }]),
         ov('^Path$', [{ id: 'custom.width', value: 220 }]),
         ov('^Mode$|^Paused$', [{ id: 'custom.width', value: 110 }]),
