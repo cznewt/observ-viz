@@ -1,0 +1,1870 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A standalone Jsonnet library for generating Grafana dashboard schema v2 resources — slim core, lots of mixins.">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Signals -> exporters/collectors - observ-viz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#signals-exporterscollectors" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="observ-viz" class="md-header__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            observ-viz
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Signals -&gt; exporters/collectors
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="observ-viz" class="md-nav__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    observ-viz
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & justfiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packs (mixins)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observ-libs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chart types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference & scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backstage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backstage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples & local Grafana
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../render/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-lib container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runbooks/node/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks (node)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        alerts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetescadvisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kubernetes.cadvisor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetescluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kubernetes.cluster
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetespod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kubernetes.pod
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#systemdocker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        system.docker
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#systemlinux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        system.linux
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#systemwindows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        system.windows
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="signals-exporterscollectors">Signals -&gt; exporters/collectors<a class="headerlink" href="#signals-exporterscollectors" title="Permanent link">&para;</a></h1>
+<p>Which exporter/collector(s) can supply each observ-lib signal (multiple = cross-OS/exporter union).</p>
+<h2 id="alerts">alerts<a class="headerlink" href="#alerts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>critical</td>
+<td><code>ALERTS</code></td>
+<td><a href="../alerting/">alerting/alerts</a></td>
+</tr>
+<tr>
+<td>firing</td>
+<td><code>ALERTS</code></td>
+<td><a href="../alerting/">alerting/alerts</a></td>
+</tr>
+<tr>
+<td>info</td>
+<td><code>ALERTS</code></td>
+<td><a href="../alerting/">alerting/alerts</a></td>
+</tr>
+<tr>
+<td>warning</td>
+<td><code>ALERTS</code></td>
+<td><a href="../alerting/">alerting/alerts</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="kubernetescadvisor">kubernetes.cadvisor<a class="headerlink" href="#kubernetescadvisor" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpuSystem</td>
+<td><code>container_cpu_system_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cpuThrottleRatio</td>
+<td><code>container_cpu_cfs_periods_total</code><br><code>container_cpu_cfs_throttled_periods_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cpuThrottling</td>
+<td><code>container_cpu_cfs_throttled_periods_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cpuUsage</td>
+<td><code>container_cpu_usage_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cpuUser</td>
+<td><code>container_cpu_user_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskReadIops</td>
+<td><code>container_fs_reads_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskReads</td>
+<td><code>container_fs_reads_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskWriteIops</td>
+<td><code>container_fs_writes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskWrites</td>
+<td><code>container_fs_writes_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memCache</td>
+<td><code>container_memory_cache</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memRss</td>
+<td><code>container_memory_rss</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memSwap</td>
+<td><code>container_memory_swap</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memUsage</td>
+<td><code>container_memory_usage_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memWorkingSet</td>
+<td><code>container_memory_working_set_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>specMemLimit</td>
+<td><code>container_spec_memory_limit_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="kubernetescluster">kubernetes.cluster<a class="headerlink" href="#kubernetescluster" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>apiserverErrors</td>
+<td><code>apiserver_request_total</code></td>
+<td><a href="../apiserver/">apiserver/apiserver</a></td>
+</tr>
+<tr>
+<td>apiserverInflight</td>
+<td><code>apiserver_current_inflight_requests</code></td>
+<td><a href="../apiserver/">apiserver/apiserver</a></td>
+</tr>
+<tr>
+<td>apiserverRate</td>
+<td><code>apiserver_request_total</code></td>
+<td><a href="../apiserver/">apiserver/apiserver</a></td>
+</tr>
+<tr>
+<td>kubeletErrors</td>
+<td><code>kubelet_runtime_operations_errors_total</code></td>
+<td><a href="../kubelet/">kubelet/kubelet</a></td>
+</tr>
+<tr>
+<td>kubeletPods</td>
+<td><code>kubelet_running_pods</code></td>
+<td><a href="../kubelet/">kubelet/kubelet</a></td>
+</tr>
+<tr>
+<td>workqueueAdds</td>
+<td><code>workqueue_adds_total</code></td>
+<td><a href="../apiserver/">apiserver/workqueue</a></td>
+</tr>
+<tr>
+<td>workqueueDepth</td>
+<td><code>workqueue_depth</code></td>
+<td><a href="../apiserver/">apiserver/workqueue</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="kubernetespod">kubernetes.pod<a class="headerlink" href="#kubernetespod" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>containersReady</td>
+<td><code>kube_pod_container_status_ready</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>containersWaiting</td>
+<td><code>kube_pod_container_status_waiting</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>cpuLimits</td>
+<td><code>kube_pod_container_resource_limits</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>cpuRequests</td>
+<td><code>kube_pod_container_resource_requests</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>cpuThrottled</td>
+<td><code>container_cpu_cfs_periods_total</code><br><code>container_cpu_cfs_throttled_periods_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cpuUsage</td>
+<td><code>container_cpu_usage_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>cronjobActive</td>
+<td><code>kube_cronjob_status_active</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>deployAvailable</td>
+<td><code>kube_deployment_status_replicas_available</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>deployDesired</td>
+<td><code>kube_deployment_spec_replicas</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>deployUnavailable</td>
+<td><code>kube_deployment_status_replicas_unavailable</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>dsDesired</td>
+<td><code>kube_daemonset_status_desired_number_scheduled</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>dsReady</td>
+<td><code>kube_daemonset_status_number_ready</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>dsUnavailable</td>
+<td><code>kube_daemonset_status_number_unavailable</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>fsReads</td>
+<td><code>container_fs_reads_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>fsWrites</td>
+<td><code>container_fs_writes_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>jobActive</td>
+<td><code>kube_job_status_active</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>jobFailed</td>
+<td><code>kube_job_status_failed</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>jobSucceeded</td>
+<td><code>kube_job_status_succeeded</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>memCache</td>
+<td><code>container_memory_cache</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memLimits</td>
+<td><code>kube_pod_container_resource_limits</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>memRequests</td>
+<td><code>kube_pod_container_resource_requests</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>memRss</td>
+<td><code>container_memory_rss</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memWorkingSet</td>
+<td><code>container_memory_working_set_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>phase</td>
+<td><code>kube_pod_status_phase</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>pvcCapacity</td>
+<td><code>kube_persistentvolumeclaim_resource_requests_storage_bytes</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>pvcPhase</td>
+<td><code>kube_persistentvolumeclaim_status_phase</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>restarts</td>
+<td><code>kube_pod_container_status_restarts_total</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>stsReady</td>
+<td><code>kube_statefulset_status_replicas_ready</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+<tr>
+<td>stsReplicas</td>
+<td><code>kube_statefulset_status_replicas</code></td>
+<td><a href="../kube-state-metrics/">kube-state-metrics/kube</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="systemdocker">system.docker<a class="headerlink" href="#systemdocker" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu</td>
+<td><code>container_cpu_usage_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskRead</td>
+<td><code>container_fs_reads_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>diskWrite</td>
+<td><code>container_fs_writes_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memUsage</td>
+<td><code>container_memory_usage_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>memWorkingSet</td>
+<td><code>container_memory_working_set_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>netRx</td>
+<td><code>container_network_receive_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>netTx</td>
+<td><code>container_network_transmit_bytes_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="systemlinux">system.linux<a class="headerlink" href="#systemlinux" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>batoceraOs</td>
+<td><code>node_os_info</code></td>
+<td><a href="../node_exporter/">node_exporter/os-uname-dmi</a></td>
+</tr>
+<tr>
+<td>batoceraTemp</td>
+<td><code>node_hwmon_temp_celsius</code><br><code>node_os_info</code></td>
+<td><a href="../node_exporter/">node_exporter/hwmon</a>, <a href="../node_exporter/">node_exporter/os-uname-dmi</a></td>
+</tr>
+<tr>
+<td>batteryCapacity</td>
+<td><code>node_power_supply_capacity</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>batteryOnline</td>
+<td><code>node_power_supply_online</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>batteryPower</td>
+<td><code>node_power_supply_power_watt</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>batteryVoltage</td>
+<td><code>node_power_supply_voltage_volt</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>conntrackMax</td>
+<td><code>node_nf_conntrack_entries_limit</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>conntrackUsed</td>
+<td><code>node_nf_conntrack_entries</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>contextSwitches</td>
+<td><code>node_context_switches_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>cpuBusy</td>
+<td><code>node_cpu_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuFreq</td>
+<td><code>node_cpu_scaling_frequency_hertz</code></td>
+<td><a href="../node_exporter/">node_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuMode</td>
+<td><code>node_cpu_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>diskIo</td>
+<td><code>node_disk_io_time_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>diskIoLatency</td>
+<td><code>node_disk_io_time_weighted_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>diskReadBps</td>
+<td><code>node_disk_read_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>diskReadIops</td>
+<td><code>node_disk_reads_completed_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>diskWriteBps</td>
+<td><code>node_disk_written_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>diskWriteIops</td>
+<td><code>node_disk_writes_completed_total</code></td>
+<td><a href="../node_exporter/">node_exporter/diskstats</a></td>
+</tr>
+<tr>
+<td>dockerContainers</td>
+<td><code>container_last_seen</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>dockerCpu</td>
+<td><code>container_cpu_usage_seconds_total</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>dockerMem</td>
+<td><code>container_memory_usage_bytes</code></td>
+<td><a href="../cadvisor/">cadvisor/container</a></td>
+</tr>
+<tr>
+<td>entropy</td>
+<td><code>node_entropy_available_bits</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>fdMax</td>
+<td><code>node_filefd_maximum</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>fdUsed</td>
+<td><code>node_filefd_allocated</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>fsAvail</td>
+<td><code>node_filesystem_avail_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/filesystem</a></td>
+</tr>
+<tr>
+<td>fsSize</td>
+<td><code>node_filesystem_size_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/filesystem</a></td>
+</tr>
+<tr>
+<td>fsUsed</td>
+<td><code>node_filesystem_avail_bytes</code><br><code>node_filesystem_size_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/filesystem</a></td>
+</tr>
+<tr>
+<td>inodesUsed</td>
+<td><code>node_filesystem_files</code><br><code>node_filesystem_files_free</code></td>
+<td><a href="../node_exporter/">node_exporter/filesystem</a></td>
+</tr>
+<tr>
+<td>load1</td>
+<td><code>node_load1</code></td>
+<td><a href="../node_exporter/">node_exporter/loadavg</a></td>
+</tr>
+<tr>
+<td>load15</td>
+<td><code>node_load15</code></td>
+<td><a href="../node_exporter/">node_exporter/loadavg</a></td>
+</tr>
+<tr>
+<td>load5</td>
+<td><code>node_load5</code></td>
+<td><a href="../node_exporter/">node_exporter/loadavg</a></td>
+</tr>
+<tr>
+<td>loadPerCpu</td>
+<td><code>node_cpu_seconds_total</code><br><code>node_load1</code></td>
+<td><a href="../node_exporter/">node_exporter/cpu</a>, <a href="../node_exporter/">node_exporter/loadavg</a></td>
+</tr>
+<tr>
+<td>memAvailable</td>
+<td><code>node_memory_MemAvailable_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>memBuffers</td>
+<td><code>node_memory_Buffers_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>memCached</td>
+<td><code>node_memory_Cached_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>memFree</td>
+<td><code>node_memory_MemFree_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>memUsed</td>
+<td><code>node_memory_MemAvailable_bytes</code><br><code>node_memory_MemTotal_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>memUsedRatio</td>
+<td><code>node_memory_MemAvailable_bytes</code><br><code>node_memory_MemTotal_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>netRx</td>
+<td><code>node_network_receive_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netRxDrop</td>
+<td><code>node_network_receive_drop_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netRxErrs</td>
+<td><code>node_network_receive_errs_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netRxExclLo</td>
+<td><code>node_network_receive_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netTx</td>
+<td><code>node_network_transmit_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netTxDrop</td>
+<td><code>node_network_transmit_drop_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netTxErrs</td>
+<td><code>node_network_transmit_errs_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>netTxExclLo</td>
+<td><code>node_network_transmit_bytes_total</code></td>
+<td><a href="../node_exporter/">node_exporter/netdev</a></td>
+</tr>
+<tr>
+<td>nfsRetransmissions</td>
+<td><code>node_nfs_rpc_retransmissions_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>nfsRpcs</td>
+<td><code>node_nfs_rpcs_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>pgFaults</td>
+<td><code>node_vmstat_pgfault</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>pgMajFaults</td>
+<td><code>node_vmstat_pgmajfault</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>procsBlocked</td>
+<td><code>node_procs_blocked</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>procsRunning</td>
+<td><code>node_procs_running</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>psiCpu</td>
+<td><code>node_pressure_cpu_waiting_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>psiIo</td>
+<td><code>node_pressure_io_waiting_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>psiIoFull</td>
+<td><code>node_pressure_io_stalled_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>psiMem</td>
+<td><code>node_pressure_memory_waiting_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>psiMemFull</td>
+<td><code>node_pressure_memory_stalled_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>raplPower</td>
+<td><code>node_rapl_package_joules_total</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>schedWait</td>
+<td><code>node_schedstat_waiting_seconds_total</code></td>
+<td><a href="../node_exporter/">node_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>servicesActive</td>
+<td><code>node_systemd_unit_state</code></td>
+<td><a href="../node_exporter/">node_exporter/systemd</a></td>
+</tr>
+<tr>
+<td>servicesFailed</td>
+<td><code>node_systemd_unit_state</code></td>
+<td><a href="../node_exporter/">node_exporter/systemd</a></td>
+</tr>
+<tr>
+<td>socketsMem</td>
+<td><code>node_sockstat_TCP_mem_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>socketsTcp</td>
+<td><code>node_sockstat_TCP_inuse</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>softnetDropped</td>
+<td><code>node_softnet_dropped_total</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>softnetSqueezed</td>
+<td><code>node_softnet_times_squeezed_total</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>swapIn</td>
+<td><code>node_vmstat_pswpin</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>swapIoPages</td>
+<td><code>node_vmstat_pgpgin</code><br><code>node_vmstat_pgpgout</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>swapOut</td>
+<td><code>node_vmstat_pswpout</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>swapUsed</td>
+<td><code>node_memory_SwapFree_bytes</code><br><code>node_memory_SwapTotal_bytes</code></td>
+<td><a href="../node_exporter/">node_exporter/meminfo</a></td>
+</tr>
+<tr>
+<td>tcpActiveOpens</td>
+<td><code>node_netstat_Tcp_ActiveOpens</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>tcpEstablished</td>
+<td><code>node_netstat_Tcp_CurrEstab</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>tcpInErrs</td>
+<td><code>node_netstat_Tcp_InErrs</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>tcpRetrans</td>
+<td><code>node_netstat_TcpExt_TCPSynRetrans</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>tempCelsius</td>
+<td><code>node_hwmon_temp_celsius</code></td>
+<td><a href="../node_exporter/">node_exporter/hwmon</a></td>
+</tr>
+<tr>
+<td>thermalZone</td>
+<td><code>node_thermal_zone_temp</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>udpQueues</td>
+<td><code>node_udp_queues</code></td>
+<td><a href="../node_exporter/">node_exporter/other</a></td>
+</tr>
+<tr>
+<td>uptime</td>
+<td><code>node_boot_time_seconds</code></td>
+<td><a href="../node_exporter/">node_exporter/os-uname-dmi</a></td>
+</tr>
+<tr>
+<td>zfsArcCMax</td>
+<td><code>node_zfs_arc_c_max</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>zfsArcHitRatio</td>
+<td><code>node_zfs_arc_hits</code><br><code>node_zfs_arc_misses</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>zfsArcHits</td>
+<td><code>node_zfs_arc_hits</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>zfsArcMisses</td>
+<td><code>node_zfs_arc_misses</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+<tr>
+<td>zfsArcSize</td>
+<td><code>node_zfs_arc_size</code></td>
+<td><a href="../node_exporter/">node_exporter/pressure-vmstat-misc</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="systemwindows">system.windows<a class="headerlink" href="#systemwindows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Metrics</th>
+<th>Exporter/collector</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>collectorDuration</td>
+<td><code>windows_exporter_collector_duration_seconds</code></td>
+<td><a href="../windows_exporter/">windows_exporter/other</a></td>
+</tr>
+<tr>
+<td>collectorSuccess</td>
+<td><code>windows_exporter_collector_success</code></td>
+<td><a href="../windows_exporter/">windows_exporter/other</a></td>
+</tr>
+<tr>
+<td>contextSwitches</td>
+<td><code>windows_system_context_switches_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>cpuBusy</td>
+<td><code>windows_cpu_time_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuByMode</td>
+<td><code>windows_cpu_time_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuCState</td>
+<td><code>windows_cpu_cstate_seconds_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuCores</td>
+<td><code>windows_cpu_time_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuDpcs</td>
+<td><code>windows_cpu_dpcs_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuFreq</td>
+<td><code>windows_cpu_core_frequency_mhz</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>cpuInterrupts</td>
+<td><code>windows_cpu_interrupts_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/cpu</a></td>
+</tr>
+<tr>
+<td>diskActive</td>
+<td><code>windows_logical_disk_idle_seconds_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskFree</td>
+<td><code>windows_logical_disk_free_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskQueue</td>
+<td><code>windows_logical_disk_requests_queued</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskReadBytes</td>
+<td><code>windows_logical_disk_read_bytes_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskReadIops</td>
+<td><code>windows_logical_disk_reads_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskReadLatency</td>
+<td><code>windows_logical_disk_read_latency_seconds_total</code><br><code>windows_logical_disk_reads_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskSize</td>
+<td><code>windows_logical_disk_size_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskUsedRatio</td>
+<td><code>windows_logical_disk_free_bytes</code><br><code>windows_logical_disk_size_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskWriteBytes</td>
+<td><code>windows_logical_disk_write_bytes_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskWriteIops</td>
+<td><code>windows_logical_disk_writes_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>diskWriteLatency</td>
+<td><code>windows_logical_disk_write_latency_seconds_total</code><br><code>windows_logical_disk_writes_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/logical_disk</a></td>
+</tr>
+<tr>
+<td>exceptions</td>
+<td><code>windows_system_exception_dispatches_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>memAvailable</td>
+<td><code>windows_memory_available_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memCache</td>
+<td><code>windows_memory_cache_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memCommitLimit</td>
+<td><code>windows_memory_commit_limit</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memCommitted</td>
+<td><code>windows_memory_committed_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memFree</td>
+<td><code>windows_memory_physical_free_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memPageFaults</td>
+<td><code>windows_memory_page_faults_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memPoolNonpaged</td>
+<td><code>windows_memory_pool_nonpaged_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memPoolPaged</td>
+<td><code>windows_memory_pool_paged_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memSwapOps</td>
+<td><code>windows_memory_swap_page_operations_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memTotal</td>
+<td><code>windows_memory_physical_total_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memUsed</td>
+<td><code>windows_memory_available_bytes</code><br><code>windows_memory_physical_total_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>memUsedRatio</td>
+<td><code>windows_memory_available_bytes</code><br><code>windows_memory_physical_total_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/memory</a></td>
+</tr>
+<tr>
+<td>netBandwidth</td>
+<td><code>windows_net_current_bandwidth_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netDiscards</td>
+<td><code>windows_net_packets_outbound_discarded_total</code><br><code>windows_net_packets_received_discarded_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netErrors</td>
+<td><code>windows_net_packets_outbound_errors_total</code><br><code>windows_net_packets_received_errors_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netPacketsRecv</td>
+<td><code>windows_net_packets_received_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netPacketsSent</td>
+<td><code>windows_net_packets_sent_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netQueue</td>
+<td><code>windows_net_output_queue_length_packets</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netRecv</td>
+<td><code>windows_net_bytes_received_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netSent</td>
+<td><code>windows_net_bytes_sent_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>netUtil</td>
+<td><code>windows_net_bytes_total</code><br><code>windows_net_current_bandwidth_bytes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/net</a></td>
+</tr>
+<tr>
+<td>ntpRoundTrip</td>
+<td><code>windows_time_ntp_round_trip_delay_seconds</code></td>
+<td><a href="../windows_exporter/">windows_exporter/time</a></td>
+</tr>
+<tr>
+<td>osInfo</td>
+<td><code>windows_os_info</code></td>
+<td><a href="../windows_exporter/">windows_exporter/os</a></td>
+</tr>
+<tr>
+<td>procQueue</td>
+<td><code>windows_system_processor_queue_length</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>processes</td>
+<td><code>windows_system_processes</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>scrapeDuration</td>
+<td><code>windows_exporter_scrape_duration_seconds</code></td>
+<td><a href="../windows_exporter/">windows_exporter/other</a></td>
+</tr>
+<tr>
+<td>serviceState</td>
+<td><code>windows_service_state</code></td>
+<td><a href="../windows_exporter/">windows_exporter/service</a></td>
+</tr>
+<tr>
+<td>servicesRunning</td>
+<td><code>windows_service_state</code></td>
+<td><a href="../windows_exporter/">windows_exporter/service</a></td>
+</tr>
+<tr>
+<td>servicesStopped</td>
+<td><code>windows_service_state</code></td>
+<td><a href="../windows_exporter/">windows_exporter/service</a></td>
+</tr>
+<tr>
+<td>systemCalls</td>
+<td><code>windows_system_system_calls_total</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>tempBySensor</td>
+<td><code>ohm_</code><br><code>windows_thermalzone_temperature_celsius</code></td>
+<td><a href="../ohmgraphite/">ohmgraphite/other</a>, <a href="../windows_exporter/">windows_exporter/other</a></td>
+</tr>
+<tr>
+<td>tempMax</td>
+<td><code>ohm_</code><br><code>windows_thermalzone_temperature_celsius</code></td>
+<td><a href="../ohmgraphite/">ohmgraphite/other</a>, <a href="../windows_exporter/">windows_exporter/other</a></td>
+</tr>
+<tr>
+<td>threads</td>
+<td><code>windows_system_threads</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+<tr>
+<td>timeOffset</td>
+<td><code>windows_time_computed_time_offset_seconds</code></td>
+<td><a href="../windows_exporter/">windows_exporter/time</a></td>
+</tr>
+<tr>
+<td>uptime</td>
+<td><code>windows_system_boot_time_timestamp</code></td>
+<td><a href="../windows_exporter/">windows_exporter/system</a></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
