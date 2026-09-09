@@ -56,6 +56,7 @@
     loki: import 'libs/loki-observ-lib/main.libsonnet',
     tempo: import 'libs/tempo-observ-lib/main.libsonnet',
     pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
+    anomalyScorer: import 'libs/anomaly-scorer-observ-lib/main.libsonnet',
   },
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',
