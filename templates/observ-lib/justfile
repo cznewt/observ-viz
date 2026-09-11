@@ -47,8 +47,10 @@ fmt:
     {{RUN}} bash -c "find . -name '*.libsonnet' -o -name '*.jsonnet' | grep -v vendor | xargs jsonnetfmt -i"
 
 # lint the rendered rules + dashboards
+# dashboard-linter only parses schema v1, so v2 boards (the ones with an
+# "elements" map) are reported as skipped rather than as a parse error.
 lint: build
-    {{RUN}} bash -c "promtool check rules prometheus_alerts.yaml prometheus_rules.yaml; for f in dashboards_out/*.json; do dashboard-linter lint \"$f\" || true; done"
+    {{RUN}} bash -c 'promtool check rules prometheus_alerts.yaml prometheus_rules.yaml; for f in dashboards_out/*.json; do if grep -q "\"elements\"" "$f"; then echo "SKIP $f: schema v2, dashboard-linter reads v1 only"; else dashboard-linter lint "$f" || true; fi; done'
 
 # remove rendered output
 clean:
