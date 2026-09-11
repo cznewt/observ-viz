@@ -1,11 +1,14 @@
 # Generic observ-viz observ-lib justfile — the Makefile_mixin analogue.
 # Renders THIS observ-lib's monitoring mixin (dashboards + alerts + rules).
-# jb + jsonnet run from the monitor-tools image, so nothing is installed locally.
+# jb + jsonnet run natively when present, otherwise from the monitor-tools image.
 # Promote to any observ-viz lib unchanged (it only assumes a mixin.libsonnet +
 # an observ-viz dep in jsonnetfile.json).
 
 IMAGE := "ghcr.io/cznewt/monitor-tools:latest"
-RUN   := "docker run --rm -v \"$PWD\":/work -w /work " + IMAGE
+# Run the toolchain natively where it already exists - the monitor-tools image
+# itself, the workshop notebook - and fall back to the published image elsewhere.
+NATIVE := `command -v jsonnet > /dev/null 2>&1 && echo yes || echo no`
+RUN   := if NATIVE == "yes" { "" } else { "docker run --rm -v \"$PWD\":/work -w /work " + IMAGE }
 # observ-viz is vendored at vendor/github.com/cznewt/observ-viz (provides
 # common-lib + the v2 builder via its root-relative imports).
 JPATH := "-J vendor/github.com/cznewt/observ-viz -J vendor -J ."
