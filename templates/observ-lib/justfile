@@ -39,8 +39,23 @@ alerts:
 rules:
     {{RUN}} jsonnet {{JPATH}} -S -e 'std.manifestYamlDoc((import "{{MIXIN}}").prometheusRules)' > prometheus_rules.yaml
 
+# render app-platform resources -> resources/<name>.json (folders + dashboards)
+resources:
+    mkdir -p resources
+    {{RUN}} jsonnet {{JPATH}} -m resources -e '(import "{{MIXIN}}").grafanaResources'
+
 # dashboards + alerts + rules
-build: dashboards alerts rules
+build: dashboards alerts rules resources
+
+# push the rendered dashboards to Grafana. grizzly speaks the legacy dashboard
+# API and refuses a v2 board ("dashboard appears to be in v2 format"), so this
+# goes through grafanactl, which talks to the app-platform API.
+# Needs GRAFANA_SERVER + GRAFANA_ORG_ID, and either GRAFANA_TOKEN (a service
+# account token) or GRAFANA_USER + GRAFANA_PASSWORD. grafanactl always prefers
+# GRAFANA_TOKEN when it is set, so a password login has to hide it - grizzly
+# uses that same variable as the password, which is why both can be present.
+push: resources
+    @if [ -n "${GRAFANA_PASSWORD:-}" ]; then env -u GRAFANA_TOKEN grafanactl resources push --path resources; else grafanactl resources push --path resources; fi
 
 # format all jsonnet (skips vendor/)
 fmt:
@@ -54,4 +69,4 @@ lint: build
 
 # remove rendered output
 clean:
-    rm -rf dashboards_out prometheus_alerts.yaml prometheus_rules.yaml
+    rm -rf dashboards_out resources prometheus_alerts.yaml prometheus_rules.yaml
