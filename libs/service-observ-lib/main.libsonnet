@@ -10,8 +10,12 @@
 //   Process       the app's own process_* metrics
 //   Go runtime    runtimes.golang elements
 //   Windows       windows_exporter service state + windows_process_*
-//   Logs          Loki (pod logs + journal)
-// plus the Signals/Runbooks doc tabs pack.build adds.
+//   Logs          Loki (pod logs + journal + kubernetes events)
+//   Alerts        always shown: alert list, alert-state timeline, firing table
+// plus the Signals/Runbooks doc tabs pack.build adds. Annotations: firing
+// alerts by severity (ALERTS, scoped like the whitebox) and Kubernetes events
+// for this service's pods/workload from Loki (warnings on by default, all
+// events as a toggle).
 //
 // Joins. Kube-scraped whitebox series carry cluster/namespace/pod/container
 // (alloy's kubernetes annotation scrape adds them), so the Kubernetes and
@@ -43,6 +47,8 @@ local variable =
 local cadvisorLib = import 'libs/cadvisor-observ-lib/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local golangLib = import 'libs/golang-observ-lib/main.libsonnet';
+local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
+local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 
 local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
 // re-key another pack's elements under a prefix (drops its doc tabs). Element
@@ -67,6 +73,10 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       docTabs: true,
       logs: true,
       golang: true,
+      // Kubernetes events land in Loki as one line per event (alloy
+      // loki.source.kubernetes_events): job + cluster/namespace + the object's
+      // `name` + `reason`/`level` labels, logfmt body with kind/type/msg.
+      kubeEventsSelector: 'job="integrations/kubernetes/eventhandler", cluster=~"$cluster", namespace=~"$namespace"',
       // deploy target: Software / Services (nested Grafana folders; loader creates both).
       folderUid: 'software-services',
       folderTitle: 'Services',
@@ -197,6 +207,22 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       + panel.withFieldConfigDefaults({ custom: { fillOpacity: 72, lineWidth: 0 } })
       + panel.withMappings(mappings);
 
+    // events of this service's pods and of the workload objects that own them
+    // (deployment / replicaset / statefulset carry the workload name, not a pod).
+    local kubeEvents(extra) =
+      '{' + cfg.kubeEventsSelector + ', name=~"$pod|' + wl + '"' + extra + '}';
+
+    // ----- annotations: firing alerts by severity + kubernetes events -----
+    local alertAnn(sev) = annotations.base.target(cfg.datasource, 'ALERTS{alertstate="firing", severity="' + sev + '", ' + cfg.selector + '}');
+    local annList = [
+      annotations.critical.new('Critical alerts', alertAnn('critical')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
+      annotations.warning.new('Warning alerts', alertAnn('warning')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
+      annotations.info.new('Info alerts', alertAnn('info')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']) + { spec+: { enable: false } },
+    ] + (if cfg.logs then [
+           annotations.warning.new('Kube events (warning)', annotations.base.target('${loki_datasource}', kubeEvents(', level="Warning"'), 'loki')),
+           annotations.info.new('Kube events (all)', annotations.base.target('${loki_datasource}', kubeEvents(''), 'loki')) + { spec+: { enable: false } },
+         ] else []);
+
     // ----- optional tabs (each gated on a presence marker) -----
     local tabs =
       (if cfg.kubernetes.enabled then [{
@@ -314,8 +340,21 @@ local stateMappings(m) = [{ type: 'value', options: m }];
            elements: {
              l01_pod: panel.logs.new('Pod logs') + panel.logs.withTargets([signals.logs_pod.asTarget()]),
              l02_journal: panel.logs.new('Journal') + panel.logs.withTargets([signals.logs_journal.asTarget()]),
+             l03_events: panel.logs.new('Kubernetes events')
+                         + panel.logs.withTargets([query.loki.new('${loki_datasource}', kubeEvents('') + ' | logfmt | line_format "{{.type}} {{.kind}}/{{.name}} {{.reason}}: {{.msg}}"')]),
            },
-         }] else []);
+         }] else [])
+      + [{
+        title: 'Alerts',
+        width: 12,
+        height: 9,
+        alwaysShow: true,
+        elements: {
+          a01_list: alertPanels.list('Alerts', instanceFilter='{job=~"$job"}', groupMode='custom', groupBy=['alertname']),
+          a02_timeline: alertPanels.timeline('Alert state', cfg.datasource, cfg.selector),
+          a03_firing: alertPanels.firingTable('Firing alerts', cfg.datasource, cfg.selector),
+        },
+      }];
 
     // ----- variables: job + cascading kube identity off the whitebox metric, host off the platform markers -----
     local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
@@ -337,6 +376,6 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local built = pack.build(pcfg, wb.signals + signals, wb.grafana.groups, wb.prometheus.alerts, wb.prometheus.rules, tabs);
     built {
       whitebox: wb,
-      grafana+: { dashboard: super.dashboard + dashboard.withVariablesMixin(extraVars) },
+      grafana+: { dashboard: super.dashboard + dashboard.withVariablesMixin(extraVars) + dashboard.withAnnotationsMixin(annList) },
     },
 }
