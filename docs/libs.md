@@ -62,9 +62,9 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 63 | 91 |
-| `services.grafana` | Grafana service | 97 | 121 |
-| `services.mimir` | Mimir service | 59 | 87 |
+| `services.alloy` | Alloy service | 77 | 104 |
+| `services.grafana` | Grafana service | 111 | 134 |
+| `services.mimir` | Mimir service | 73 | 100 |
 
 ## Cross-cutting
 

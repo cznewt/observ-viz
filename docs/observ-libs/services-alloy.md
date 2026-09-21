@@ -1,6 +1,6 @@
 # Alloy service  (`g.libs.services.alloy`)
 
-Dashboard uid `observ-viz-svc-alloy` · 63 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-alloy` · 77 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -23,6 +23,20 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `hproc_rss` | bytes | `sum by (instance) (namedprocess_namegroup_memory_bytes{groupname=~"alloy", memtype="resident", instance=~"$host"})` | — |
 | `hproc_threads` | short | `sum by (instance) (namedprocess_namegroup_num_threads{groupname=~"alloy", instance=~"$host"})` | — |
 | `hproc_uptime` | s | `time() - min by (instance) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"alloy", instance=~"$host"})` | — |
+| `ing_byHost` | reqps | `sum by (host) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_byPath` | reqps | `topk(10, sum by (host, path) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval])))` | — |
+| `ing_byStatus` | reqps | `sum by (status) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_bytesIn` | Bps | `sum(rate(nginx_ingress_controller_request_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_bytesOut` | Bps | `sum(rate(nginx_ingress_controller_response_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_err4xx` | percentunit | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*", status=~"4.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_err5xx` | percentunit | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*", status=~"5.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_hosts` | short | `count(count by (host) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}))` | — |
+| `ing_ingresses` | short | `count(count by (ingress) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}))` | — |
+| `ing_p50` | s | `histogram_quantile(0.50, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval])))` | — |
+| `ing_p95` | s | `histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval])))` | — |
+| `ing_p99` | s | `histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval])))` | — |
+| `ing_rate` | reqps | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval]))` | — |
+| `ing_upstreamP99` | s | `histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_response_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"alloy.*"}[$__rate_interval])))` | — |
 | `kube_age` | s | `time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
 | `kube_cpu` | short | `sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))` | — |
 | `kube_cpuLimits` | short | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |

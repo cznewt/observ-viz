@@ -2,9 +2,9 @@
 // Grafana Mimir self-monitoring. Mimir exposes cortex_* metrics. Usage:
 //   g.libs.lgtm.mimir.new({ selector: 'job="mimir"' }).grafana.dashboard
 //   g.libs.lgtm.mimir.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -12,6 +12,9 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       uid: 'observ-viz-mimir',
       dashboardTitle: 'Mimir',
       dashboardTags: ['mimir', 'lgtm', 'grafana', 'app-level'],
+      description: 'Grafana Mimir self-monitoring: ingest volume, in-memory series, query rate and latency, process resources.',
+      // per-instance legend: the pod on kube; set '{{instance}}' for a host deployment.
+      legend: '{{pod}}',
       datasource: '${datasource}',
       selector: 'job=~"$job"',
       varMetric: 'cortex_build_info',
@@ -27,16 +30,16 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    local sig(name, expr, unit, legend=cfg.legend, desc='') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend).withDescription(desc);
 
     local signals = {
-      receivedSamples: sig('Received samples', 'sum(rate(cortex_distributor_received_samples_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
-      ingesterSeries: sig('Ingester series', 'sum(cortex_ingester_memory_series{%(queriesSelector)s})', 'short'),
-      queries: sig('Queries', 'sum(rate(cortex_query_frontend_queries_total{%(queriesSelector)s}[$__rate_interval]))', 'reqps'),
-      requestP99: sig('Request p99', 'histogram_quantile(0.99, sum by (le)(rate(cortex_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's'),
-      heap: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes'),
-      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      receivedSamples: sig('Received samples', 'sum(rate(cortex_distributor_received_samples_total{%(queriesSelector)s}[$__rate_interval]))', 'short', desc='Samples the distributor accepts per second, the ingest volume.'),
+      ingesterSeries: sig('Ingester series', 'sum(cortex_ingester_memory_series{%(queriesSelector)s})', 'short', desc='Series held in ingester memory. Drives ingester memory and the head block size.'),
+      queries: sig('Queries', 'sum(rate(cortex_query_frontend_queries_total{%(queriesSelector)s}[$__rate_interval]))', 'reqps', desc='Queries handled by the query frontend per second.'),
+      requestP99: sig('Request p99', 'histogram_quantile(0.99, sum by (le)(rate(cortex_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', desc='Slowest 1 percent of requests across all Mimir components.'),
+      heap: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes', desc='Go heap in use by the Mimir process.'),
+      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the Mimir process.'),
     };
 
     pack.build(cfg, signals, [
@@ -71,25 +74,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('mimir', [
         alert.rule.new(
-          'MimirDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'MimirDown',
+          'up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'Mimir {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'MimirHighRequestLatency',
           'histogram_quantile(0.99, sum by (le) (rate(cortex_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Request p99 latency on {{ $labels.instance }} is above 1s.' }
         ),
         alert.rule.new(
           'MimirHighHeapMemory',
           'go_memstats_heap_inuse_bytes' + rsBrace + ' > 4e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Heap in use on {{ $labels.instance }} is above 4GB.' }
         ),
         alert.rule.new(
           'MimirHighCpu',
           'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
         ),
       ]),

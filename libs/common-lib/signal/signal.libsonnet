@@ -69,18 +69,21 @@ local style = import 'libs/common-lib/signal/style.libsonnet';
       panel.timeSeries.new(title)
       + panel.timeSeries.withTargets([this.asTarget()])
       + panel.timeSeries.standardOptions.withUnit(this._unit)
-      + style.timeSeries(this._unit),
+      + style.timeSeries(this._unit)
+      + (if this._description != '' then panel.withDescription(this._description) else {}),
 
     asStat(title=this._name)::
       panel.stat.new(title)
       + panel.stat.withTargets([this.asTarget()])
       + panel.stat.standardOptions.withUnit(this._unit)
-      + style.stat(this._unit),
+      + style.stat(this._unit)
+      + (if this._description != '' then panel.withDescription(this._description) else {}),
 
     asTable(title=this._name)::
       panel.table.new(title)
       + panel.table.withTargets([this.asTableTarget()])
-      + panel.table.standardOptions.withUnit(this._unit),
+      + panel.table.standardOptions.withUnit(this._unit)
+      + (if this._description != '' then panel.withDescription(this._description) else {}),
 
     // a Prometheus recording rule { record, expr } derived from this signal.
     // `selector` replaces the dashboard filteringSelector (rules can't use

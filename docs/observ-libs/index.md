@@ -29,7 +29,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`networking.wireguard`](networking-wireguard.md) | 6 | 1 | 0 |
 | [`networking.unifi`](networking-unifi.md) | 16 | 2 | 0 |
 | [`applications.syncthing`](applications-syncthing.md) | 16 | 1 | 0 |
-| [`services.alloy`](services-alloy.md) | 63 | 4 | 2 |
-| [`services.grafana`](services-grafana.md) | 97 | 5 | 2 |
-| [`services.mimir`](services-mimir.md) | 59 | 4 | 2 |
+| [`services.alloy`](services-alloy.md) | 77 | 4 | 2 |
+| [`services.grafana`](services-grafana.md) | 111 | 5 | 2 |
+| [`services.mimir`](services-mimir.md) | 73 | 4 | 2 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |

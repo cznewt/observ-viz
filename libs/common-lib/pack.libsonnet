@@ -119,6 +119,7 @@ local variable =
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
+        + (if std.objectHas(config, 'description') then dashboard.withDescription(config.description) else {})
         // optional dashboard-level links (config.links: []DashboardLink specs)
         + (if std.objectHas(config, 'links') then dashboard.withLinks(config.links) else {})
         + (if std.objectHas(config, 'folderUid') then
