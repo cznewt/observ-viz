@@ -18,10 +18,11 @@ GROUPS = {
     "System": ["system.linux", "system.docker", "system.windows"],
     "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor"],
     "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd"],
-    "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope"],
+    "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana"],
     "Collector": ["collector.alloy"],
     "Networking": ["networking.wireguard", "networking.unifi"],
     "Applications": ["applications.syncthing"],
+    "Services": ["services.alloy", "services.grafana", "services.mimir"],
     "Cross-cutting": ["alerts", "logs"],
 }
 ALL = [p for v in GROUPS.values() for p in v]

@@ -11,12 +11,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PACKS = [
     "databases.kv.etcd", "databases.kv.memcached", "databases.kv.redis",
     "databases.sql.mysql", "databases.sql.postgres",
-    "monitoring.prometheus", "monitoring.mimir", "monitoring.loki",
+    "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.grafana",
     "monitoring.tempo", "monitoring.pyroscope",
     "collector.alloy",
     "system.linux", "system.docker", "system.windows",
     "kubernetes.pod", "kubernetes.cadvisor",
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
+    "services.alloy", "services.grafana", "services.mimir",
     "alerts",
     "logs",
 ]

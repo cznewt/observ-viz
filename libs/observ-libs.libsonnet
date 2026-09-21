@@ -53,6 +53,7 @@
   monitoring: {
     prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
     mimir: import 'libs/mimir-observ-lib/main.libsonnet',
+    grafana: import 'libs/grafana-observ-lib/main.libsonnet',
     loki: import 'libs/loki-observ-lib/main.libsonnet',
     tempo: import 'libs/tempo-observ-lib/main.libsonnet',
     pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
@@ -69,6 +70,10 @@
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
     guardian: import 'libs/guardian-observ-lib/main.libsonnet',
   },
+  // a service wherever it runs: whitebox pack + gated platform tabs
+  // (Kubernetes / Containers / Docker / systemd / process / Windows / Logs).
+  service: import 'libs/service-observ-lib/main.libsonnet',
+  services: import 'libs/service-observ-lib/presets.libsonnet',
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',

@@ -20,9 +20,9 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux Server | 86 | 94 |
+| `system.linux` | Linux Server | 96 | 130 |
 | `system.docker` | Docker containers | 7 | 9 |
-| `system.windows` | Windows Server | 58 | 63 |
+| `system.windows` | Windows Server | 58 | 82 |
 
 ## Kubernetes
 
@@ -50,12 +50,21 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `monitoring.loki` | Loki | 6 | 8 |
 | `monitoring.tempo` | Tempo | 9 | 11 |
 | `monitoring.pyroscope` | Pyroscope | 8 | 10 |
+| `monitoring.grafana` | Grafana | 44 | 46 |
 
 ## Collector
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `collector.alloy` | Alloy | 10 | 12 |
+
+## Services
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `services.alloy` | Alloy service | 57 | 92 |
+| `services.grafana` | Grafana service | 91 | 126 |
+| `services.mimir` | Mimir service | 53 | 88 |
 
 ## Cross-cutting
 

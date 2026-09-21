@@ -69,7 +69,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 ## Dashboard
 
-- **Overview** — `cores`, `cpu`, `memRatio`, `processes`, `threads`, `uptime`
+- **Overview** — `cores`, `cpu`, `memRatio`, `ovBuild`, `ovMem`, `ovModel`, `ovOs`, `ovTemp`, `processes`, `threads`, `uptime`
 - **CPU** — `cpuBusy`, `cpuByMode`, `cpuCState`, `cpuDpcs`, `cpuFreq`, `cpuInterrupts`
 - **Memory** — `memAvailable`, `memCache`, `memCommitLimit`, `memCommitted`, `memPageFaults`, `memPoolNonpaged`, `memPoolPaged`, `memSwapOps`, `memUsed`
 - **Disk** — `diskActive`, `diskFree`, `diskQueue`, `diskReadBytes`, `diskReadIops`, `diskReadLatency`, `diskUsedRatio`, `diskWriteBytes`, `diskWriteIops`, `diskWriteLatency`

@@ -1,6 +1,6 @@
 # Linux Server  (`g.libs.system.linux`)
 
-Dashboard uid `compute-linux-overview` · 86 signals · 26 alerts · 7 recording rules.
+Dashboard uid `compute-linux-overview` · 96 signals · 26 alerts · 7 recording rules.
 
 ## Signals
 
@@ -14,6 +14,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `batteryOnline` | short | `node_power_supply_online{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `batteryPower` | watt | `node_power_supply_power_watt{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `batteryVoltage` | volt | `node_power_supply_voltage_volt{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `certExpiry` | s | `x509_cert_expiry_timestamp_seconds{job=~"$job", cluster=~"$cluster", instance=~"$instance"} - time()` | — |
 | `conntrackMax` | short | `node_nf_conntrack_entries_limit{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `conntrackUsed` | short | `node_nf_conntrack_entries{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `contextSwitches` | ops | `rate(node_context_switches_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
@@ -35,7 +36,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `fsAvail` | bytes | `node_filesystem_avail_bytes{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `fsSize` | bytes | `node_filesystem_size_bytes{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `fsUsed` | percentunit | `1 - node_filesystem_avail_bytes{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"} / node_filesystem_size_bytes{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `gamePackages` | short | `batocerapkg_packages_installed{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `gameUpdatesPending` | short | `batocerapkg_updates_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"} or pacman_updates_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `inodesUsed` | percentunit | `1 - node_filesystem_files_free{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"} / node_filesystem_files{fstype!="",job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `keyringExpiry` | s | `apt_keyring_expiry_timestamp_seconds{job=~"$job", cluster=~"$cluster", instance=~"$instance"} - time()` | — |
 | `load1` | short | `node_load1{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `load15` | short | `node_load15{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `load5` | short | `node_load5{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
@@ -57,6 +61,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `nfsRetransmissions` | short | `rate(node_nfs_rpc_retransmissions_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `nfsRpcs` | short | `rate(node_nfs_rpcs_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `nodeLogs` | short | `{instance=~"$instance"}` | — |
+| `packageListAge` | s | `time() - apt_package_cache_timestamp_seconds{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `pgFaults` | short | `rate(node_vmstat_pgfault{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `pgMajFaults` | short | `rate(node_vmstat_pgmajfault{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval])` | — |
 | `procsBlocked` | short | `node_procs_blocked{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
@@ -70,6 +75,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `pveMemAllocated` | bytes | `proxmox_node_memory_allocated_bytes{node=~"$instance"}` | — |
 | `pveUp` | short | `proxmox_node_up{node=~"$instance"}` | — |
 | `raplPower` | watt | `sum without (index, path) (rate(node_rapl_package_joules_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
+| `rebootRequired` | short | `node_reboot_required{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `schedWait` | s | `sum without (cpu) (rate(node_schedstat_waiting_seconds_total{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
 | `servicesActive` | short | `sum(node_systemd_unit_state{state="active",job=~"$job", cluster=~"$cluster", instance=~"$instance"})` | — |
 | `servicesFailed` | short | `node_systemd_unit_state{state="failed",job=~"$job", cluster=~"$cluster", instance=~"$instance"} == 1` | — |
@@ -88,6 +94,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `tempCelsius` | celsius | `node_hwmon_temp_celsius{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `thermalZone` | celsius | `node_thermal_zone_temp{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `udpQueues` | bytes | `node_udp_queues{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `updatesAutoremove` | short | `apt_autoremove_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `updatesByOrigin` | short | `apt_upgrades_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `updatesPending` | short | `sum without (origin, arch) (apt_upgrades_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}) or pacman_updates_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `updatesSecurity` | short | `apt_security_upgrades_pending{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `uptime` | s | `time() - node_boot_time_seconds{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `zfsArcCMax` | bytes | `node_zfs_arc_c_max{job=~"$job", cluster=~"$cluster", instance=~"$instance"}` | — |
 | `zfsArcHitRatio` | percentunit | `rate(node_zfs_arc_hits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]) / clamp_min(rate(node_zfs_arc_hits{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]) + rate(node_zfs_arc_misses{job=~"$job", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]), 1)` | — |
@@ -97,6 +107,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 ## Dashboard
 
+- **Overview** — `ovArch`, `ovCores`, `ovDevice`, `ovKernel`, `ovLoad`, `ovMem`, `ovModel`, `ovOs`, `ovTemp`, `ovType`, `ovUptime`
 - **System** — `conntrackUsed`, `contextSwitches`, `entropy`, `fdUsed`, `procsBlocked`, `procsRunning`, `uptime`
 - **CPU / Load** — `cpuBusy`, `cpuFreq`, `cpuMode`, `load1`, `load15`, `load5`, `loadPerCpu`, `schedWait`
 - **Memory** — `memAvailable`, `memBuffers`, `memCached`, `memFree`, `memUsed`, `memUsedRatio`, `pgFaults`, `pgMajFaults`, `swapIn`, `swapOut`, `swapUsed`

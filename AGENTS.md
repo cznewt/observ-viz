@@ -49,8 +49,9 @@ Render: `jsonnet -J vendor/github.com/cznewt/observ-viz -J vendor -J . dashboard
 - `signal` — `new(name, type, ds, expr, unit)` then `.filteringSelector/.groupLabels/.aggLevel` then `.asTimeSeries/.asStat/.asTable/.asTarget(title)`. Rich form: `init(...)` + `addSignal(name, type='counter'|'histogram'|'gauge'|…, expr/unit)` (auto rate/quantile wrapping) + variable generation.
 - `panels` (56 presets, 8 categories), `annotations` (base + severity + reboot/service_failed), `tokens`, `utils` (label→selector/legend, chainLabels), `alert`/`logs`/`deploy`, `pack`.
 
-## observ-libs (`g.libs.*`) — 23 domain packs
-`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `monitoring.{prometheus,mimir,loki,tempo,pyroscope}` · `collector.alloy` · `alerts` · `logs`.
+## observ-libs (`g.libs.*`) — domain packs
+`runtimes.{golang,jvm,python,dotnet,nodejs}` · `system.{linux,docker,windows}` · `kubernetes.{pod,cadvisor}` · `databases.sql.{postgres,mysql}` · `databases.kv.{redis,memcached,etcd}` · `monitoring.{prometheus,mimir,loki,tempo,pyroscope,grafana}` · `collector.alloy` · `alerts` · `logs`.
+`services.{alloy,grafana,mimir}` — a whitebox pack wrapped by `g.libs.service` (`libs/service-observ-lib`): one board per service with platform tabs (Kubernetes / Containers / Docker / systemd / Host process / Process / Go runtime / Windows / Logs) gated on presence, joined on cluster/namespace/pod (kube) or $host + a static unit/service/group/container identity (hosts).
 Each `new(config)` → `{ signals, grafana:{dashboard,dashboards,elements,layout}, prometheus:{alerts,rules}, asMonitoringMixin() }`.
 
 ## observ-lib container contract

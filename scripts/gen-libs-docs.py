@@ -19,9 +19,10 @@ GROUPS = {
     ],
     "Monitoring": [
         "monitoring.prometheus", "monitoring.mimir", "monitoring.loki",
-        "monitoring.tempo", "monitoring.pyroscope",
+        "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana",
     ],
     "Collector": ["collector.alloy"],
+    "Services": ["services.alloy", "services.grafana", "services.mimir"],
     "Cross-cutting": ["alerts", "logs"],
 }
 

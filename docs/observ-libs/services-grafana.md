@@ -1,0 +1,128 @@
+# Grafana service  (`g.libs.services.grafana`)
+
+Dashboard uid `observ-viz-svc-grafana` · 91 signals · 5 alerts · 2 recording rules.
+
+## Signals
+
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `activeUsers` | short | `max(grafana_stat_active_users{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `alertRules` | short | `sum(grafana_alerting_schedule_alert_rules{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `alertsActive` | short | `sum(grafana_alerting_active_alerts{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `alertsReceived` | short | `sum(rate(grafana_alerting_alerts_received_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `apiStatus` | reqps | `sum by (code) (rate(grafana_api_response_status_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `dbIdle` | short | `grafana_database_conn_idle{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `dbInUse` | short | `grafana_database_conn_in_use{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `dbMaxOpen` | short | `grafana_database_conn_max_open{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `dbOpen` | short | `grafana_database_conn_open{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `dbWaitRate` | short | `rate(grafana_database_conn_wait_count_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `dbWaitTime` | s | `rate(grafana_database_conn_wait_duration_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `dsErrors` | reqps | `sum by (datasource) (rate(grafana_datasource_request_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", code=~"5.."}[$__rate_interval]))` | — |
+| `dsInFlight` | short | `sum(grafana_datasource_request_in_flight{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `dsP99` | s | `histogram_quantile(0.99, sum by (le, datasource) (rate(grafana_datasource_request_duration_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `dsRequests` | reqps | `sum by (datasource) (rate(grafana_datasource_request_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `emailsFailed` | short | `sum(rate(grafana_emails_sent_failed{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `evalTime` | ms | `sum(rate(grafana_alerting_execution_time_milliseconds_sum{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])) / sum(rate(grafana_alerting_execution_time_milliseconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `goroutines` | short | `go_goroutines{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `hproc_cpu` | short | `sum by (instance) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_fdRatio` | percentunit | `max by (instance) (namedprocess_namegroup_worst_fd_ratio{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `hproc_fds` | short | `sum by (instance) (namedprocess_namegroup_open_filedesc{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `hproc_ioRead` | Bps | `sum by (instance) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_ioWrite` | Bps | `sum by (instance) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_majFaults` | short | `sum by (instance) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_procs` | short | `sum by (instance) (namedprocess_namegroup_num_procs{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `hproc_rss` | bytes | `sum by (instance) (namedprocess_namegroup_memory_bytes{groupname=~"grafana(-server)?", memtype="resident", instance=~"$host"})` | — |
+| `hproc_threads` | short | `sum by (instance) (namedprocess_namegroup_num_threads{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `hproc_uptime` | s | `time() - min by (instance) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `httpByHandler` | reqps | `topk(10, sum by (handler) (rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `httpErrorRatio` | percentunit | `sum(rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", status_code=~"5.."}[$__rate_interval])) / sum(rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `httpInFlight` | short | `sum(grafana_http_request_in_flight{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `httpP50` | s | `histogram_quantile(0.50, sum by (le) (rate(grafana_http_request_duration_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `httpP99` | s | `histogram_quantile(0.99, sum by (le) (rate(grafana_http_request_duration_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `httpRate` | reqps | `sum by (status_code) (rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `kube_age` | s | `time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
+| `kube_cpu` | short | `sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))` | — |
+| `kube_cpuLimits` | short | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |
+| `kube_cpuRequests` | short | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |
+| `kube_deployAvailable` | short | `kube_deployment_status_replicas_available{cluster=~"$cluster", namespace=~"$namespace", deployment=~"grafana.*"}` | — |
+| `kube_deployDesired` | short | `kube_deployment_spec_replicas{cluster=~"$cluster", namespace=~"$namespace", deployment=~"grafana.*"}` | — |
+| `kube_dsDesired` | short | `kube_daemonset_status_desired_number_scheduled{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"grafana.*"}` | — |
+| `kube_dsReady` | short | `kube_daemonset_status_number_ready{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"grafana.*"}` | — |
+| `kube_mem` | bytes | `sum by (pod) (container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""})` | — |
+| `kube_memLimits` | bytes | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
+| `kube_memRequests` | bytes | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
+| `kube_phase` | short | `sum by (phase) (kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
+| `kube_pvcUsage` | percentunit | `kubelet_volume_stats_used_bytes{cluster=~"$cluster", namespace=~"$namespace"} / kubelet_volume_stats_capacity_bytes{cluster=~"$cluster", namespace=~"$namespace"}` | — |
+| `kube_ready` | short | `sum by (pod) (kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_restarts` | short | `sum by (pod) (kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_stsDesired` | short | `kube_statefulset_replicas{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"grafana.*"}` | — |
+| `kube_stsReady` | short | `kube_statefulset_status_replicas_ready{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"grafana.*"}` | — |
+| `kube_waiting` | short | `sum by (pod, reason) (kube_pod_container_status_waiting_reason{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
+| `liveChannels` | short | `sum(grafana_live_node_num_channels{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `liveClients` | short | `sum(grafana_live_node_num_clients{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `liveSent` | short | `sum(rate(grafana_live_node_messages_sent_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `logs_journal` | short | `{instance=~"$host", unit=~"grafana(-server)?\.service"}` | — |
+| `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
+| `notifLatencyP99` | s | `histogram_quantile(0.99, sum by (le) (rate(grafana_alerting_notification_latency_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `pageStatus` | reqps | `sum by (code) (rate(grafana_page_response_status_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `pluginP99` | s | `histogram_quantile(0.99, sum by (le) (rate(grafana_plugin_request_duration_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
+| `pluginRequests` | reqps | `sum by (plugin_id) (rate(grafana_plugin_request_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `proc_cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `proc_fdRatio` | percentunit | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_fds` | short | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_uptime` | s | `time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_virt` | bytes | `process_virtual_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proxyStatus` | reqps | `sum by (code) (rate(grafana_proxy_response_status_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
+| `renderingQueue` | short | `sum(grafana_rendering_queue_size{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `restarts` | short | `sum(increase(grafana_instance_start_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[1h]))` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `schedulerBehind` | s | `max(grafana_alerting_scheduler_behind_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `systemd_active` | short | `count(node_systemd_unit_state{name=~"grafana(-server)?\.service", state="active", instance=~"$host"} == 1)` | — |
+| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"grafana(-server)?\.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"grafana(-server)?\.service", instance=~"$host"}))` | — |
+| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"grafana(-server)?\.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"grafana(-server)?\.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"grafana(-server)?\.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"grafana(-server)?\.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `totalAlertRules` | short | `max(grafana_stat_totals_alert_rules{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `totalDashboards` | short | `max(grafana_stat_totals_dashboard{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `totalDatasources` | short | `max(grafana_stat_totals_datasource{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `totalFolders` | short | `max(grafana_stat_totals_folder{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `totalOrgs` | short | `max(grafana_stat_total_orgs{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `totalUsers` | short | `max(grafana_stat_total_users{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `uptime` | s | `time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
+| `win_io` | Bps | `sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_state` | short | `max by (instance, name) ((windows_service_state{name=~"(?i)grafana", state="running", instance=~"$host"} == 1) * 1 or (windows_service_state{name=~"(?i)grafana", state=~"start pending\|continue pending", instance=~"$host"} == 1) * 2 or (windows_service_state{name=~"(?i)grafana", state=~"paused\|pause pending\|stop pending", instance=~"$host"} == 1) * 3 or (windows_service_state{name=~"(?i)grafana", state="stopped", instance=~"$host"} == 1) * 4)` | — |
+| `win_threads` | short | `sum by (instance) (windows_process_threads{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
+| `win_uptime` | s | `time() - min by (instance) (windows_process_start_time{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
+| `win_workingSet` | bytes | `sum by (instance) (windows_process_working_set_private_bytes{process=~"(?i)grafana(-server)?", instance=~"$host"} or windows_process_working_set_bytes{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
+
+## Dashboard
+
+- **Requests** — `apiStatus`, `httpByHandler`, `httpErrorRatio`, `httpInFlight`, `httpP50`, `httpP99`, `httpRate`, `pageStatus`
+- **Datasources & plugins** — `dsErrors`, `dsInFlight`, `dsP99`, `dsRequests`, `pluginP99`, `pluginRequests`, `proxyStatus`
+- **Alerting** — `alertRules`, `alertsActive`, `alertsReceived`, `evalTime`, `notifLatencyP99`, `schedulerBehind`
+- **Database** — `dbIdle`, `dbInUse`, `dbMaxOpen`, `dbOpen`, `dbWaitRate`, `dbWaitTime`
+- **Live & rendering** — `emailsFailed`, `liveChannels`, `liveClients`, `liveSent`, `renderingQueue`
+- **Totals** — `activeUsers`, `totalAlertRules`, `totalDashboards`, `totalDatasources`, `totalFolders`, `totalOrgs`, `totalUsers`
+- **Resources** — `cpu`, `goroutines`, `restarts`, `rss`, `uptime`
+
+## Alerts
+
+| Alert | Severity | For | Runbook |
+|-------|----------|-----|---------|
+| `GrafanaDown` | critical | 5m | — |
+| `GrafanaHttpErrorRatioHigh` | warning | 15m | — |
+| `GrafanaHttpLatencyHigh` | warning | 15m | — |
+| `GrafanaDatabaseConnectionWait` | warning | 15m | — |
+| `GrafanaAlertingSchedulerBehind` | warning | 10m | — |
+
+## Recording rules
+
+| Record | Expression |
+|--------|------------|
+| `instance:grafana_http_requests:rate5m` | `sum by (instance) (rate(grafana_http_request_duration_seconds_count[5m]))` |
+| `instance:grafana_http_errors:ratio_rate5m` | `sum by (instance) (rate(grafana_http_request_duration_seconds_count{status_code=~"5.."}[5m])) / sum by (instance) (rate(grafana_http_request_duration_seconds_count[5m]))` |
