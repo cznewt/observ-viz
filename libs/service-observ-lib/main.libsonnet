@@ -29,7 +29,7 @@
 // Usage:
 //   local svc = import 'libs/service-observ-lib/main.libsonnet';
 //   svc.new({ app: 'grafana', whitebox: g.libs.monitoring.grafana,
-//             systemd: { unit: 'grafana-server\\.service' } }).grafana.dashboard
+//             systemd: { unit: 'grafana-server.service' } }).grafana.dashboard
 // Ready presets: g.libs.services.{alloy,grafana,mimir}.
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
@@ -84,7 +84,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // per-platform identity of this service (regexes, PromQL-anchored).
       kubernetes: plat('kubernetes', { enabled: true, workload: app + '.*' }),
       docker: plat('docker', { enabled: true, container: '.*' + app + '.*' }),
-      systemd: plat('systemd', { enabled: true, unit: app + '\\.service' }),
+      systemd: plat('systemd', { enabled: true, unit: app + '.service' }),
       process: plat('process', { enabled: true, group: app }),
       windows: plat('windows', { enabled: true, service: '(?i)' + app + '.*', process: '(?i)' + app + '.*' }),
     };
