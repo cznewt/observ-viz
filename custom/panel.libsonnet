@@ -23,7 +23,8 @@ local shared = {
   ] } } } },
   // withTargets auto-assigns refIds (A, B, C, ...) to queries that have none.
   withTargets(targets): { spec+: { data+: { spec+: { queries: util.resource.assignRefIds(targets) } } } },
-  withTargetsMixin(targets): { spec+: { data+: { spec+: { queries+: targets } } } },
+  // withTargetsMixin appends queries and assigns refIds to the new ones, continuing after the existing ones.
+  withTargetsMixin(targets): { spec+: { data+: { spec+: { queries: util.resource.assignRefIds((if 'queries' in super then super.queries else []) + targets) } } } },
   // generic vizConfig access — works for every panel type.
   withOptions(obj): viz({ options+: obj }),
   withFieldConfigDefaults(obj): viz({ fieldConfig+: { defaults+: obj } }),
@@ -70,7 +71,7 @@ local kinds = {
 local genOpts = { timeSeries: gp.timeSeries, stat: gp.stat, table: gp.table };
 
 shared
-+ { base(vizKind, title): panelBase(vizKind, title) }
+{ base(vizKind, title): panelBase(vizKind, title) }
 + {
   [name]:
     (if std.objectHas(genOpts, name) then genOpts[name] else {})

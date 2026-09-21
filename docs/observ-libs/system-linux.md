@@ -108,14 +108,15 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 ## Dashboard
 
 - **Overview** — `ovArch`, `ovCores`, `ovDevice`, `ovKernel`, `ovLoad`, `ovMem`, `ovModel`, `ovOs`, `ovTemp`, `ovType`, `ovUptime`
-- **System** — `conntrackUsed`, `contextSwitches`, `entropy`, `fdUsed`, `procsBlocked`, `procsRunning`, `uptime`
-- **CPU / Load** — `cpuBusy`, `cpuFreq`, `cpuMode`, `load1`, `load15`, `load5`, `loadPerCpu`, `schedWait`
-- **Memory** — `memAvailable`, `memBuffers`, `memCached`, `memFree`, `memUsed`, `memUsedRatio`, `pgFaults`, `pgMajFaults`, `swapIn`, `swapOut`, `swapUsed`
+- **Health** — `hlCpuBusy`, `hlLoadPerCpu`, `hlMemUsed`, `hlProcsBlocked`, `hlProcsRunning`, `hlUptime`
+- **CPU / Load** — `cpuFreq`, `cpuMode`, `load`, `loadPerCpu`, `schedWait`
+- **Memory** — `memAvailable`, `memBreakdown`, `pgFaults`, `swapIo`, `swapIoPages`, `swapUsed`
 - **Disk space** — `fsAvail`, `fsSize`, `fsUsed`, `inodesUsed`
-- **Disk IO** — `diskIo`, `diskIoLatency`, `diskReadBps`, `diskReadIops`, `diskWriteBps`, `diskWriteIops`
-- **Network** — `netRx`, `netRxDrop`, `netRxErrs`, `netTx`, `netTxDrop`, `netTxErrs`, `socketsMem`, `socketsTcp`, `softnetDropped`, `softnetSqueezed`, `tcpActiveOpens`, `tcpEstablished`, `tcpInErrs`, `tcpRetrans`, `udpQueues`
+- **Disk IO** — `diskBps`, `diskIo`, `diskIoLatency`, `diskIops`
+- **Network** — `netDrops`, `netErrs`, `netExclLo`, `netTraffic`, `socketsMem`, `socketsTcp`, `softnet`, `tcpActiveOpens`, `tcpEstablished`, `tcpInErrs`, `tcpRetrans`, `udpQueues`
+- **System** — `conntrack`, `contextSwitches`, `entropy`, `fds`
 - **Temperature / power** — `raplPower`, `tempCelsius`, `thermalZone`
-- **Pressure (PSI)** — `psiCpu`, `psiIo`, `psiIoFull`, `psiMem`, `psiMemFull`
+- **Pressure (PSI)** — `psiCpu`, `psiIo`, `psiMem`
 
 ## Alerts
 
