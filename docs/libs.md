@@ -50,7 +50,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `monitoring.loki` | Loki | 6 | 8 |
 | `monitoring.tempo` | Tempo | 9 | 11 |
 | `monitoring.pyroscope` | Pyroscope | 8 | 10 |
-| `monitoring.grafana` | Grafana | 44 | 46 |
+| `monitoring.grafana` | Grafana | 44 | 42 |
 
 ## Collector
 
@@ -62,9 +62,9 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 57 | 92 |
-| `services.grafana` | Grafana service | 91 | 126 |
-| `services.mimir` | Mimir service | 53 | 88 |
+| `services.alloy` | Alloy service | 63 | 91 |
+| `services.grafana` | Grafana service | 97 | 121 |
+| `services.mimir` | Mimir service | 59 | 87 |
 
 ## Cross-cutting
 

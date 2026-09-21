@@ -17,6 +17,8 @@ local variable =
   //   config: { uid, dashboardTitle, dashboardTags, ... }
   //   signals: { name: signal }            (observ-lib .signals accessor)
   //   groups:  [{ title, width, height, elements: { name: PanelKind } }]
+  //   optionalTabs: [{ title, presence?, alwaysShow?, width, height, elements }]
+  //                 or [{ title, presence?, groups: [group, ...] }] for rows inside a tab
   //   alerts:  [ alertGroup ]              (optional prometheus alerting rule groups)
   //   rules:   [ ruleGroup ]               (optional prometheus recording rule groups)
   build(config, signals, groups, alerts=[], rules=[], optionalTabs=[]):: {
@@ -28,11 +30,17 @@ local variable =
       // the raw group structure (so consumers can re-lay-out, e.g. as tabs).
       groups: groups,
       // flatten every group's (and optional/doc tab's) elements into one elements map.
-      elements: std.foldl(function(acc, grp) acc + grp.elements, groups + optionalTabs + docTabList, {}),
+      // a tab either holds one grid (`elements`) or rows of grids (`groups`).
+      local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,
+      elements: std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList, {}),
 
       local gridOf(grp) =
         layout.grid.new()
         + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)),
+      local tabLayout(t) =
+        if std.objectHas(t, 'groups') then
+          layout.rows.new() + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) for grp in t.groups])
+        else gridOf(t),
       local rowsLayout =
         layout.rows.new()
         + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) for grp in groups]),
@@ -65,11 +73,14 @@ local variable =
         'Signals this pack emits — dashboard query + unit.\n\n| Signal | Query | Unit |\n| --- | --- | --- |\n'
         + std.join('\n', ['| ' + k + ' | `' + mdEsc(sigExpr(signals[k])) + '` | ' + (local u = sigUnit(signals[k]); if u != '' then u else '—') + ' |' for k in std.objectFields(signals)]),
       local runbooksMd =
-        local items = ['- **' + r.alert + '**'
-                       + (if std.objectHas(r, 'labels') && std.objectHas(r.labels, 'severity') then ' `' + r.labels.severity + '`' else '')
-                       + (if std.objectHas(r, 'for') then ' · for ' + r['for'] else '')
-                       + (if std.objectHas(r, 'annotations') && std.objectHas(r.annotations, 'runbook_url') && r.annotations.runbook_url != '' then ' — [runbook](' + r.annotations.runbook_url + ')' else '')
-                       for grp in alerts for r in grp.rules];
+        local items = [
+          '- **' + r.alert + '**'
+          + (if std.objectHas(r, 'labels') && std.objectHas(r.labels, 'severity') then ' `' + r.labels.severity + '`' else '')
+          + (if std.objectHas(r, 'for') then ' · for ' + r['for'] else '')
+          + (if std.objectHas(r, 'annotations') && std.objectHas(r.annotations, 'runbook_url') && r.annotations.runbook_url != '' then ' — [runbook](' + r.annotations.runbook_url + ')' else '')
+          for grp in alerts
+          for r in grp.rules
+        ];
         if std.length(items) > 0 then 'Alerting rules and their runbooks.\n\n' + std.join('\n', items) else '_No alerting rules defined for this pack._',
       local docTabList = if docTabsOn then [
         { title: 'Signals', width: 24, height: 12, elements: { doc_signals: panel.text.new('Signals') + panel.text.withOptions({ mode: 'markdown', content: signalsMd }) } },
@@ -84,7 +95,7 @@ local variable =
           layout.tabs.new()
           + layout.tabs.withTabs(
             [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
-            + [layout.tabs.tab(t.title, gridOf(t)) + tabGate(t) for t in optionalTabs]
+            + [layout.tabs.tab(t.title, tabLayout(t)) + tabGate(t) for t in optionalTabs]
             + [layout.tabs.tab(t.title, gridOf(t)) for t in docTabList]
           )
         else rowsLayout,
@@ -132,8 +143,8 @@ local variable =
           + multiMods
           for i in std.range(0, std.length(varLabels) - 1)
         ] + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
-          variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
-        ] else []) + presenceVars)
+               variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
+             ] else []) + presenceVars)
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
 

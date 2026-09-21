@@ -7,6 +7,7 @@
 // expr templates may use %(queriesSelector)s and %(filteringSelector)s tokens.
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local style = import 'libs/common-lib/signal/style.libsonnet';
 
 {
   new(name, type, datasource, expr, unit='short'):: {
@@ -67,12 +68,14 @@ local query = import 'custom/query.libsonnet';
     asTimeSeries(title=this._name)::
       panel.timeSeries.new(title)
       + panel.timeSeries.withTargets([this.asTarget()])
-      + panel.timeSeries.standardOptions.withUnit(this._unit),
+      + panel.timeSeries.standardOptions.withUnit(this._unit)
+      + style.timeSeries(this._unit),
 
     asStat(title=this._name)::
       panel.stat.new(title)
       + panel.stat.withTargets([this.asTarget()])
-      + panel.stat.standardOptions.withUnit(this._unit),
+      + panel.stat.standardOptions.withUnit(this._unit)
+      + style.stat(this._unit),
 
     asTable(title=this._name)::
       panel.table.new(title)

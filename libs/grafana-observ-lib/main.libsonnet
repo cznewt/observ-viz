@@ -60,9 +60,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       alertsReceived: sig('Alerts received', 'sum(rate(grafana_alerting_alerts_received_total{%(queriesSelector)s}[$__rate_interval]))', 'short', 'received/s'),
 
       // ===== Database pool =====
-      dbOpen: sig('DB connections open', 'grafana_database_conn_open{%(queriesSelector)s}', 'short'),
-      dbInUse: sig('DB connections in use', 'grafana_database_conn_in_use{%(queriesSelector)s}', 'short'),
-      dbIdle: sig('DB connections idle', 'grafana_database_conn_idle{%(queriesSelector)s}', 'short'),
+      dbOpen: sig('DB connections open', 'grafana_database_conn_open{%(queriesSelector)s}', 'short', '{{instance}} open'),
+      dbInUse: sig('DB connections in use', 'grafana_database_conn_in_use{%(queriesSelector)s}', 'short', '{{instance}} in use'),
+      dbIdle: sig('DB connections idle', 'grafana_database_conn_idle{%(queriesSelector)s}', 'short', '{{instance}} idle'),
       dbMaxOpen: sig('DB max open', 'grafana_database_conn_max_open{%(queriesSelector)s}', 'short'),
       dbWaitRate: sig('DB connection waits', 'rate(grafana_database_conn_wait_count_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
       dbWaitTime: sig('DB wait time', 'rate(grafana_database_conn_wait_duration_seconds{%(queriesSelector)s}[$__rate_interval])', 's'),
@@ -87,30 +87,46 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
       rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
       goroutines: sig('Goroutines', 'go_goroutines{%(queriesSelector)s}', 'short'),
-      uptime: sig('Uptime', 'time() - process_start_time_seconds{%(queriesSelector)s}', 's'),
+      uptime: sig('Uptime', 'min(time() - process_start_time_seconds{%(queriesSelector)s})', 'dtdurations', 'uptime'),
       restarts: sig('Instance starts', 'sum(increase(grafana_instance_start_total{%(queriesSelector)s}[1h]))', 'short', 'starts/1h'),
     };
 
+    local panel = import 'custom/panel.libsonnet';
+    local stats = { width: 4, height: 4 };
+    local charts = { width: 12, height: 7 };
+    local warn1 = panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }]);
     pack.build(cfg, signals, [
       {
+        title: 'Overview',
+        elements: {
+          ov01_dashboards: signals.totalDashboards.asStat('Dashboards'),
+          ov02_datasources: signals.totalDatasources.asStat('Datasources'),
+          ov03_folders: signals.totalFolders.asStat('Folders'),
+          ov04_users: signals.totalUsers.asStat('Users'),
+          ov05_activeUsers: signals.activeUsers.asStat('Active users'),
+          ov06_orgs: signals.totalOrgs.asStat('Organisations'),
+          ov07_alertRules: signals.alertRules.asStat('Scheduled alert rules'),
+          ov08_alertsActive: signals.alertsActive.asStat('Active alerts') + warn1,
+          ov09_dbMaxOpen: signals.dbMaxOpen.asStat('DB max open'),
+          ov10_uptime: signals.uptime.asStat('Uptime'),
+          ov11_restarts: signals.restarts.asStat('Instance starts (1h)') + warn1,
+          ov12_inFlight: signals.httpInFlight.asStat('Requests in flight'),
+        },
+      } + stats,
+      {
         title: 'Requests',
-        width: 8,
-        height: 7,
         elements: {
           httpRate: signals.httpRate.asTimeSeries('Requests/s by status'),
           httpErrorRatio: signals.httpErrorRatio.asTimeSeries('5xx ratio'),
-          httpP99: signals.httpP99.asTimeSeries('Request duration p99'),
-          httpP50: signals.httpP50.asTimeSeries('Request duration p50'),
+          httpDuration: signals.httpP99.asTimeSeries('Request duration p50 / p99')
+                        + panel.withTargetsMixin([signals.httpP50.asTarget()]),
           httpByHandler: signals.httpByHandler.asTimeSeries('Top handlers'),
-          httpInFlight: signals.httpInFlight.asTimeSeries('Requests in flight'),
           apiStatus: signals.apiStatus.asTimeSeries('API responses by code'),
           pageStatus: signals.pageStatus.asTimeSeries('Page responses by code'),
         },
-      },
+      } + charts,
       {
         title: 'Datasources & plugins',
-        width: 8,
-        height: 7,
         elements: {
           dsRequests: signals.dsRequests.asTimeSeries('Datasource requests/s'),
           dsErrors: signals.dsErrors.asTimeSeries('Datasource 5xx/s'),
@@ -120,37 +136,27 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           pluginRequests: signals.pluginRequests.asTimeSeries('Plugin requests/s'),
           pluginP99: signals.pluginP99.asTimeSeries('Plugin request p99'),
         },
-      },
+      } + charts,
       {
         title: 'Alerting',
-        width: 8,
-        height: 7,
         elements: {
-          alertsActive: signals.alertsActive.asStat('Active alerts'),
-          alertRules: signals.alertRules.asStat('Scheduled rules'),
           schedulerBehind: signals.schedulerBehind.asTimeSeries('Scheduler behind'),
           evalTime: signals.evalTime.asTimeSeries('Rule evaluation time (avg)'),
           notifLatencyP99: signals.notifLatencyP99.asTimeSeries('Notification latency p99'),
           alertsReceived: signals.alertsReceived.asTimeSeries('Alerts received/s'),
         },
-      },
+      } + charts,
       {
         title: 'Database',
-        width: 8,
-        height: 7,
         elements: {
-          dbOpen: signals.dbOpen.asTimeSeries('Connections open'),
-          dbInUse: signals.dbInUse.asTimeSeries('Connections in use'),
-          dbIdle: signals.dbIdle.asTimeSeries('Connections idle'),
-          dbMaxOpen: signals.dbMaxOpen.asStat('Max open'),
+          dbConns: signals.dbOpen.asTimeSeries('Connections: open / in use / idle')
+                   + panel.withTargetsMixin([signals.dbInUse.asTarget(), signals.dbIdle.asTarget()]),
           dbWaitRate: signals.dbWaitRate.asTimeSeries('Connection waits/s'),
           dbWaitTime: signals.dbWaitTime.asTimeSeries('Wait time/s'),
         },
-      },
+      } + charts,
       {
         title: 'Live & rendering',
-        width: 8,
-        height: 7,
         elements: {
           liveClients: signals.liveClients.asTimeSeries('Live clients'),
           liveChannels: signals.liveChannels.asTimeSeries('Live channels'),
@@ -158,33 +164,15 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           renderingQueue: signals.renderingQueue.asTimeSeries('Rendering queue'),
           emailsFailed: signals.emailsFailed.asTimeSeries('Emails failed/s'),
         },
-      },
-      {
-        title: 'Totals',
-        width: 4,
-        height: 5,
-        elements: {
-          totalDashboards: signals.totalDashboards.asStat('Dashboards'),
-          totalDatasources: signals.totalDatasources.asStat('Datasources'),
-          totalFolders: signals.totalFolders.asStat('Folders'),
-          totalUsers: signals.totalUsers.asStat('Users'),
-          activeUsers: signals.activeUsers.asStat('Active users'),
-          totalOrgs: signals.totalOrgs.asStat('Organisations'),
-          totalAlertRules: signals.totalAlertRules.asStat('Alert rules'),
-        },
-      },
+      } + charts,
       {
         title: 'Resources',
-        width: 8,
-        height: 7,
         elements: {
           cpu: signals.cpu.asTimeSeries('CPU (cores)'),
           rss: signals.rss.asTimeSeries('Resident memory'),
           goroutines: signals.goroutines.asTimeSeries('Goroutines'),
-          uptime: signals.uptime.asStat('Uptime'),
-          restarts: signals.restarts.asStat('Instance starts (1h)'),
         },
-      },
+      } + charts,
     ], [
       // alerting rule group
       alert.rule.group('grafana', [

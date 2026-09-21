@@ -51,17 +51,17 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `totalFolders` | short | `max(grafana_stat_totals_folder{job=~"$job"})` | — |
 | `totalOrgs` | short | `max(grafana_stat_total_orgs{job=~"$job"})` | — |
 | `totalUsers` | short | `max(grafana_stat_total_users{job=~"$job"})` | — |
-| `uptime` | s | `time() - process_start_time_seconds{job=~"$job"}` | — |
+| `uptime` | dtdurations | `min(time() - process_start_time_seconds{job=~"$job"})` | — |
 
 ## Dashboard
 
-- **Requests** — `apiStatus`, `httpByHandler`, `httpErrorRatio`, `httpInFlight`, `httpP50`, `httpP99`, `httpRate`, `pageStatus`
+- **Overview** — `ov01_dashboards`, `ov02_datasources`, `ov03_folders`, `ov04_users`, `ov05_activeUsers`, `ov06_orgs`, `ov07_alertRules`, `ov08_alertsActive`, `ov09_dbMaxOpen`, `ov10_uptime`, `ov11_restarts`, `ov12_inFlight`
+- **Requests** — `apiStatus`, `httpByHandler`, `httpDuration`, `httpErrorRatio`, `httpRate`, `pageStatus`
 - **Datasources & plugins** — `dsErrors`, `dsInFlight`, `dsP99`, `dsRequests`, `pluginP99`, `pluginRequests`, `proxyStatus`
-- **Alerting** — `alertRules`, `alertsActive`, `alertsReceived`, `evalTime`, `notifLatencyP99`, `schedulerBehind`
-- **Database** — `dbIdle`, `dbInUse`, `dbMaxOpen`, `dbOpen`, `dbWaitRate`, `dbWaitTime`
+- **Alerting** — `alertsReceived`, `evalTime`, `notifLatencyP99`, `schedulerBehind`
+- **Database** — `dbConns`, `dbWaitRate`, `dbWaitTime`
 - **Live & rendering** — `emailsFailed`, `liveChannels`, `liveClients`, `liveSent`, `renderingQueue`
-- **Totals** — `activeUsers`, `totalAlertRules`, `totalDashboards`, `totalDatasources`, `totalFolders`, `totalOrgs`, `totalUsers`
-- **Resources** — `cpu`, `goroutines`, `restarts`, `rss`, `uptime`
+- **Resources** — `cpu`, `goroutines`, `rss`
 
 ## Alerts
 

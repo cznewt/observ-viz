@@ -1,6 +1,6 @@
 # Alloy service  (`g.libs.services.alloy`)
 
-Dashboard uid `observ-viz-svc-alloy` · 57 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-alloy` · 63 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -34,14 +34,20 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `kube_mem` | bytes | `sum by (pod) (container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""})` | — |
 | `kube_memLimits` | bytes | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
 | `kube_memRequests` | bytes | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
+| `kube_notRunning` | short | `sum(kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", phase!="Running"} == 1) or vector(0)` | — |
 | `kube_phase` | short | `sum by (phase) (kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
+| `kube_pods` | short | `count(kube_pod_info{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
 | `kube_pvcUsage` | percentunit | `kubelet_volume_stats_used_bytes{cluster=~"$cluster", namespace=~"$namespace"} / kubelet_volume_stats_capacity_bytes{cluster=~"$cluster", namespace=~"$namespace"}` | — |
 | `kube_ready` | short | `sum by (pod) (kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_readyTotal` | short | `sum(kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
 | `kube_restarts` | short | `sum by (pod) (kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_restarts1h` | short | `sum(increase(kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[1h]))` | — |
 | `kube_stsDesired` | short | `kube_statefulset_replicas{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"alloy.*"}` | — |
 | `kube_stsReady` | short | `kube_statefulset_status_replicas_ready{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"alloy.*"}` | — |
 | `kube_waiting` | short | `sum by (pod, reason) (kube_pod_container_status_waiting_reason{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
-| `logs_journal` | short | `{instance=~"$host", unit=~"alloy\.service"}` | — |
+| `kube_waitingTotal` | short | `sum(kube_pod_container_status_waiting{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_youngest` | dtdurations | `min(time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `logs_journal` | short | `{instance=~"$host", unit=~"alloy.service"}` | — |
 | `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
 | `pending` | short | `sum(prometheus_remote_storage_samples_pending{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `proc_cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
@@ -53,10 +59,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `rss` | bytes | `alloy_resources_process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `running` | short | `sum(alloy_component_controller_running_components{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `sendFailed` | short | `sum(rate(prometheus_remote_storage_samples_failed_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
-| `systemd_active` | short | `count(node_systemd_unit_state{name=~"alloy\.service", state="active", instance=~"$host"} == 1)` | — |
-| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"alloy\.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
-| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"alloy\.service", instance=~"$host"}))` | — |
-| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"alloy\.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"alloy\.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"alloy\.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"alloy\.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `systemd_active` | short | `count(node_systemd_unit_state{name=~"alloy.service", state="active", instance=~"$host"} == 1)` | — |
+| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"alloy.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"alloy.service", instance=~"$host"}))` | — |
+| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"alloy.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"alloy.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"alloy.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"alloy.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
 | `uptime` | s | `time() - alloy_resources_process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)alloy", instance=~"$host"}[$__rate_interval]))` | — |
 | `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)alloy", instance=~"$host"})` | — |

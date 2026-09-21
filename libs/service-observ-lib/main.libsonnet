@@ -129,16 +129,23 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local signals = {
       // ===== Kubernetes: pod resources vs. requests/limits, status =====
       kube_cpu: ksig('CPU usage', 'sum by (pod) (rate(container_cpu_usage_seconds_total{%(queriesSelector)s, container!=""}[$__rate_interval]))', 'short'),
-      kube_cpuRequests: ksig('CPU requests', 'sum by (pod) (kube_pod_container_resource_requests{%(queriesSelector)s, resource="cpu"})', 'short'),
-      kube_cpuLimits: ksig('CPU limits', 'sum by (pod) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="cpu"})', 'short'),
+      kube_cpuRequests: ksig('CPU requests', 'sum by (pod) (kube_pod_container_resource_requests{%(queriesSelector)s, resource="cpu"})', 'short', '{{pod}} requests'),
+      kube_cpuLimits: ksig('CPU limits', 'sum by (pod) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="cpu"})', 'short', '{{pod}} limits'),
       kube_mem: ksig('Memory working set', 'sum by (pod) (container_memory_working_set_bytes{%(queriesSelector)s, container!=""})', 'bytes'),
-      kube_memRequests: ksig('Memory requests', 'sum by (pod) (kube_pod_container_resource_requests{%(queriesSelector)s, resource="memory"})', 'bytes'),
-      kube_memLimits: ksig('Memory limits', 'sum by (pod) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})', 'bytes'),
+      kube_memRequests: ksig('Memory requests', 'sum by (pod) (kube_pod_container_resource_requests{%(queriesSelector)s, resource="memory"})', 'bytes', '{{pod}} requests'),
+      kube_memLimits: ksig('Memory limits', 'sum by (pod) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})', 'bytes', '{{pod}} limits'),
       kube_restarts: ksig('Container restarts', 'sum by (pod) (kube_pod_container_status_restarts_total{%(queriesSelector)s})', 'short'),
       kube_phase: ksig('Pods by phase', 'sum by (phase) (kube_pod_status_phase{%(queriesSelector)s} == 1)', 'short', '{{phase}}'),
       kube_ready: ksig('Containers ready', 'sum by (pod) (kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
       kube_waiting: ksig('Containers waiting', 'sum by (pod, reason) (kube_pod_container_status_waiting_reason{%(queriesSelector)s} == 1)', 'short', '{{pod}} {{reason}}'),
       kube_age: ksig('Pod age', 'time() - kube_pod_start_time{%(queriesSelector)s}', 's'),
+      // stat-row aggregates
+      kube_pods: ksig('Pods', 'count(kube_pod_info{%(queriesSelector)s})', 'short', 'pods'),
+      kube_restarts1h: ksig('Restarts (1h)', 'sum(increase(kube_pod_container_status_restarts_total{%(queriesSelector)s}[1h]))', 'short', 'restarts'),
+      kube_youngest: ksig('Youngest pod', 'min(time() - kube_pod_start_time{%(queriesSelector)s})', 'dtdurations', 'age'),
+      kube_readyTotal: ksig('Containers ready', 'sum(kube_pod_container_status_ready{%(queriesSelector)s})', 'short', 'ready'),
+      kube_waitingTotal: ksig('Containers waiting', 'sum(kube_pod_container_status_waiting{%(queriesSelector)s})', 'short', 'waiting'),
+      kube_notRunning: ksig('Pods not running', 'sum(kube_pod_status_phase{%(queriesSelector)s, phase!="Running"} == 1) or vector(0)', 'short', 'not running'),
       // workload objects carry no pod label — matched by name regex instead.
       kube_deployDesired: wsig('Deployment desired', 'kube_deployment_spec_replicas{%(queriesSelector)s, deployment=~"' + wl + '"}', 'short', '{{deployment}} desired'),
       kube_deployAvailable: wsig('Deployment available', 'kube_deployment_status_replicas_available{%(queriesSelector)s, deployment=~"' + wl + '"}', 'short', '{{deployment}} available'),
@@ -162,14 +169,14 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       hproc_fds: hsig('Open file descriptors', 'sum by (instance) (namedprocess_namegroup_open_filedesc{groupname=~"' + grp + '", %(queriesSelector)s})', 'short'),
       hproc_fdRatio: hsig('Worst FD ratio', 'max by (instance) (namedprocess_namegroup_worst_fd_ratio{groupname=~"' + grp + '", %(queriesSelector)s})', 'percentunit'),
       hproc_uptime: hsig('Process uptime', 'time() - min by (instance) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"' + grp + '", %(queriesSelector)s})', 's'),
-      hproc_ioRead: hsig('Process read', 'sum by (instance) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps'),
-      hproc_ioWrite: hsig('Process write', 'sum by (instance) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps'),
+      hproc_ioRead: hsig('Process read', 'sum by (instance) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} read'),
+      hproc_ioWrite: hsig('Process write', 'sum by (instance) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} write'),
       hproc_majFaults: hsig('Major page faults', 'sum by (instance) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'short'),
 
       // ===== Process (the app's own process_* client metrics) =====
       proc_cpu: jsig('Process CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
-      proc_rss: jsig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      proc_virt: jsig('Virtual memory', 'process_virtual_memory_bytes{%(queriesSelector)s}', 'bytes'),
+      proc_rss: jsig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', '{{instance}} rss'),
+      proc_virt: jsig('Virtual memory', 'process_virtual_memory_bytes{%(queriesSelector)s}', 'bytes', '{{instance}} virtual'),
       proc_fds: jsig('Open file descriptors', 'process_open_fds{%(queriesSelector)s}', 'short'),
       proc_fdRatio: jsig('FD usage', 'process_open_fds{%(queriesSelector)s} / process_max_fds{%(queriesSelector)s}', 'percentunit'),
       proc_uptime: jsig('Uptime', 'time() - process_start_time_seconds{%(queriesSelector)s}', 's'),
@@ -224,113 +231,151 @@ local stateMappings(m) = [{ type: 'value', options: m }];
          ] else []);
 
     // ----- optional tabs (each gated on a presence marker) -----
+    // Layout follows the upstream packs: a row of small stat tiles (4x4), then
+    // charts two per row (12x7); related series share one panel (usage with
+    // its requests/limits drawn dashed, desired vs ready, read vs write).
+    local stats = { width: 4, height: 4 };
+    local charts = { width: 12, height: 7 };
+    local wide = { width: 24, height: 6 };
+    local dashed(regex) = panel.withOverrides([{
+      matcher: { id: 'byRegexp', options: regex },
+      properties: [
+        { id: 'custom.lineStyle', value: { fill: 'dash', dash: [10, 10] } },
+        { id: 'custom.fillOpacity', value: 0 },
+      ],
+    }]);
+    local red1 = panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'red', value: 1 }]);
     local tabs =
       (if cfg.kubernetes.enabled then [{
          title: 'Kubernetes',
-         width: 8,
-         height: 7,
          presence: { query: 'kube_pod_info{' + cfg.kubeSelector + '}', label: 'pod' },
-         elements: {
-           k01_phase: signals.kube_phase.asTimeSeries('Pods by phase'),
-           k02_restarts: signals.kube_restarts.asTimeSeries('Container restarts'),
-           k03_age: signals.kube_age.asStat('Pod age'),
-           k04_cpu: signals.kube_cpu.asTimeSeries('CPU usage (cores)'),
-           k05_cpuRequests: signals.kube_cpuRequests.asTimeSeries('CPU requests'),
-           k06_cpuLimits: signals.kube_cpuLimits.asTimeSeries('CPU limits'),
-           k07_mem: signals.kube_mem.asTimeSeries('Memory working set'),
-           k08_memRequests: signals.kube_memRequests.asTimeSeries('Memory requests'),
-           k09_memLimits: signals.kube_memLimits.asTimeSeries('Memory limits'),
-           k10_ready: signals.kube_ready.asTimeSeries('Containers ready'),
-           k11_waiting: signals.kube_waiting.asTimeSeries('Containers waiting (reason)'),
-           k12_pvc: signals.kube_pvcUsage.asTimeSeries('PVC usage (namespace)'),
-           k13_deployDesired: signals.kube_deployDesired.asTimeSeries('Deployment desired'),
-           k14_deployAvailable: signals.kube_deployAvailable.asTimeSeries('Deployment available'),
-           k15_stsDesired: signals.kube_stsDesired.asTimeSeries('StatefulSet desired'),
-           k16_stsReady: signals.kube_stsReady.asTimeSeries('StatefulSet ready'),
-           k17_dsDesired: signals.kube_dsDesired.asTimeSeries('DaemonSet desired'),
-           k18_dsReady: signals.kube_dsReady.asTimeSeries('DaemonSet ready'),
-         },
+         groups: [
+           {
+             title: 'Status',
+             elements: {
+               k01_pods: signals.kube_pods.asStat('Pods'),
+               k02_notRunning: signals.kube_notRunning.asStat('Not running') + red1,
+               k03_restarts: signals.kube_restarts1h.asStat('Restarts (1h)') + red1,
+               k04_ready: signals.kube_readyTotal.asStat('Containers ready'),
+               k05_waiting: signals.kube_waitingTotal.asStat('Containers waiting') + red1,
+               k06_age: signals.kube_youngest.asStat('Youngest pod'),
+             },
+           } + stats,
+           {
+             title: 'Resources',
+             elements: {
+               k11_cpu: signals.kube_cpu.asTimeSeries('CPU: usage vs requests / limits')
+                        + panel.withTargetsMixin([signals.kube_cpuRequests.asTarget(), signals.kube_cpuLimits.asTarget()])
+                        + dashed('/ (requests|limits)$/'),
+               k12_mem: signals.kube_mem.asTimeSeries('Memory: working set vs requests / limits')
+                        + panel.withTargetsMixin([signals.kube_memRequests.asTarget(), signals.kube_memLimits.asTarget()])
+                        + dashed('/ (requests|limits)$/'),
+               k13_restarts: signals.kube_restarts.asTimeSeries('Container restarts (total)'),
+               k14_phase: signals.kube_phase.asTimeSeries('Pods by phase'),
+               k15_waiting: signals.kube_waiting.asTimeSeries('Containers waiting by reason'),
+               k16_pvc: signals.kube_pvcUsage.asTimeSeries('PVC usage (namespace)'),
+             },
+           } + charts,
+           {
+             title: 'Workload',
+             elements: {
+               k21_deploy: signals.kube_deployDesired.asTimeSeries('Deployment: desired vs available')
+                           + panel.withTargetsMixin([signals.kube_deployAvailable.asTarget()])
+                           + dashed('/ desired$/'),
+               k22_sts: signals.kube_stsDesired.asTimeSeries('StatefulSet: desired vs ready')
+                        + panel.withTargetsMixin([signals.kube_stsReady.asTarget()])
+                        + dashed('/ desired$/'),
+               k23_ds: signals.kube_dsDesired.asTimeSeries('DaemonSet: desired vs ready')
+                       + panel.withTargetsMixin([signals.kube_dsReady.asTarget()])
+                       + dashed('/ desired$/'),
+             },
+           } + charts,
+         ],
        }, {
          title: 'Containers',
-         width: 8,
-         height: 7,
          presence: { query: 'container_cpu_usage_seconds_total{' + cfg.kubeSelector + ', container!=""}', label: 'pod' },
          // the cadvisor observ-lib's full element set, scoped to these pods.
          elements: embed('cadvisor_', cadvisorLib.new({ datasource: cfg.datasource, selector: cfg.kubeSelector, docTabs: false }).grafana.elements),
-       }] else [])
+       } + charts] else [])
       + (if cfg.docker.enabled then [{
            title: 'Docker',
-           width: 8,
-           height: 7,
            presence: { query: 'container_last_seen{' + cfg.hostSelector + ', name=~"' + cfg.docker.container + '"}', label: 'instance' },
            elements: embed('docker_', dockerLib.new({ datasource: cfg.datasource, selector: cfg.hostSelector + ', name=~"' + cfg.docker.container + '"', docTabs: false }).grafana.elements),
-         }] else [])
+         } + charts] else [])
       + (if cfg.systemd.enabled then [{
            title: 'systemd',
-           width: 8,
-           height: 7,
            presence: { query: 'node_systemd_unit_state{' + cfg.hostSelector + ', name=~"' + unit + '"}', label: 'instance' },
-           elements: {
-             s01_state: timeline('Unit state', signals.systemd_state, unitMappings),
-             s02_active: signals.systemd_active.asStat('Active'),
-             s03_failed: signals.systemd_failed.asStat('Failed')
-                         + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'red', value: 1 }]),
-             s04_hosts: signals.systemd_hosts.asStat('Hosts'),
-           },
+           groups: [
+             { title: 'State', elements: {
+               s01_active: signals.systemd_active.asStat('Active'),
+               s02_failed: signals.systemd_failed.asStat('Failed') + red1,
+               s03_hosts: signals.systemd_hosts.asStat('Hosts'),
+             } } + stats,
+             { title: 'Units', elements: {
+               s11_state: timeline('Unit state', signals.systemd_state, unitMappings),
+             } } + wide,
+           ],
          }] else [])
       + (if cfg.process.enabled then [{
            title: 'Host process',
-           width: 8,
-           height: 7,
            presence: { query: 'namedprocess_namegroup_num_procs{' + cfg.hostSelector + ', groupname=~"' + grp + '"}', label: 'instance' },
-           elements: {
-             h01_cpu: signals.hproc_cpu.asTimeSeries('CPU (cores)'),
-             h02_rss: signals.hproc_rss.asTimeSeries('Resident memory'),
-             h03_uptime: signals.hproc_uptime.asStat('Uptime'),
-             h04_procs: signals.hproc_procs.asTimeSeries('Processes'),
-             h05_threads: signals.hproc_threads.asTimeSeries('Threads'),
-             h06_fds: signals.hproc_fds.asTimeSeries('Open file descriptors'),
-             h07_fdRatio: signals.hproc_fdRatio.asTimeSeries('Worst FD ratio'),
-             h08_ioRead: signals.hproc_ioRead.asTimeSeries('Read'),
-             h09_ioWrite: signals.hproc_ioWrite.asTimeSeries('Write'),
-             h10_majFaults: signals.hproc_majFaults.asTimeSeries('Major page faults/s'),
-           },
+           groups: [
+             { title: 'Overview', elements: {
+               h01_procs: signals.hproc_procs.asStat('Processes'),
+               h02_threads: signals.hproc_threads.asStat('Threads'),
+               h03_fds: signals.hproc_fds.asStat('Open file descriptors'),
+               h04_fdRatio: signals.hproc_fdRatio.asStat('Worst FD ratio'),
+               h05_uptime: signals.hproc_uptime.asStat('Uptime'),
+             } } + stats,
+             { title: 'Usage', elements: {
+               h11_cpu: signals.hproc_cpu.asTimeSeries('CPU (cores)'),
+               h12_rss: signals.hproc_rss.asTimeSeries('Resident memory'),
+               h13_io: signals.hproc_ioRead.asTimeSeries('Disk read / write')
+                       + panel.withTargetsMixin([signals.hproc_ioWrite.asTarget()]),
+               h14_majFaults: signals.hproc_majFaults.asTimeSeries('Major page faults/s'),
+             } } + charts,
+           ],
          }] else [])
       + [{
         title: 'Process',
-        width: 8,
-        height: 7,
         presence: { query: 'process_cpu_seconds_total{' + cfg.selector + '}', label: 'instance' },
-        elements: {
-          p01_cpu: signals.proc_cpu.asTimeSeries('CPU (cores)'),
-          p02_rss: signals.proc_rss.asTimeSeries('Resident memory'),
-          p03_virt: signals.proc_virt.asTimeSeries('Virtual memory'),
-          p04_fds: signals.proc_fds.asTimeSeries('Open file descriptors'),
-          p05_fdRatio: signals.proc_fdRatio.asTimeSeries('FD usage'),
-          p06_uptime: signals.proc_uptime.asStat('Uptime'),
-        },
+        groups: [
+          { title: 'Overview', elements: {
+            p01_fds: signals.proc_fds.asStat('Open file descriptors'),
+            p02_fdRatio: signals.proc_fdRatio.asStat('FD usage'),
+            p03_uptime: signals.proc_uptime.asStat('Uptime'),
+          } } + stats,
+          { title: 'Usage', elements: {
+            p11_cpu: signals.proc_cpu.asTimeSeries('CPU (cores)'),
+            p12_mem: signals.proc_rss.asTimeSeries('Resident / virtual memory')
+                     + panel.withTargetsMixin([signals.proc_virt.asTarget()])
+                     + dashed('/ virtual$/'),
+          } } + charts,
+        ],
       }]
       + (if cfg.golang then [{
            title: 'Go runtime',
-           width: 8,
-           height: 7,
            presence: { query: 'go_goroutines{' + cfg.selector + '}', label: 'instance' },
            elements: embed('go_', golangLib.new({ datasource: cfg.datasource, selector: cfg.selector }).grafana.elements),
-         }] else [])
+         } + charts] else [])
       + (if cfg.windows.enabled then [{
            title: 'Windows',
-           width: 8,
-           height: 7,
            presence: { query: 'windows_service_state{' + cfg.hostSelector + ', name=~"' + wsvc + '"}', label: 'instance' },
-           elements: {
-             w01_state: timeline('Service state', signals.win_state, winMappings),
-             w02_cpu: signals.win_cpu.asTimeSeries('CPU (cores)'),
-             w03_workingSet: signals.win_workingSet.asTimeSeries('Working set'),
-             w04_uptime: signals.win_uptime.asStat('Uptime'),
-             w05_handles: signals.win_handles.asTimeSeries('Handles'),
-             w06_threads: signals.win_threads.asTimeSeries('Threads'),
-             w07_io: signals.win_io.asTimeSeries('IO'),
-           },
+           groups: [
+             { title: 'Overview', elements: {
+               w01_uptime: signals.win_uptime.asStat('Uptime'),
+               w02_handles: signals.win_handles.asStat('Handles'),
+               w03_threads: signals.win_threads.asStat('Threads'),
+             } } + stats,
+             { title: 'Service', elements: {
+               w11_state: timeline('Service state', signals.win_state, winMappings),
+             } } + wide,
+             { title: 'Usage', elements: {
+               w21_cpu: signals.win_cpu.asTimeSeries('CPU (cores)'),
+               w22_workingSet: signals.win_workingSet.asTimeSeries('Working set'),
+               w23_io: signals.win_io.asTimeSeries('IO'),
+             } } + charts,
+           ],
          }] else [])
       + (if cfg.logs then [{
            title: 'Logs',
@@ -346,14 +391,16 @@ local stateMappings(m) = [{ type: 'value', options: m }];
          }] else [])
       + [{
         title: 'Alerts',
-        width: 12,
-        height: 9,
         alwaysShow: true,
-        elements: {
-          a01_list: alertPanels.list('Alerts', instanceFilter='{job=~"$job"}', groupMode='custom', groupBy=['alertname']),
-          a02_timeline: alertPanels.timeline('Alert state', cfg.datasource, cfg.selector),
-          a03_firing: alertPanels.firingTable('Firing alerts', cfg.datasource, cfg.selector),
-        },
+        groups: [
+          { title: 'Alerts', width: 12, height: 9, elements: {
+            a01_list: alertPanels.list('Alerts', instanceFilter='{job=~"$job"}', groupMode='custom', groupBy=['alertname']),
+            a02_timeline: alertPanels.timeline('Alert state', cfg.datasource, cfg.selector),
+          } },
+          { title: 'Firing', width: 24, height: 8, elements: {
+            a11_firing: alertPanels.firingTable('Firing alerts', cfg.datasource, cfg.selector),
+          } },
+        ],
       }];
 
     // ----- variables: job + cascading kube identity off the whitebox metric, host off the platform markers -----

@@ -8,6 +8,7 @@
 local g = import './g.libsonnet';
 local utils = import './parentUtils.libsonnet';
 local signalUtils = import './signalUtils.libsonnet';
+local style = import 'libs/common-lib/signal/style.libsonnet';
 
 // helpers replacing std.get for the C++ binding.
 local objGet(o, f, default=null) = if std.objectHasAll(o, f) then o[f] else default;
@@ -448,12 +449,14 @@ local arrHas(arr, v) = std.length(std.find(v, arr)) > 0;
     //Return as timeSeriesPanel
     asTimeSeries(name=this.signalName):
       g.panel.timeSeries.new(name)
-      + self.common(type='timeSeries'),
+      + self.common(type='timeSeries')
+      + style.timeSeries(self.unit),
 
     //Return as statPanel
     asStat(name=this.signalName):
       g.panel.stat.new(name)
-      + self.common(type='stat'),
+      + self.common(type='stat')
+      + style.stat(self.unit),
 
     asTable(name=this.signalName, format='table', filterable=false):
       g.panel.table.new(name)
