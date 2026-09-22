@@ -77,7 +77,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('anomaly-exporter', [
         alert.rule.new('AnomalyExporterDown',
-                       'up' + rsBrace + ' == 0',
+                       (import 'libs/common-lib/alert/rule.libsonnet').targetDown('anomaly_exporter_build_info', cfg.ruleSelector),
                        '10m',
                        'warning',
                        {},

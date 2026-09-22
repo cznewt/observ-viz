@@ -75,7 +75,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       alert.rule.group('mimir', [
         alert.rule.new(
           'MimirDown',
-          'up' + rsBrace + ' == 0',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('cortex_build_info', cfg.ruleSelector),
           '5m',
           'critical',
           {},

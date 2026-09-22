@@ -3,9 +3,9 @@
 // emitted as native v2 elements. Usage:
 //   g.libs.runtimes.python.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.python.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -66,25 +66,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('python', [
         alert.rule.new(
-          'PythonProcessDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'PythonProcessDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('python_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'Python process {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'PythonHighCpu',
           'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'PythonHighMemory',
           'process_resident_memory_bytes' + rsBrace + ' > 1e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Resident memory on {{ $labels.instance }} is above 1GB.' }
         ),
         alert.rule.new(
           'PythonFileDescriptorsExhausted',
           'process_open_fds' + rsBrace + ' / process_max_fds' + rsBrace + ' > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Open file descriptors on {{ $labels.instance }} are above 90% of the limit.' }
         ),
       ]),

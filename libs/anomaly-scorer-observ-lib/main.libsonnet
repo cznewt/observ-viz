@@ -8,9 +8,9 @@
 //
 //   g.libs.monitoring.anomalyScorer.new({ selector: 'namespace="global-monitor-anomaly-scorer"' }).grafana.dashboard
 //   g.libs.monitoring.anomalyScorer.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -107,7 +107,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         ),
         alert.rule.new(
           'AnomalyScorerDown',
-          'up' + rsBrace + ' == 0',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('custom_anomaly_score', cfg.ruleSelector),
           '5m',
           'critical',
           {},

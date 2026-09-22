@@ -142,7 +142,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('alertmanager', [
         alert.rule.new('AlertmanagerDown',
-                       'up' + rsBrace + ' == 0',
+                       (import 'libs/common-lib/alert/rule.libsonnet').targetDown('alertmanager_build_info', cfg.ruleSelector),
                        '5m',
                        'critical',
                        {},

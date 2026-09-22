@@ -100,7 +100,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('alert-handler', [
         alert.rule.new('AlertHandlerDown',
-                       'up' + rsBrace + ' == 0',
+                       (import 'libs/common-lib/alert/rule.libsonnet').targetDown('alert_handler_config_valid', cfg.ruleSelector),
                        '5m',
                        'critical',
                        {},

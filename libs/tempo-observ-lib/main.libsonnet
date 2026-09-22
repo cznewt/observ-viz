@@ -1,8 +1,8 @@
 // observ-viz Tempo pack (hand-written).
 // Grafana Tempo self-monitoring (tempo_* metrics), emitted as native v2 elements.
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -82,25 +82,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('tempo', [
         alert.rule.new(
-          'TempoDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'TempoDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('tempo_build_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'Tempo {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'TempoHighBlocklistLength',
           'tempodb_blocklist_length' + rsBrace + ' > 1000',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Blocklist length on {{ $labels.instance }} is above 1000.' }
         ),
         alert.rule.new(
           'TempoSlowRequests',
           'histogram_quantile(0.99, sum by (le) (rate(tempo_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Request p99 on {{ $labels.instance }} is above 1s.' }
         ),
         alert.rule.new(
           'TempoHighGoroutines',
           'go_goroutines' + rsBrace + ' > 10000',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
         ),
       ]),

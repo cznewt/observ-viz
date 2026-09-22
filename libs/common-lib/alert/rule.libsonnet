@@ -25,6 +25,17 @@
     rules: rules,
   },
 
+  // targetDown(identity, ruleSelector, window) -> the expr of a "<app> is down"
+  // alert. A bare `up == 0` fires for every down target in the tenant, so the
+  // down target must also have exposed one of the app's identity metrics
+  // (a *_build_info-style gauge; string or list) within `window`, joined on
+  // job + instance. Caveat: a target down for longer than `window` resolves.
+  targetDown(identity, ruleSelector='', window='1d')::
+    local ids = if std.isArray(identity) then identity else [identity];
+    local sel = if ruleSelector != '' then '{' + ruleSelector + '}' else '';
+    local seen = std.join(' or ', ['max_over_time(%s%s[%s])' % [m, sel, window] for m in ids]);
+    '(up%s == 0) and on (job, instance) (%s)' % [sel, seen],
+
   // alerts(groups) -> the prometheusAlerts document.
   alerts(groups): { groups: groups },
 }

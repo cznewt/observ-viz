@@ -333,7 +333,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
       alert.rule.group('windows', [
         alert.rule.new(
           'WindowsHostDown',
-          'up' + rsBrace + ' == 0',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('windows_os_info', cfg.ruleSelector),
           '5m',
           'critical',
           {},

@@ -78,7 +78,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       alert.rule.group('docker', [
         alert.rule.new(
           'CadvisorDown',
-          'up' + rsBrace + ' == 0',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('cadvisor_version_info', cfg.ruleSelector),
           '5m',
           'critical',
           {},

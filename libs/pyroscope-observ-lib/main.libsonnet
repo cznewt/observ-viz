@@ -2,9 +2,9 @@
 // Grafana Pyroscope self-monitoring (pyroscope_* metrics), emitted as native v2
 // elements. Usage:
 //   g.libs.lgtm.pyroscope.new({ selector: 'job="pyroscope"' }).grafana.dashboard
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -75,25 +75,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('pyroscope', [
         alert.rule.new(
-          'PyroscopeDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'PyroscopeDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('pyroscope_build_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'Pyroscope {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'PyroscopeHighRequestLatency',
           'histogram_quantile(0.99, sum by (le' + rsComma + ')(rate(pyroscope_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Request p99 latency on {{ $labels.instance }} is above 1s.' }
         ),
         alert.rule.new(
           'PyroscopeHighHeapMemory',
           'go_memstats_heap_inuse_bytes' + rsBrace + ' > 2e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Heap in use on {{ $labels.instance }} is above 2GB.' }
         ),
         alert.rule.new(
           'PyroscopeHighGoroutines',
           'go_goroutines' + rsBrace + ' > 10000',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
         ),
       ]),

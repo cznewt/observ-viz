@@ -117,7 +117,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('argo-cd', [
         alert.rule.new('ArgoCdDown',
-                       'up' + rsBrace + ' == 0',
+                       (import 'libs/common-lib/alert/rule.libsonnet').targetDown(['argocd_app_info', 'argocd_git_request_total', 'argocd_redis_request_total'], cfg.ruleSelector),
                        '5m',
                        'critical',
                        {},

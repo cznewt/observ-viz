@@ -100,7 +100,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('opencost', [
         alert.rule.new('OpencostDown',
-                       'up' + rsBrace + ' == 0',
+                       (import 'libs/common-lib/alert/rule.libsonnet').targetDown('opencost_build_info', cfg.ruleSelector),
                        '10m',
                        'warning',
                        {},

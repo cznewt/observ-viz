@@ -3,9 +3,9 @@
 // native v2 elements. Usage:
 //   g.libs.runtimes.golang.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.golang.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -25,82 +25,92 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withDescription(desc);
 
     local signals = {
-    goroutines: sig('Goroutines', 'go_goroutines{%(queriesSelector)s}', 'short', 'Goroutines currently running.'),
-    threads: sig('OS threads', 'go_threads{%(queriesSelector)s}', 'short', 'OS threads created by the Go runtime.'),
-    cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Process CPU cores used.'),
-    openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short', 'Open file descriptors.'),
-    heapInuse: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Heap memory in use.'),
-    heapAlloc: sig('Heap alloc', 'go_memstats_heap_alloc_bytes{%(queriesSelector)s}', 'bytes', 'Heap bytes allocated and live.'),
-    heapObjects: sig('Heap objects', 'go_memstats_heap_objects{%(queriesSelector)s}', 'short', 'Allocated heap objects.'),
-    stackInuse: sig('Stack in use', 'go_memstats_stack_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Stack memory in use.'),
-    rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
-    gcPauseMax: sig('GC pause (max)', 'go_gc_duration_seconds{quantile="1", %(queriesSelector)s}', 's', 'Max GC stop-the-world pause.'),
-    gcRate: sig('GC rate', 'rate(go_gc_duration_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops', 'Completed GC cycles per second.'),
-  };
+      goroutines: sig('Goroutines', 'go_goroutines{%(queriesSelector)s}', 'short', 'Goroutines currently running.'),
+      threads: sig('OS threads', 'go_threads{%(queriesSelector)s}', 'short', 'OS threads created by the Go runtime.'),
+      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Process CPU cores used.'),
+      openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short', 'Open file descriptors.'),
+      heapInuse: sig('Heap in use', 'go_memstats_heap_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Heap memory in use.'),
+      heapAlloc: sig('Heap alloc', 'go_memstats_heap_alloc_bytes{%(queriesSelector)s}', 'bytes', 'Heap bytes allocated and live.'),
+      heapObjects: sig('Heap objects', 'go_memstats_heap_objects{%(queriesSelector)s}', 'short', 'Allocated heap objects.'),
+      stackInuse: sig('Stack in use', 'go_memstats_stack_inuse_bytes{%(queriesSelector)s}', 'bytes', 'Stack memory in use.'),
+      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
+      gcPauseMax: sig('GC pause (max)', 'go_gc_duration_seconds{quantile="1", %(queriesSelector)s}', 's', 'Max GC stop-the-world pause.'),
+      gcRate: sig('GC rate', 'rate(go_gc_duration_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops', 'Completed GC cycles per second.'),
+    };
 
-  pack.build(cfg, signals, [
-    {
-      title: 'Go runtime',
-      width: 6,
-      height: 7,
-      elements: {
-        goroutines: signals.goroutines.asTimeSeries('Goroutines'),
-        threads: signals.threads.asTimeSeries('OS threads'),
-        cpu: signals.cpu.asTimeSeries('CPU (cores)'),
-        openFds: signals.openFds.asTimeSeries('Open file descriptors'),
+    pack.build(cfg, signals, [
+      {
+        title: 'Go runtime',
+        width: 6,
+        height: 7,
+        elements: {
+          goroutines: signals.goroutines.asTimeSeries('Goroutines'),
+          threads: signals.threads.asTimeSeries('OS threads'),
+          cpu: signals.cpu.asTimeSeries('CPU (cores)'),
+          openFds: signals.openFds.asTimeSeries('Open file descriptors'),
+        },
       },
-    },
-    {
-      title: 'Memory',
-      width: 6,
-      height: 7,
-      elements: {
-        heapInuse: signals.heapInuse.asTimeSeries('Heap in use'),
-        heapAlloc: signals.heapAlloc.asTimeSeries('Heap alloc'),
-        stackInuse: signals.stackInuse.asTimeSeries('Stack in use'),
-        rss: signals.rss.asTimeSeries('Resident memory'),
+      {
+        title: 'Memory',
+        width: 6,
+        height: 7,
+        elements: {
+          heapInuse: signals.heapInuse.asTimeSeries('Heap in use'),
+          heapAlloc: signals.heapAlloc.asTimeSeries('Heap alloc'),
+          stackInuse: signals.stackInuse.asTimeSeries('Stack in use'),
+          rss: signals.rss.asTimeSeries('Resident memory'),
+        },
       },
-    },
-    {
-      title: 'Garbage collection',
-      width: 12,
-      height: 7,
-      elements: {
-        gcPauseMax: signals.gcPauseMax.asTimeSeries('GC pause (max quantile)'),
-        gcRate: signals.gcRate.asTimeSeries('GC cycles/s'),
+      {
+        title: 'Garbage collection',
+        width: 12,
+        height: 7,
+        elements: {
+          gcPauseMax: signals.gcPauseMax.asTimeSeries('GC pause (max quantile)'),
+          gcRate: signals.gcRate.asTimeSeries('GC cycles/s'),
+        },
       },
-    },
-  ], [
-    // alerting rule group
-    alert.rule.group('golang', [
-      alert.rule.new(
-        'GoProcessDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
-        { summary: 'Go process {{ $labels.instance }} is down.' }
-      ),
-      alert.rule.new(
-        'GoHighGoroutines',
-        'go_goroutines' + rsBrace + ' > 10000',
-        '15m', 'warning', {},
-        { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
-      ),
-      alert.rule.new(
-        'GoHighHeapMemory',
-        'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
-        '15m', 'warning', {},
-        { summary: 'Heap in use on {{ $labels.instance }} is above 1GB.' }
-      ),
-      alert.rule.new(
-        'GoSlowGcPause',
-        'go_gc_duration_seconds{quantile="1"' + rsComma + '} > 0.1',
-        '15m', 'warning', {},
-        { summary: 'Max GC pause on {{ $labels.instance }} is above 100ms.' }
-      ),
+    ], [
+      // alerting rule group
+      alert.rule.group('golang', [
+        alert.rule.new(
+          'GoProcessDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('go_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
+          { summary: 'Go process {{ $labels.instance }} is down.' }
+        ),
+        alert.rule.new(
+          'GoHighGoroutines',
+          'go_goroutines' + rsBrace + ' > 10000',
+          '15m',
+          'warning',
+          {},
+          { summary: 'Goroutines on {{ $labels.instance }} are above 10000.' }
+        ),
+        alert.rule.new(
+          'GoHighHeapMemory',
+          'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
+          '15m',
+          'warning',
+          {},
+          { summary: 'Heap in use on {{ $labels.instance }} is above 1GB.' }
+        ),
+        alert.rule.new(
+          'GoSlowGcPause',
+          'go_gc_duration_seconds{quantile="1"' + rsComma + '} > 0.1',
+          '15m',
+          'warning',
+          {},
+          { summary: 'Max GC pause on {{ $labels.instance }} is above 100ms.' }
+        ),
+      ]),
+    ], [
+      // recording rule group
+      alert.rule.group('golang.rules', [
+        alert.rule.record('instance:go_cpu_usage:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
+        alert.rule.record('instance:go_gc_rate:rate5m', 'rate(go_gc_duration_seconds_count' + rsBrace + '[5m])'),
+      ]),
     ]),
-  ], [
-    // recording rule group
-    alert.rule.group('golang.rules', [
-      alert.rule.record('instance:go_cpu_usage:rate5m', 'rate(process_cpu_seconds_total' + rsBrace + '[5m])'),
-      alert.rule.record('instance:go_gc_rate:rate5m', 'rate(go_gc_duration_seconds_count' + rsBrace + '[5m])'),
-    ]),
-  ]),
 }

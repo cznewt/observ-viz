@@ -3,9 +3,9 @@
 // Usage:
 //   g.libs.lgtm.loki.new({ selector: 'job="loki"' }).grafana.dashboard
 //   g.libs.lgtm.loki.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -72,25 +72,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('loki', [
         alert.rule.new(
-          'LokiDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'LokiDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('loki_build_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'Loki {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'LokiHighRequestLatency',
           'histogram_quantile(0.99, sum by (le) (rate(loki_request_duration_seconds_bucket' + rsBrace + '[5m]))) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Request latency p99 on {{ $labels.instance }} is above 1s.' }
         ),
         alert.rule.new(
           'LokiHighHeapMemory',
           'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Heap in use on {{ $labels.instance }} is above 1GB.' }
         ),
         alert.rule.new(
           'LokiManyActiveStreams',
           'sum(loki_ingester_memory_streams' + rsBrace + ') > 100000',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Active streams on {{ $labels.instance }} are above 100000.' }
         ),
       ]),

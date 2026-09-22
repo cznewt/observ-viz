@@ -2,9 +2,9 @@
 // Self-monitoring for a Prometheus server, emitted as native v2 elements. Usage:
 //   g.libs.monitoring.prometheus.new({ selector: 'job="prometheus"' }).grafana.dashboard
 //   g.libs.monitoring.prometheus.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -80,25 +80,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('prometheus', [
         alert.rule.new(
-          'PrometheusDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'PrometheusDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('prometheus_build_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'Prometheus {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'PrometheusRuleEvaluationSlow',
           'rate(prometheus_rule_evaluation_duration_seconds_sum' + rsBrace + '[5m]) / rate(prometheus_rule_evaluation_duration_seconds_count' + rsBrace + '[5m]) > 60',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Rule evaluation on {{ $labels.instance }} is slow.' }
         ),
         alert.rule.new(
           'PrometheusHighMemory',
           'process_resident_memory_bytes' + rsBrace + ' > 4e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Prometheus {{ $labels.instance }} resident memory is above 4GB.' }
         ),
         alert.rule.new(
           'PrometheusHighScrapeDuration',
           'prometheus_target_interval_length_seconds{quantile="0.99"' + rsComma + '} > 60',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Scrape interval p99 on {{ $labels.instance }} is above 60s.' }
         ),
       ]),

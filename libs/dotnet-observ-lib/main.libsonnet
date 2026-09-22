@@ -3,9 +3,9 @@
 // elements. Usage:
 //   g.libs.runtimes.dotnet.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.dotnet.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -82,25 +82,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('dotnet', [
         alert.rule.new(
-          'DotnetDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'DotnetDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('dotnet_build_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: '.NET app {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'DotnetHighExceptionRate',
           'rate(dotnet_exceptions_total' + rsBrace + '[5m]) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Exception rate on {{ $labels.instance }} is above 1/s.' }
         ),
         alert.rule.new(
           'DotnetHighCpu',
           'rate(process_cpu_seconds_total' + rsBrace + '[5m]) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'CPU on {{ $labels.instance }} is above 0.9 cores.' }
         ),
         alert.rule.new(
           'DotnetThreadPoolStarvation',
           'dotnet_threadpool_num_threads' + rsBrace + ' > 200',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Thread-pool threads on {{ $labels.instance }} are above 200.' }
         ),
       ]),

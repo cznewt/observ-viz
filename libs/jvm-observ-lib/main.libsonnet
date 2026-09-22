@@ -3,9 +3,9 @@
 // elements. Usage:
 //   g.libs.runtimes.jvm.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.jvm.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -77,25 +77,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('jvm', [
         alert.rule.new(
-          'JvmProcessDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'JvmProcessDown',
+          (import 'libs/common-lib/alert/rule.libsonnet').targetDown('jvm_info', cfg.ruleSelector),
+          '5m',
+          'critical',
+          {},
           { summary: 'JVM process {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'JvmHighHeapMemory',
           'sum without(area,id)(jvm_memory_used_bytes{area="heap"' + rsComma + '}) / sum without(area,id)(jvm_memory_max_bytes{area="heap"' + rsComma + '}) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Heap usage on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'JvmSlowGcPause',
           'rate(jvm_gc_pause_seconds_sum' + rsBrace + '[5m]) / rate(jvm_gc_pause_seconds_count' + rsBrace + '[5m]) > 0.1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Average GC pause on {{ $labels.instance }} is above 100ms.' }
         ),
         alert.rule.new(
           'JvmHighThreadCount',
           'jvm_threads_live_threads' + rsBrace + ' > 1000',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Live threads on {{ $labels.instance }} are above 1000.' }
         ),
       ]),
