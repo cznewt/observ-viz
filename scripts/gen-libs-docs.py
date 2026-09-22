@@ -19,11 +19,11 @@ GROUPS = {
     ],
     "Monitoring": [
         "monitoring.prometheus", "monitoring.mimir", "monitoring.loki",
-        "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana",
+        "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter",
     ],
     "Collector": ["collector.alloy"],
     "Networking": ["networking.ingressNginx"],
-    "Services": ["services.alloy", "services.grafana", "services.mimir"],
+    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter"],
     "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 

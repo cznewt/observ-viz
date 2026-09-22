@@ -1,0 +1,162 @@
+# Opencost service  (`g.libs.services.opencost`)
+
+Dashboard uid `observ-viz-svc-opencost` · 96 signals · 26 alerts · 16 recording rules.
+
+## Signals
+
+Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).
+
+| Signal | Unit | Query | Recorded as |
+|--------|------|-------|-------------|
+| `clusterHourly` | currencyUSD | `sum(node_total_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}) + sum(kubecost_cluster_management_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} or vector(0)) + sum(pv_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} or vector(0))` | — |
+| `clusterMonthly` | currencyUSD | `(sum(node_total_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}) + sum(kubecost_cluster_management_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} or vector(0)) + sum(pv_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} or vector(0))) * 730` | — |
+| `cpuAllocByNode` | short | `sum by (node) (container_cpu_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `cpuAllocated` | short | `sum(container_cpu_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `egress` | currencyUSD | `sum(kubecost_network_internet_egress_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}) + sum(kubecost_network_region_egress_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}) + sum(kubecost_network_zone_egress_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `hproc_cpu` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_ctxSwitches` | ops | `sum by (instance, groupname, ctxswitchtype) (rate(namedprocess_namegroup_context_switches_total{groupname=~"opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_fdRatio` | percentunit | `max by (instance, groupname) (namedprocess_namegroup_worst_fd_ratio{groupname=~"opencost", instance=~"$host"})` | — |
+| `hproc_fds` | short | `sum by (instance, groupname) (namedprocess_namegroup_open_filedesc{groupname=~"opencost", instance=~"$host"})` | — |
+| `hproc_ioRead` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_ioWrite` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_majFaults` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_procs` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_procs{groupname=~"opencost", instance=~"$host"})` | — |
+| `hproc_rss` | bytes | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{groupname=~"opencost", memtype="resident", instance=~"$host"})` | — |
+| `hproc_states` | short | `sum by (instance, groupname, state) (namedprocess_namegroup_states{groupname=~"opencost", instance=~"$host"})` | — |
+| `hproc_threads` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_threads{groupname=~"opencost", instance=~"$host"})` | — |
+| `hproc_uptime` | dtdurations | `time() - min by (instance, groupname) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"opencost", instance=~"$host"})` | — |
+| `ing_byHost` | reqps | `sum by (host) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_byIngress` | reqps | `sum by (namespace, ingress) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_byMethod` | reqps | `sum by (method) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_byPath` | reqps | `topk(10, sum by (host, path) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval])))` | — |
+| `ing_byStatus` | reqps | `sum by (status) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_bytesIn` | Bps | `sum(rate(nginx_ingress_controller_request_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_bytesOut` | Bps | `sum(rate(nginx_ingress_controller_response_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_err4xx` | percentunit | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*", status=~"4.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_err5xx` | percentunit | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*", status=~"5.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_hosts` | short | `count(count by (host) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}))` | — |
+| `ing_ingresses` | short | `count(count by (namespace, ingress) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}))` | — |
+| `ing_p50` | s | `histogram_quantile(0.50, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval])))` | — |
+| `ing_p95` | s | `histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval])))` | — |
+| `ing_p99` | s | `histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval])))` | — |
+| `ing_rate` | reqps | `sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval]))` | — |
+| `ing_upstreamErrors` | reqps | `sum by (status) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*", status=~"502\|503\|504"}[$__rate_interval]))` | — |
+| `ing_upstreamP99` | s | `histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_response_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~".*opencost.*"}[$__rate_interval])))` | — |
+| `kube_age` | s | `time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
+| `kube_cpu` | short | `sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))` | — |
+| `kube_cpuLimits` | short | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |
+| `kube_cpuRequests` | short | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |
+| `kube_deployAvailable` | short | `kube_deployment_status_replicas_available{cluster=~"$cluster", namespace=~"$namespace", deployment=~".*opencost.*"}` | — |
+| `kube_deployDesired` | short | `kube_deployment_spec_replicas{cluster=~"$cluster", namespace=~"$namespace", deployment=~".*opencost.*"}` | — |
+| `kube_dsDesired` | short | `kube_daemonset_status_desired_number_scheduled{cluster=~"$cluster", namespace=~"$namespace", daemonset=~".*opencost.*"}` | — |
+| `kube_dsReady` | short | `kube_daemonset_status_number_ready{cluster=~"$cluster", namespace=~"$namespace", daemonset=~".*opencost.*"}` | — |
+| `kube_mem` | bytes | `sum by (pod) (container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""})` | — |
+| `kube_memLimits` | bytes | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
+| `kube_memRequests` | bytes | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
+| `kube_notRunning` | short | `sum(kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", phase!="Running"} == 1) or vector(0)` | — |
+| `kube_phase` | short | `sum by (phase) (kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
+| `kube_pods` | short | `count(kube_pod_info{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_pvcUsage` | percentunit | `kubelet_volume_stats_used_bytes{cluster=~"$cluster", namespace=~"$namespace"} / kubelet_volume_stats_capacity_bytes{cluster=~"$cluster", namespace=~"$namespace"}` | — |
+| `kube_ready` | short | `sum by (pod) (kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_readyTotal` | short | `sum(kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_restarts` | short | `sum by (pod) (kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_restarts1h` | short | `sum(increase(kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[1h]))` | — |
+| `kube_stsDesired` | short | `kube_statefulset_replicas{cluster=~"$cluster", namespace=~"$namespace", statefulset=~".*opencost.*"}` | — |
+| `kube_stsReady` | short | `kube_statefulset_status_replicas_ready{cluster=~"$cluster", namespace=~"$namespace", statefulset=~".*opencost.*"}` | — |
+| `kube_waiting` | short | `sum by (pod, reason) (kube_pod_container_status_waiting_reason{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
+| `kube_waitingTotal` | short | `sum(kube_pod_container_status_waiting{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `kube_youngest` | dtdurations | `min(time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
+| `logs_journal` | short | `{instance=~"$host", unit=~"opencost.service"}` | — |
+| `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
+| `managementFee` | currencyUSD | `sum(kubecost_cluster_management_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `nodeCpu` | currencyUSD | `node_cpu_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `nodeRam` | currencyUSD | `node_ram_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `nodeTotal` | currencyUSD | `node_total_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `nodes` | short | `count(node_total_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `nsCpuCost` | currencyUSD | `sum by (namespace) (container_cpu_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} * on (node) group_left () node_cpu_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | `namespace:opencost_cpu_cost:hourly` |
+| `nsRamCost` | currencyUSD | `sum by (namespace) (container_memory_allocation_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / 1024 / 1024 / 1024 * on (node) group_left () node_ram_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | `namespace:opencost_memory_cost:hourly` |
+| `nsTopMonthly` | currencyUSD | `topk(10, ((sum by (namespace) (container_cpu_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} * on (node) group_left () node_cpu_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})) + (sum by (namespace) (container_memory_allocation_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / 1024 / 1024 / 1024 * on (node) group_left () node_ram_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}))) * 730)` | — |
+| `nsTotalCost` | currencyUSD | `(sum by (namespace) (container_cpu_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} * on (node) group_left () node_cpu_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})) + (sum by (namespace) (container_memory_allocation_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / 1024 / 1024 / 1024 * on (node) group_left () node_ram_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}))` | — |
+| `proc_cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `proc_fdRatio` | percentunit | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_fds` | short | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_uptime` | s | `time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `proc_virt` | bytes | `process_virtual_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `pvCost` | currencyUSD | `sum by (persistentvolume) (pv_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `pvTotal` | currencyUSD | `sum(pv_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `pvcByNamespace` | currencyUSD | `sum by (namespace) (pod_pvc_allocation{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / 1024 / 1024 / 1024 * on (persistentvolume) group_left () pv_hourly_cost{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `ramAllocByNode` | bytes | `sum by (node) (container_memory_allocation_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `ramAllocated` | bytes | `sum(container_memory_allocation_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `spotNodes` | short | `sum(kubecost_node_is_spot{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `systemd_active` | short | `count(node_systemd_unit_state{name=~"opencost.service", state="active", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"opencost.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_failedTable` | short | `node_systemd_unit_state{name=~"opencost.service", state="failed", instance=~"$host"} == 1` | — |
+| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"opencost.service", instance=~"$host"}))` | — |
+| `systemd_inactive` | short | `count(node_systemd_unit_state{name=~"opencost.service", state="inactive", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"opencost.service", instance=~"$host"}[$__rate_interval]))` | — |
+| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"opencost.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"opencost.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"opencost.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"opencost.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `version` | short | `max by (version) (opencost_build_info{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)opencost", instance=~"$host"})` | — |
+| `win_io` | Bps | `sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)opencost", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_state` | short | `max by (instance, name) ((windows_service_state{name=~"(?i)opencost", state="running", instance=~"$host"} == 1) * 1 or (windows_service_state{name=~"(?i)opencost", state=~"start pending\|continue pending", instance=~"$host"} == 1) * 2 or (windows_service_state{name=~"(?i)opencost", state=~"paused\|pause pending\|stop pending", instance=~"$host"} == 1) * 3 or (windows_service_state{name=~"(?i)opencost", state="stopped", instance=~"$host"} == 1) * 4)` | — |
+| `win_threads` | short | `sum by (instance) (windows_process_threads{process=~"(?i)opencost", instance=~"$host"})` | — |
+| `win_uptime` | s | `time() - min by (instance) (windows_process_start_time{process=~"(?i)opencost", instance=~"$host"})` | — |
+| `win_workingSet` | bytes | `sum by (instance) (windows_process_working_set_private_bytes{process=~"(?i)opencost", instance=~"$host"} or windows_process_working_set_bytes{process=~"(?i)opencost", instance=~"$host"})` | — |
+
+## Dashboard
+
+- **Overview** — `ov01_hourly`, `ov02_monthly`, `ov03_nodes`, `ov04_spot`, `ov05_cpu`, `ov06_ram`, `ov07_pv`, `ov08_fee`, `ov09_egress`
+- **Namespaces** — `nsCpuCost`, `nsRamCost`, `nsTopMonthly`, `nsTotalCost`, `pvcByNamespace`
+- **Nodes** — `cpuAllocByNode`, `nodeRates`, `nodeTotal`, `pvCost`, `ramAllocByNode`
+
+## Alerts
+
+| Alert | Severity | For | Runbook |
+|-------|----------|-----|---------|
+| `OpencostDown` | warning | 10m | — |
+| `OpencostNoNodeCostData` | warning | 30m | — |
+| `OpencostClusterCostJump` | warning | 1h | — |
+| `KubePodNotReady` | critical | 15m | — |
+| `KubePodCrashLooping` | warning | 15m | — |
+| `KubePodCpuOverRequest` | warning | 15m | — |
+| `KubePodMemoryNearLimit` | warning | 15m | — |
+| `ContainerCpuThrottlingHigh` | warning | 15m | — |
+| `ContainerHighMemory` | warning | 15m | — |
+| `ContainerHighCpu` | warning | 15m | — |
+| `ContainerNetworkUnavailable` | critical | 5m | — |
+| `CadvisorDown` | critical | 5m | — |
+| `ContainerHighDiskWrite` | warning | 15m | — |
+| `SystemdUnitFailed` | critical | 5m | — |
+| `SystemdUnitRestarting` | warning | 0m | — |
+| `SystemdSystemDegraded` | warning | 15m | — |
+| `ProcessGroupFdRatioHigh` | warning | 15m | — |
+| `ProcessGroupGone` | warning | 10m | — |
+| `ProcessExporterScrapeErrors` | warning | 15m | — |
+| `IngressNginxHigh5xxRatio` | warning | 10m | — |
+| `IngressNginxHighLatency` | warning | 15m | — |
+| `IngressNginxUpstreamErrors` | warning | 10m | — |
+| `IngressNginxConfigReloadFailed` | critical | 5m | — |
+| `IngressNginxCertificateExpiringSoon` | warning | 1h | — |
+
+## Recording rules
+
+| Record | Expression |
+|--------|------------|
+| `namespace:opencost_cpu_cost:hourly` | `sum by (namespace) (container_cpu_allocation * on (node) group_left () node_cpu_hourly_cost)` |
+| `namespace:opencost_memory_cost:hourly` | `sum by (namespace) (container_memory_allocation_bytes / 1024 / 1024 / 1024 * on (node) group_left () node_ram_hourly_cost)` |
+| `cluster:opencost_total_cost:hourly` | `sum(node_total_hourly_cost) + sum(pv_hourly_cost or vector(0))` |
+| `namespace_pod:container_cpu_usage:rate5m` | `sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod=~".*opencost.*"}[5m]))` |
+| `namespace_pod:container_memory_working_set_bytes:sum` | `sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~".*opencost.*"})` |
+| `pod:container_cpu_usage:rate5m` | `sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~".*opencost.*"}[5m]))` |
+| `pod:container_memory_working_set:sum` | `sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~".*opencost.*"})` |
+| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*opencost.*"}[5m]))` |
+| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*opencost.*"})` |
+| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"opencost.service"} == 1)` |
+| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"opencost.service"} == 1)` |
+| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"opencost"}[5m]))` |
+| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"opencost"})` |
+| `ingress:nginx_ingress_controller_requests:rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~".*opencost.*"}[5m]))` |
+| `ingress:nginx_ingress_controller_5xx:ratio_rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~".*opencost.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~".*opencost.*"}[5m]))` |
+| `ingress:nginx_ingress_controller_request_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~".*opencost.*"}[5m])))` |

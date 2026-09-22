@@ -1,6 +1,6 @@
-# Grafana service  (`g.libs.services.grafana`)
+# Grafana (test) service  (`g.libs.services.grafanaTest`)
 
-Dashboard uid `observ-viz-svc-grafana` · 119 signals · 28 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-grafana-test` · 119 signals · 28 alerts · 15 recording rules.
 
 ## Signals
 
@@ -27,18 +27,18 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `emailsFailed` | short | `sum(rate(grafana_emails_sent_failed{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
 | `evalTime` | ms | `sum(rate(grafana_alerting_execution_time_milliseconds_sum{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])) / sum(rate(grafana_alerting_execution_time_milliseconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
 | `goroutines` | short | `go_goroutines{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
-| `hproc_cpu` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `hproc_ctxSwitches` | ops | `sum by (instance, groupname, ctxswitchtype) (rate(namedprocess_namegroup_context_switches_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `hproc_fdRatio` | percentunit | `max by (instance, groupname) (namedprocess_namegroup_worst_fd_ratio{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
-| `hproc_fds` | short | `sum by (instance, groupname) (namedprocess_namegroup_open_filedesc{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
-| `hproc_ioRead` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `hproc_ioWrite` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `hproc_majFaults` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `hproc_procs` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_procs{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
-| `hproc_rss` | bytes | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{groupname=~"grafana(-server)?", memtype="resident", instance=~"$host"})` | — |
-| `hproc_states` | short | `sum by (instance, groupname, state) (namedprocess_namegroup_states{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
-| `hproc_threads` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_threads{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
-| `hproc_uptime` | dtdurations | `time() - min by (instance, groupname) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"grafana(-server)?", instance=~"$host"})` | — |
+| `hproc_cpu` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_ctxSwitches` | ops | `sum by (instance, groupname, ctxswitchtype) (rate(namedprocess_namegroup_context_switches_total{groupname=~"grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_fdRatio` | percentunit | `max by (instance, groupname) (namedprocess_namegroup_worst_fd_ratio{groupname=~"grafana-test", instance=~"$host"})` | — |
+| `hproc_fds` | short | `sum by (instance, groupname) (namedprocess_namegroup_open_filedesc{groupname=~"grafana-test", instance=~"$host"})` | — |
+| `hproc_ioRead` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_ioWrite` | Bps | `sum by (instance, groupname) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_majFaults` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `hproc_procs` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_procs{groupname=~"grafana-test", instance=~"$host"})` | — |
+| `hproc_rss` | bytes | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{groupname=~"grafana-test", memtype="resident", instance=~"$host"})` | — |
+| `hproc_states` | short | `sum by (instance, groupname, state) (namedprocess_namegroup_states{groupname=~"grafana-test", instance=~"$host"})` | — |
+| `hproc_threads` | short | `sum by (instance, groupname) (namedprocess_namegroup_num_threads{groupname=~"grafana-test", instance=~"$host"})` | — |
+| `hproc_uptime` | dtdurations | `time() - min by (instance, groupname) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"grafana-test", instance=~"$host"})` | — |
 | `httpByHandler` | reqps | `topk(10, sum by (handler) (rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
 | `httpErrorRatio` | percentunit | `sum(rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", status_code=~"5.."}[$__rate_interval])) / sum(rate(grafana_http_request_duration_seconds_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
 | `httpInFlight` | short | `sum(grafana_http_request_in_flight{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
@@ -89,7 +89,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `liveChannels` | short | `sum(grafana_live_node_num_channels{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `liveClients` | short | `sum(grafana_live_node_num_clients{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `liveSent` | short | `sum(rate(grafana_live_node_messages_sent_count{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
-| `logs_journal` | short | `{instance=~"$host", unit=~"grafana(-server)?.service"}` | — |
+| `logs_journal` | short | `{instance=~"$host", unit=~"grafana-test.service"}` | — |
 | `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
 | `notifLatencyP99` | s | `histogram_quantile(0.99, sum by (le) (rate(grafana_alerting_notification_latency_seconds_bucket{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])))` | — |
 | `pageStatus` | reqps | `sum by (code) (rate(grafana_page_response_status_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
@@ -106,13 +106,13 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `restarts` | short | `sum(increase(grafana_instance_start_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[1h]))` | — |
 | `rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `schedulerBehind` | s | `max(grafana_alerting_scheduler_behind_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
-| `systemd_active` | short | `count(node_systemd_unit_state{name=~"grafana(-server)?.service", state="active", instance=~"$host"} == 1) or vector(0)` | — |
-| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"grafana(-server)?.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
-| `systemd_failedTable` | short | `node_systemd_unit_state{name=~"grafana(-server)?.service", state="failed", instance=~"$host"} == 1` | — |
-| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"grafana(-server)?.service", instance=~"$host"}))` | — |
-| `systemd_inactive` | short | `count(node_systemd_unit_state{name=~"grafana(-server)?.service", state="inactive", instance=~"$host"} == 1) or vector(0)` | — |
-| `systemd_restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"grafana(-server)?.service", instance=~"$host"}[$__rate_interval]))` | — |
-| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"grafana(-server)?.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"grafana(-server)?.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"grafana(-server)?.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"grafana(-server)?.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `systemd_active` | short | `count(node_systemd_unit_state{name=~"grafana-test.service", state="active", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_failed` | short | `count(node_systemd_unit_state{name=~"grafana-test.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_failedTable` | short | `node_systemd_unit_state{name=~"grafana-test.service", state="failed", instance=~"$host"} == 1` | — |
+| `systemd_hosts` | short | `count(count by (instance) (node_systemd_unit_state{name=~"grafana-test.service", instance=~"$host"}))` | — |
+| `systemd_inactive` | short | `count(node_systemd_unit_state{name=~"grafana-test.service", state="inactive", instance=~"$host"} == 1) or vector(0)` | — |
+| `systemd_restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"grafana-test.service", instance=~"$host"}[$__rate_interval]))` | — |
+| `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"grafana-test.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"grafana-test.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"grafana-test.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"grafana-test.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
 | `totalAlertRules` | short | `max(grafana_stat_totals_alert_rules{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `totalDashboards` | short | `max(grafana_stat_totals_dashboard{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `totalDatasources` | short | `max(grafana_stat_totals_datasource{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
@@ -120,13 +120,13 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `totalOrgs` | short | `max(grafana_stat_total_orgs{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `totalUsers` | short | `max(grafana_stat_total_users{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `uptime` | dtdurations | `min(time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
-| `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
-| `win_io` | Bps | `sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)grafana(-server)?", instance=~"$host"}[$__rate_interval]))` | — |
-| `win_state` | short | `max by (instance, name) ((windows_service_state{name=~"(?i)grafana(-server)?", state="running", instance=~"$host"} == 1) * 1 or (windows_service_state{name=~"(?i)grafana(-server)?", state=~"start pending\|continue pending", instance=~"$host"} == 1) * 2 or (windows_service_state{name=~"(?i)grafana(-server)?", state=~"paused\|pause pending\|stop pending", instance=~"$host"} == 1) * 3 or (windows_service_state{name=~"(?i)grafana(-server)?", state="stopped", instance=~"$host"} == 1) * 4)` | — |
-| `win_threads` | short | `sum by (instance) (windows_process_threads{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
-| `win_uptime` | s | `time() - min by (instance) (windows_process_start_time{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
-| `win_workingSet` | bytes | `sum by (instance) (windows_process_working_set_private_bytes{process=~"(?i)grafana(-server)?", instance=~"$host"} or windows_process_working_set_bytes{process=~"(?i)grafana(-server)?", instance=~"$host"})` | — |
+| `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)grafana-test", instance=~"$host"})` | — |
+| `win_io` | Bps | `sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)grafana-test", instance=~"$host"}[$__rate_interval]))` | — |
+| `win_state` | short | `max by (instance, name) ((windows_service_state{name=~"(?i)grafana-test", state="running", instance=~"$host"} == 1) * 1 or (windows_service_state{name=~"(?i)grafana-test", state=~"start pending\|continue pending", instance=~"$host"} == 1) * 2 or (windows_service_state{name=~"(?i)grafana-test", state=~"paused\|pause pending\|stop pending", instance=~"$host"} == 1) * 3 or (windows_service_state{name=~"(?i)grafana-test", state="stopped", instance=~"$host"} == 1) * 4)` | — |
+| `win_threads` | short | `sum by (instance) (windows_process_threads{process=~"(?i)grafana-test", instance=~"$host"})` | — |
+| `win_uptime` | s | `time() - min by (instance) (windows_process_start_time{process=~"(?i)grafana-test", instance=~"$host"})` | — |
+| `win_workingSet` | bytes | `sum by (instance) (windows_process_working_set_private_bytes{process=~"(?i)grafana-test", instance=~"$host"} or windows_process_working_set_bytes{process=~"(?i)grafana-test", instance=~"$host"})` | — |
 
 ## Dashboard
 
@@ -179,12 +179,12 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `namespace_pod:container_memory_working_set_bytes:sum` | `sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~"grafana.*"})` |
 | `pod:container_cpu_usage:rate5m` | `sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~"grafana.*"}[5m]))` |
 | `pod:container_memory_working_set:sum` | `sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~"grafana.*"})` |
-| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*grafana.*"}[5m]))` |
-| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*grafana.*"})` |
-| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"grafana(-server)?.service"} == 1)` |
-| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"grafana(-server)?.service"} == 1)` |
-| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"grafana(-server)?"}[5m]))` |
-| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"grafana(-server)?"})` |
+| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*grafana-test.*"}[5m]))` |
+| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*grafana-test.*"})` |
+| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"grafana-test.service"} == 1)` |
+| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"grafana-test.service"} == 1)` |
+| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"grafana-test"}[5m]))` |
+| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"grafana-test"})` |
 | `ingress:nginx_ingress_controller_requests:rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"grafana.*"}[5m]))` |
 | `ingress:nginx_ingress_controller_5xx:ratio_rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~"grafana.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"grafana.*"}[5m]))` |
 | `ingress:nginx_ingress_controller_request_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~"grafana.*"}[5m])))` |

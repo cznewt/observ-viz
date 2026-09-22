@@ -61,6 +61,10 @@
     tempo: import 'libs/tempo-observ-lib/main.libsonnet',
     pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
     anomalyScorer: import 'libs/anomaly-scorer-observ-lib/main.libsonnet',
+    anomalyExporter: import 'libs/anomaly-exporter-observ-lib/main.libsonnet',
+    alertmanager: import 'libs/alertmanager-observ-lib/main.libsonnet',
+    alertHandler: import 'libs/alert-handler-observ-lib/main.libsonnet',
+    opencost: import 'libs/opencost-observ-lib/main.libsonnet',
   },
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',

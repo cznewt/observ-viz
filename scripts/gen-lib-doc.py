@@ -18,11 +18,11 @@ GROUPS = {
     "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter"],
     "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor"],
     "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd"],
-    "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana"],
+    "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter"],
     "Collector": ["collector.alloy"],
     "Networking": ["networking.wireguard", "networking.unifi", "networking.ingressNginx"],
     "Applications": ["applications.syncthing"],
-    "Services": ["services.alloy", "services.grafana", "services.mimir"],
+    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter"],
     "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 ALL = [p for v in GROUPS.values() for p in v]

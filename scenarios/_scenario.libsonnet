@@ -37,7 +37,7 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
         instance: m.pack.new(
           { datasource: cfg.datasource }
           + (if std.objectHas(m, 'config') then m.config else {})
-          + { uid: 'scn-' + cfg.uid + '-' + m.key, dashboardTitle: cfg.title + ' / ' + m.key }
+          + { uid: 'scn-' + cfg.uid + '-' + m.key, dashboardTitle: if std.objectHas(m, 'title') then m.title else cfg.title + ' / ' + m.key }
         ),
       }
       for m in members

@@ -53,6 +53,10 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `monitoring.tempo` | Tempo | 9 | 11 |
 | `monitoring.pyroscope` | Pyroscope | 8 | 10 |
 | `monitoring.grafana` | Grafana | 44 | 42 |
+| `monitoring.alertmanager` | Alertmanager | 34 | 37 |
+| `monitoring.alertHandler` | Alert handler | 18 | 21 |
+| `monitoring.opencost` | OpenCost | 21 | 21 |
+| `monitoring.anomalyExporter` | Anomaly exporter | 11 | 11 |
 
 ## Collector
 
@@ -71,8 +75,28 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `services.alloy` | Alloy service | 85 | 118 |
+| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 85 | 118 |
 | `services.grafana` | Grafana service | 119 | 148 |
+| `services.grafanaTest` | Grafana (test) service | 119 | 148 |
 | `services.mimir` | Mimir service | 81 | 114 |
+| `services.loki` | Loki service | 81 | 114 |
+| `services.tempo` | Tempo service | 84 | 117 |
+| `services.pyroscope` | Pyroscope service | 83 | 116 |
+| `services.redisTest` | Redis (test) service | 81 | 114 |
+| `services.demoGoDev` | Demo Go (dev) service | 86 | 118 |
+| `services.demoGoProd` | Demo Go (prod) service | 86 | 118 |
+| `services.demoGoWorkshop` | Demo Go (workshop) service | 86 | 118 |
+| `services.demoPythonDev` | Demo Python (dev) service | 81 | 114 |
+| `services.demoPythonProd` | Demo Python (prod) service | 81 | 114 |
+| `services.demoPythonWorkshop` | Demo Python (workshop) service | 81 | 114 |
+| `services.sreBack` | SRE sample: back (JVM) service | 83 | 116 |
+| `services.sreFront` | SRE sample: front (JVM) service | 83 | 116 |
+| `services.sreReader` | SRE sample: reader (JVM) service | 83 | 116 |
+| `services.backstage` | Backstage service (Postgres) | 81 | 114 |
+| `services.alertmanager` | Alertmanager service | 109 | 143 |
+| `services.alertHandler` | Alert-handler service | 93 | 127 |
+| `services.opencost` | Opencost service | 96 | 127 |
+| `services.anomalyExporter` | Anomaly-exporter service | 86 | 117 |
 
 ## Cross-cutting
 

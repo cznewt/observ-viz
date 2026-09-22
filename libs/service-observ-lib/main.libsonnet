@@ -91,6 +91,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // platform (kubernetes.ruleSelector, docker.ruleSelector, ...; defaults
       // derive from the identity fields). Whitebox + Go rules use ruleSelector.
       platformRules: true,
+      // narrow the cluster / namespace / pod variable menus to this deployment
+      // (regexes). All = the listed options only, so the board is scoped.
+      scope: { cluster: '', namespace: '', pod: '' },
       // Kubernetes events land in Loki as one line per event (alloy
       // loki.source.kubernetes_events): job + cluster/namespace + the object's
       // `name` + `reason`/`level` labels, logfmt body with kind/type/msg.
@@ -448,17 +451,18 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local allCurrent = { spec+: { current: { text: 'All', value: '$__all' } } };
     local multi = variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
     local hostIdentity = std.join('|', [unit, wsvc, cfg.docker.container]);
+    local scopeSel(label) = if std.objectHas(cfg.scope, label) && cfg.scope[label] != '' then ', ' + label + '=~"' + cfg.scope[label] + '"' else '';
     local extraVars = [
       // Infinity datasource for the Component tab.
     ] + (if cfg.backstage.enabled then [
            variable.datasource.new('backstage_datasource', 'yesoreyeram-infinity-datasource') + { spec+: { label: 'Backstage' } },
          ] else []) + [
       variable.query.new('cluster') + variable.query.withLabel('Cluster')
-      + variable.query.withLabelValues('cluster', wbVarMetric + '{job=~"$job"}') + multi,
+      + variable.query.withLabelValues('cluster', wbVarMetric + '{job=~"$job"' + scopeSel('cluster') + '}') + multi,
       variable.query.new('namespace') + variable.query.withLabel('Namespace')
-      + variable.query.withLabelValues('namespace', wbVarMetric + '{job=~"$job", cluster=~"$cluster"}') + multi,
+      + variable.query.withLabelValues('namespace', wbVarMetric + '{job=~"$job", cluster=~"$cluster"' + scopeSel('namespace') + '}') + multi,
       variable.query.new('pod') + variable.query.withLabel('Pod')
-      + variable.query.withLabelValues('pod', wbVarMetric + '{job=~"$job", cluster=~"$cluster", namespace=~"$namespace"}') + multi,
+      + variable.query.withLabelValues('pod', wbVarMetric + '{job=~"$job", cluster=~"$cluster", namespace=~"$namespace"' + scopeSel('pod') + '}') + multi,
       // hosts where this service is a systemd unit, a windows service or a docker container.
       variable.query.new('host') + variable.query.withLabel('Host')
       + variable.query.withLabelValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,
