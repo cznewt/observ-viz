@@ -22,7 +22,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `system.linux` | Linux Server | 96 | 118 |
 | `system.docker` | Docker containers | 7 | 9 |
-| `system.windows` | Windows Server | 58 | 82 |
+| `system.windows` | Windows Server | 58 | 87 |
 | `system.systemd` | systemd units | 9 | 11 |
 | `system.processExporter` | Process groups | 15 | 16 |
 
@@ -70,6 +70,13 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `networking.ingressNginx` | Ingress NGINX | 27 | 28 |
 
+## CI/CD
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `cicd.argocd` | Argo CD | 26 | 29 |
+| `cicd.backstage` | Backstage catalog | 0 | 3 |
+
 ## Services
 
 | `g.libs.…` | Dashboard | Signals | Panels |
@@ -97,6 +104,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `services.alertHandler` | Alert-handler service | 93 | 127 |
 | `services.opencost` | Opencost service | 96 | 127 |
 | `services.anomalyExporter` | Anomaly-exporter service | 86 | 117 |
+| `services.argocd` | Argo CD service | 101 | 135 |
 
 ## Cross-cutting
 

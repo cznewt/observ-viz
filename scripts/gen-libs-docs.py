@@ -23,7 +23,8 @@ GROUPS = {
     ],
     "Collector": ["collector.alloy"],
     "Networking": ["networking.ingressNginx"],
-    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter"],
+    "CI/CD": ["cicd.argocd", "cicd.backstage"],
+    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd"],
     "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 

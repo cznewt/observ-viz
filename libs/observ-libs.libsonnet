@@ -84,7 +84,12 @@
   services: import 'libs/service-observ-lib/presets.libsonnet',
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
-  // Backstage catalog context through the Infinity datasource
+  // CI/CD platforms: the Backstage catalog (Infinity datasource) and Argo CD.
+  cicd: {
+    backstage: import 'libs/backstage-observ-lib/main.libsonnet',
+    argocd: import 'libs/argocd-observ-lib/main.libsonnet',
+  },
+  // Backstage catalog context through the Infinity datasource (alias of cicd.backstage)
   backstage: import 'libs/backstage-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',
 }

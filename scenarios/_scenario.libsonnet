@@ -64,6 +64,14 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
         ]),
       },
 
+      // merged recording rules across all members.
+      prometheusRules: {
+        groups: std.flattenArrays([
+          if std.objectHas(inst.instance, 'prometheus') && std.objectHas(inst.instance.prometheus, 'rules') then inst.instance.prometheus.rules else []
+          for inst in instances
+        ]),
+      },
+
       // Backstage catalog: a System for the scenario + a Component per member.
       backstage: {
         system: {
@@ -88,8 +96,9 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       },
 
       asMonitoringMixin():: {
-        grafanaDashboards+:: self.grafanaDashboards,
+        grafanaDashboards+:: { [k]: self.grafanaDashboards[k].toSpec() for k in std.objectFields(self.grafanaDashboards) },
         prometheusAlerts+:: self.prometheusAlerts,
+        prometheusRules+:: self.prometheusRules,
       },
     },
 }

@@ -21,6 +21,7 @@ local packs = {
   alertHandler: import 'libs/alert-handler-observ-lib/main.libsonnet',
   opencost: import 'libs/opencost-observ-lib/main.libsonnet',
   anomalyExporter: import 'libs/anomaly-exporter-observ-lib/main.libsonnet',
+  argocd: import 'libs/argocd-observ-lib/main.libsonnet',
 };
 
 // one row per service: app = the short name (uid observ-viz-svc-<app>, the
@@ -50,6 +51,7 @@ local catalog = [
   { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*' },
   { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*' },
   { key: 'opencost', app: 'opencost', whitebox: packs.opencost, tags: ['cost', 'kubernetes'], workload: '.*opencost.*', service: '.*opencost.*' },
+  { key: 'argocd', app: 'argo-cd', title: 'Argo CD service', whitebox: packs.argocd, tags: ['cicd', 'gitops'], workload: 'argo-cd-argocd.*', service: 'argo-cd.*' },
   { key: 'anomalyExporter', app: 'anomaly-exporter', whitebox: packs.anomalyExporter, tags: ['monitoring'], workload: 'anomaly-exporter.*', service: 'anomaly-exporter.*' },
 ];
 

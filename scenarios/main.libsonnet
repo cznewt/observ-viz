@@ -10,4 +10,5 @@ local build(cfg) = scenario.new(cfg);
   kubernetes: build(import 'scenarios/kubernetes/config.libsonnet'),
   lgtm: build(import 'scenarios/lgtm/config.libsonnet'),
   monlab: build(import 'scenarios/monlab/config.libsonnet'),
+  platform: build(import 'scenarios/platform/config.libsonnet'),
 }

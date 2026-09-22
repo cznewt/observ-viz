@@ -10,13 +10,14 @@
 // Two boards (see .grafana.dashboards):
 //   <uid>        Windows Server         — the per-host board described above
 //   <fleetUid>   Windows Fleet Overview — every host at once, drills into the above
+local panel = import 'custom/panel.libsonnet';
+local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
+local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
 local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
-local query = import 'custom/query.libsonnet';
 
 {
   new(config={}):
@@ -25,20 +26,21 @@ local query = import 'custom/query.libsonnet';
       // back-link to the fleet view, keeping the selected cluster (node filter
       // reset to All so the whole cluster shows).
       links: [
-      { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
-      { title: 'Node boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Node-level boards', tags: ['node-level'] },
-      {
-        title: 'Cluster Detail',
-        type: 'link',
-        icon: 'dashboard',
-        url: '/d/cluster-detail?var-cluster=${cluster}&var-instance=$__all',
-        keepTime: true,
-        targetBlank: false,
-        asDropdown: false,
-        includeVars: false,
-        tooltip: 'Open the cluster overview for the selected cluster',
-        tags: [],
-      }],
+        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Node boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Node-level boards', tags: ['node-level'] },
+        {
+          title: 'Cluster Detail',
+          type: 'link',
+          icon: 'dashboard',
+          url: '/d/cluster-detail?var-cluster=${cluster}&var-instance=$__all',
+          keepTime: true,
+          targetBlank: false,
+          asDropdown: false,
+          includeVars: false,
+          tooltip: 'Open the cluster overview for the selected cluster',
+          tags: [],
+        },
+      ],
       dashboardTitle: 'Windows Server',
       dashboardTags: ['windows', 'node-level'],
       // fleet board: every Windows host in the selected cluster(s) at once.
@@ -330,25 +332,35 @@ local query = import 'custom/query.libsonnet';
       // alerting rule group
       alert.rule.group('windows', [
         alert.rule.new(
-          'WindowsHostDown', 'up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'WindowsHostDown',
+          'up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'Windows host {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'WindowsHighCpu',
           '1 - avg without (core) (rate(windows_cpu_time_total{mode="idle"' + rsComma + '}[5m])) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'CPU on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'WindowsHighMemory',
           '1 - windows_memory_available_bytes' + rsBrace + ' / windows_memory_physical_total_bytes' + rsBrace + ' > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Physical memory on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'WindowsLowDiskSpace',
           'windows_logical_disk_free_bytes' + rsBrace + ' < 5e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Logical disk {{ $labels.volume }} on {{ $labels.instance }} has less than 5GB free.' }
         ),
         // Temperature (any source) — warning + critical tiers on the per-host max
@@ -356,13 +368,17 @@ local query = import 'custom/query.libsonnet';
         alert.rule.new(
           'WindowsHighTemperature',
           'max by (instance) (' + tempUnionRule + tempRange + ') > ' + cfg.tempWarnC,
-          '10m', 'warning', {},
+          '10m',
+          'warning',
+          {},
           { summary: 'Temperature on {{ $labels.instance }} is above ' + cfg.tempWarnC + '°C.' }
         ),
         alert.rule.new(
           'WindowsCriticalTemperature',
           'max by (instance) (' + tempUnionRule + tempRange + ') > ' + cfg.tempCritC,
-          '5m', 'critical', {},
+          '5m',
+          'critical',
+          {},
           { summary: 'Temperature on {{ $labels.instance }} is above ' + cfg.tempCritC + '°C.' }
         ),
       ]),
@@ -385,6 +401,15 @@ local query = import 'custom/query.libsonnet';
         elements:
           local st = syncthingLib.new({ datasource: cfg.datasource, selector: 'instance=~"$instance"', docTabs: false }).grafana.elements;
           { ['st_' + k]: st[k] for k in std.objectFields(st) if std.substr(k, 0, 4) != 'doc_' },
+      },
+      {
+        title: 'Kubelet',
+        width: 12,
+        height: 7,
+        presence: { query: 'kubelet_running_pods{instance=~"$instance"}', label: 'instance' },
+        // panels from the kubernetes lib's kubelet module — shown only on
+        // Windows nodes actually running a kubelet.
+        elements: kubeletLib.elements(cfg.datasource, 'instance=~"$instance"'),
       },
       {
         title: 'Workload',
@@ -431,12 +456,12 @@ local query = import 'custom/query.libsonnet';
             ])
             + panel.withOptions({ legend: { showLegend: true, displayMode: 'list', placement: 'bottom' }, rowHeight: 0.85 })
             + panel.withFieldConfigDefaults({ custom: { fillOpacity: 72, lineWidth: 0 } })
-            + panel.withMappings([{ 'type': 'value', options: {
-                '1': { text: 'running', color: 'green', index: 0 },
-                '2': { text: 'starting', color: 'yellow', index: 1 },
-                '3': { text: 'pending/paused', color: 'orange', index: 2 },
-                '4': { text: 'stopped', color: 'red', index: 3 },
-              } }]),
+            + panel.withMappings([{ type: 'value', options: {
+              '1': { text: 'running', color: 'green', index: 0 },
+              '2': { text: 'starting', color: 'yellow', index: 1 },
+              '3': { text: 'pending/paused', color: 'orange', index: 2 },
+              '4': { text: 'stopped', color: 'red', index: 3 },
+            } }]),
           winSvcRunning:
             panel.stat.new('Services running')
             + panel.stat.withTargets([query.prometheus.new(cfg.datasource, 'count(windows_service_state{state="running", instance=~"$instance"} == 1)')])

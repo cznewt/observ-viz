@@ -36,6 +36,8 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`networking.unifi`](networking-unifi.md) | 16 | 2 | 0 |
 | [`networking.ingressNginx`](networking-ingressNginx.md) | 27 | 5 | 3 |
 | [`applications.syncthing`](applications-syncthing.md) | 16 | 1 | 0 |
+| [`cicd.argocd`](cicd-argocd.md) | 26 | 6 | 2 |
+| [`cicd.backstage`](cicd-backstage.md) | 0 | 0 | 0 |
 | [`services.alloy`](services-alloy.md) | 85 | 27 | 15 |
 | [`services.k8sMonitoring`](services-k8sMonitoring.md) | 85 | 27 | 15 |
 | [`services.grafana`](services-grafana.md) | 119 | 28 | 15 |
@@ -59,5 +61,6 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`services.alertHandler`](services-alertHandler.md) | 93 | 28 | 15 |
 | [`services.opencost`](services-opencost.md) | 96 | 26 | 16 |
 | [`services.anomalyExporter`](services-anomalyExporter.md) | 86 | 26 | 15 |
+| [`services.argocd`](services-argocd.md) | 101 | 29 | 15 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |
 | [`backstage`](backstage.md) | 0 | 0 | 0 |
