@@ -36,3 +36,4 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`services.grafana`](services-grafana.md) | 119 | 28 | 15 |
 | [`services.mimir`](services-mimir.md) | 81 | 27 | 15 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |
+| [`backstage`](backstage.md) | 0 | 0 | 0 |

@@ -20,6 +20,7 @@ PACKS = [
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
     "services.alloy", "services.grafana", "services.mimir",
     "alerts",
+    "backstage",
     "logs",
 ]
 

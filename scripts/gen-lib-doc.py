@@ -23,7 +23,7 @@ GROUPS = {
     "Networking": ["networking.wireguard", "networking.unifi", "networking.ingressNginx"],
     "Applications": ["applications.syncthing"],
     "Services": ["services.alloy", "services.grafana", "services.mimir"],
-    "Cross-cutting": ["alerts", "logs"],
+    "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 ALL = [p for v in GROUPS.values() for p in v]
 

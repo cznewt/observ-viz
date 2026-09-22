@@ -13,6 +13,7 @@
 //   Ingress       networking.ingressNginx elements for the Ingress objects that
 //                 route to this service
 //   Logs          Loki (pod logs + journal + kubernetes events)
+//   Component     Backstage catalog entry through the Infinity datasource
 //   Alerts        always shown: alert list, alert-state timeline, firing table
 // plus the Signals/Runbooks doc tabs pack.build adds. The alert and recording
 // rules of every embedded platform pack are merged in, scoped to this service
@@ -48,7 +49,7 @@ local query = import 'custom/query.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
-  { query: gv.query + cv.query };
+  { query: gv.query + cv.query, datasource: gv.datasource + cv.datasource };
 local cadvisorLib = import 'libs/cadvisor-observ-lib/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local golangLib = import 'libs/golang-observ-lib/main.libsonnet';
@@ -56,6 +57,7 @@ local podLib = import 'libs/kubernetes-observ-lib/main.libsonnet';
 local ingressLib = import 'libs/ingress-nginx-observ-lib/main.libsonnet';
 local systemdLib = import 'libs/systemd-observ-lib/main.libsonnet';
 local processLib = import 'libs/process-exporter-observ-lib/main.libsonnet';
+local backstageLib = import 'libs/backstage-observ-lib/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 
@@ -107,11 +109,14 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       dashboardTitle: def('dashboardTitle', cap(app) + ' service'),
       primaryTabTitle: def('primaryTabTitle', cap(app)),
       dashboardTags: def('dashboardTags', ['service', app, 'app-level']),
-      description: def('description', cap(app) + ' as a service, wherever it runs: its own metrics first, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs), alerts and Kubernetes event annotations.'),
+      description: def('description', cap(app) + ' as a service, wherever it runs: its own metrics first, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.'),
       // per-platform identity of this service (regexes, PromQL-anchored).
       kubernetes: plat('kubernetes', { enabled: true, workload: app + '.*' }),
       // ingress-nginx labels its series with the backend Service name.
       ingress: plat('ingress', { enabled: true, service: app + '.*' }),
+      // Backstage catalog entry (an Infinity datasource pointed at the Backstage
+      // backend). api: 'rest' | 'graphql'; uiUrl adds Backstage/TechDocs links.
+      backstage: plat('backstage', { enabled: true, name: app, kind: 'component', namespace: 'default', api: 'rest', backendUrl: '', uiUrl: '' }),
       docker: plat('docker', { enabled: true, container: '.*' + app + '.*' }),
       systemd: plat('systemd', { enabled: true, unit: app + '.service' }),
       process: plat('process', { enabled: true, group: app }),
@@ -221,6 +226,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local sysd = systemdLib.units(cfg.datasource, cfg.hostSelector, unit);
     local hproc = processLib.group(cfg.datasource, cfg.hostSelector, grp);
     local ingr = ingressLib.ingress(cfg.datasource, ingressSelector);
+    local bs = backstageLib.component('${backstage_datasource}', cfg.backstage.name, cfg.backstage.kind, cfg.backstage.namespace, cfg.backstage.api, cfg.backstage.backendUrl, cfg.backstage.uiUrl);
     local platformSignals =
       { ['systemd_' + k]: sysd.signals[k] for k in std.objectFields(sysd.signals) }
       + { ['hproc_' + k]: hproc.signals[k] for k in std.objectFields(hproc.signals) }
@@ -412,6 +418,15 @@ local stateMappings(m) = [{ type: 'value', options: m }];
                          + panel.logs.withTargets([query.loki.new('${loki_datasource}', kubeEvents('') + ' | logfmt | line_format "{{.type}} {{.kind}}/{{.name}} {{.reason}}: {{.msg}}"')]),
            },
          }] else [])
+      + (if cfg.backstage.enabled then [{
+           title: 'Component',
+           // no marker metric: the catalog query returns nothing when the
+           // entity does not exist, so the tab shows only where it does.
+           groups: [
+             { title: 'Catalog', elements: bs.stats } + stats,
+             { title: 'Entity', elements: bs.tables, width: 12, height: 8 },
+           ],
+         }] else [])
       + [{
         title: 'Alerts',
         alwaysShow: true,
@@ -434,6 +449,10 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local multi = variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
     local hostIdentity = std.join('|', [unit, wsvc, cfg.docker.container]);
     local extraVars = [
+      // Infinity datasource for the Component tab.
+    ] + (if cfg.backstage.enabled then [
+           variable.datasource.new('backstage_datasource', 'yesoreyeram-infinity-datasource') + { spec+: { label: 'Backstage' } },
+         ] else []) + [
       variable.query.new('cluster') + variable.query.withLabel('Cluster')
       + variable.query.withLabelValues('cluster', wbVarMetric + '{job=~"$job"}') + multi,
       variable.query.new('namespace') + variable.query.withLabel('Namespace')

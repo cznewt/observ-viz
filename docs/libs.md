@@ -70,9 +70,9 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 85 | 110 |
-| `services.grafana` | Grafana service | 119 | 140 |
-| `services.mimir` | Mimir service | 81 | 106 |
+| `services.alloy` | Alloy service | 85 | 118 |
+| `services.grafana` | Grafana service | 119 | 148 |
+| `services.mimir` | Mimir service | 81 | 114 |
 
 ## Cross-cutting
 
@@ -80,6 +80,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `alerts` | Alerts overview | 4 | 6 |
 | `logs` | Logs | 3 | 3 |
+| `backstage` | Backstage catalog | 0 | 3 |
 
 ## common-lib
 

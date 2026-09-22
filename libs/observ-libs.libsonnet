@@ -80,5 +80,7 @@
   services: import 'libs/service-observ-lib/presets.libsonnet',
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
+  // Backstage catalog context through the Infinity datasource
+  backstage: import 'libs/backstage-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',
 }

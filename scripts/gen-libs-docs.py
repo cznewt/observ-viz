@@ -24,7 +24,7 @@ GROUPS = {
     "Collector": ["collector.alloy"],
     "Networking": ["networking.ingressNginx"],
     "Services": ["services.alloy", "services.grafana", "services.mimir"],
-    "Cross-cutting": ["alerts", "logs"],
+    "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 
 
