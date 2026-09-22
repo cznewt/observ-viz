@@ -43,6 +43,19 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       for m in members
     ];
 
+    // every member's alert or rule groups, tagged with the member key.
+    local taggedGroups(field) = std.flattenArrays([
+      [{ key: inst.key, group: g } for g in inst.instance.prometheus[field]]
+      for inst in instances
+      if std.objectHas(inst.instance, 'prometheus') && std.objectHas(inst.instance.prometheus, field)
+    ]);
+    // group names must be unique inside one Mimir/Prometheus rule namespace:
+    // members that embed the same lib (grafana + grafanaTest, three demo
+    // environments) get their member key prefixed on the colliding names only.
+    local uniqueGroups(tagged) =
+      local names = [t.group.name for t in tagged];
+      [if std.count(names, t.group.name) > 1 then t.group { name: t.key + '-' + t.group.name } else t.group for t in tagged];
+
     {
       config: cfg,
       folder: folder,
@@ -57,20 +70,10 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       },
 
       // merged prometheus alerts across all members.
-      prometheusAlerts: {
-        groups: std.flattenArrays([
-          if std.objectHas(inst.instance, 'prometheus') then inst.instance.prometheus.alerts else []
-          for inst in instances
-        ]),
-      },
+      prometheusAlerts: { groups: uniqueGroups(taggedGroups('alerts')) },
 
       // merged recording rules across all members.
-      prometheusRules: {
-        groups: std.flattenArrays([
-          if std.objectHas(inst.instance, 'prometheus') && std.objectHas(inst.instance.prometheus, 'rules') then inst.instance.prometheus.rules else []
-          for inst in instances
-        ]),
-      },
+      prometheusRules: { groups: uniqueGroups(taggedGroups('rules')) },
 
       // Backstage catalog: a System for the scenario + a Component per member.
       backstage: {
