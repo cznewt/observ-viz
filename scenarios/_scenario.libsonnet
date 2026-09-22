@@ -95,10 +95,15 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
         ],
       },
 
-      asMonitoringMixin():: {
-        grafanaDashboards+:: { [k]: self.grafanaDashboards[k].toSpec() for k in std.objectFields(self.grafanaDashboards) },
-        prometheusAlerts+:: self.prometheusAlerts,
-        prometheusRules+:: self.prometheusRules,
-      },
+      // monitor-tools / mixin consumers: v2 dashboard specs keyed by file name,
+      // merged alert groups and recording rules. (Locals: `self` inside the
+      // returned literal would be the literal itself.)
+      asMonitoringMixin()::
+        local boards = self.grafanaDashboards, alerts = self.prometheusAlerts, rules = self.prometheusRules;
+        {
+          grafanaDashboards+:: { [k]: boards[k].toSpec() for k in std.objectFields(boards) },
+          prometheusAlerts+:: alerts,
+          prometheusRules+:: rules,
+        },
     },
 }
