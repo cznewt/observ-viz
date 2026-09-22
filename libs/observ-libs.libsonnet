@@ -14,6 +14,9 @@
     linux: import 'libs/linux-observ-lib/main.libsonnet',
     docker: import 'libs/docker-observ-lib/main.libsonnet',
     windows: import 'libs/windows-observ-lib/main.libsonnet',
+    // node_exporter systemd collector + process-exporter, by host
+    systemd: import 'libs/systemd-observ-lib/main.libsonnet',
+    processExporter: import 'libs/process-exporter-observ-lib/main.libsonnet',
   },
   kubernetes: {
     pod: import 'libs/kubernetes-observ-lib/main.libsonnet',
@@ -65,6 +68,7 @@
   networking: {
     wireguard: import 'libs/wg-easy-observ-lib/main.libsonnet',
     unifi: import 'libs/unifi-observ-lib/main.libsonnet',
+    ingressNginx: import 'libs/ingress-nginx-observ-lib/main.libsonnet',
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
@@ -78,4 +82,3 @@
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
   logs: import 'libs/logs-lib/main.libsonnet',
 }
-

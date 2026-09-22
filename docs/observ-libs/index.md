@@ -12,6 +12,8 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`system.linux`](system-linux.md) | 96 | 26 | 7 |
 | [`system.docker`](system-docker.md) | 7 | 4 | 2 |
 | [`system.windows`](system-windows.md) | 58 | 6 | 4 |
+| [`system.systemd`](system-systemd.md) | 9 | 3 | 2 |
+| [`system.processExporter`](system-processExporter.md) | 15 | 3 | 2 |
 | [`kubernetes.pod`](kubernetes-pod.md) | 29 | 4 | 2 |
 | [`kubernetes.cadvisor`](kubernetes-cadvisor.md) | 16 | 4 | 2 |
 | [`databases.sql.postgres`](databases-sql-postgres.md) | 6 | 4 | 2 |
@@ -28,8 +30,9 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`collector.alloy`](collector-alloy.md) | 10 | 4 | 2 |
 | [`networking.wireguard`](networking-wireguard.md) | 6 | 1 | 0 |
 | [`networking.unifi`](networking-unifi.md) | 16 | 2 | 0 |
+| [`networking.ingressNginx`](networking-ingressNginx.md) | 27 | 5 | 3 |
 | [`applications.syncthing`](applications-syncthing.md) | 16 | 1 | 0 |
-| [`services.alloy`](services-alloy.md) | 77 | 4 | 2 |
-| [`services.grafana`](services-grafana.md) | 111 | 5 | 2 |
-| [`services.mimir`](services-mimir.md) | 73 | 4 | 2 |
+| [`services.alloy`](services-alloy.md) | 85 | 27 | 15 |
+| [`services.grafana`](services-grafana.md) | 119 | 28 | 15 |
+| [`services.mimir`](services-mimir.md) | 81 | 27 | 15 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |

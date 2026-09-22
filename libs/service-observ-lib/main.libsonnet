@@ -5,16 +5,19 @@
 //   Kubernetes    kube-state-metrics pod/workload status vs. requests/limits
 //   Containers    cAdvisor per-container resources (kube)
 //   Docker        cAdvisor containers on a docker host (system.docker elements)
-//   systemd       node_exporter unit state
-//   Host process  process-exporter group (namedprocess_*)
+//   systemd       system.systemd elements for the unit
+//   Host process  system.processExporter elements for the process group
 //   Process       the app's own process_* metrics
 //   Go runtime    runtimes.golang elements
 //   Windows       windows_exporter service state + windows_process_*
-//   Ingress       ingress-nginx requests, status codes, latency and bytes for the
-//                 Ingress objects that route to this service
+//   Ingress       networking.ingressNginx elements for the Ingress objects that
+//                 route to this service
 //   Logs          Loki (pod logs + journal + kubernetes events)
 //   Alerts        always shown: alert list, alert-state timeline, firing table
-// plus the Signals/Runbooks doc tabs pack.build adds. Annotations: firing
+// plus the Signals/Runbooks doc tabs pack.build adds. The alert and recording
+// rules of every embedded platform pack are merged in, scoped to this service
+// with a static selector per platform and renamed <app>-<group> so several
+// service boards can share one ruler namespace. Annotations: firing
 // alerts by severity (ALERTS, scoped like the whitebox) and Kubernetes events
 // for this service's pods/workload from Loki (warnings on by default, all
 // events as a toggle).
@@ -49,6 +52,10 @@ local variable =
 local cadvisorLib = import 'libs/cadvisor-observ-lib/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local golangLib = import 'libs/golang-observ-lib/main.libsonnet';
+local podLib = import 'libs/kubernetes-observ-lib/main.libsonnet';
+local ingressLib = import 'libs/ingress-nginx-observ-lib/main.libsonnet';
+local systemdLib = import 'libs/systemd-observ-lib/main.libsonnet';
+local processLib = import 'libs/process-exporter-observ-lib/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 
@@ -78,6 +85,10 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       docTabs: true,
       logs: true,
       golang: true,
+      // merge the embedded platform packs' alert/recording rules, scoped per
+      // platform (kubernetes.ruleSelector, docker.ruleSelector, ...; defaults
+      // derive from the identity fields). Whitebox + Go rules use ruleSelector.
+      platformRules: true,
       // Kubernetes events land in Loki as one line per event (alloy
       // loki.source.kubernetes_events): job + cluster/namespace + the object's
       // `name` + `reason`/`level` labels, logfmt body with kind/type/msg.
@@ -167,22 +178,6 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       kube_dsDesired: wsig('DaemonSet desired', 'kube_daemonset_status_desired_number_scheduled{%(queriesSelector)s, daemonset=~"' + wl + '"}', 'short', '{{daemonset}} desired', desc='Nodes that should run the DaemonSet pod (dashed) versus nodes where it is ready.'),
       kube_dsReady: wsig('DaemonSet ready', 'kube_daemonset_status_number_ready{%(queriesSelector)s, daemonset=~"' + wl + '"}', 'short', '{{daemonset}} ready', desc='Nodes where the DaemonSet pod is ready.'),
       kube_pvcUsage: wsig('PVC usage', 'kubelet_volume_stats_used_bytes{%(queriesSelector)s} / kubelet_volume_stats_capacity_bytes{%(queriesSelector)s}', 'percentunit', '{{persistentvolumeclaim}}', desc='Used share of every PersistentVolumeClaim in the namespace, from kubelet volume stats. Not tied to a pod: the whole namespace is shown.'),
-      // ===== systemd (node_exporter systemd collector) =====
-      systemd_state: hsig('Unit state', 'max by (instance, name) ((node_systemd_unit_state{name=~"' + unit + '", state="active", %(queriesSelector)s} == 1) * 1 or (node_systemd_unit_state{name=~"' + unit + '", state=~"activating|deactivating", %(queriesSelector)s} == 1) * 2 or (node_systemd_unit_state{name=~"' + unit + '", state="inactive", %(queriesSelector)s} == 1) * 3 or (node_systemd_unit_state{name=~"' + unit + '", state="failed", %(queriesSelector)s} == 1) * 4)', 'short', '{{instance}} {{name}}', desc='State of the systemd unit on every host where it exists: active, transitioning (activating/deactivating), inactive or failed (node_exporter systemd collector).'),
-      systemd_active: hsig('Active units', 'count(node_systemd_unit_state{name=~"' + unit + '", state="active", %(queriesSelector)s} == 1)', 'short', 'active', desc='Hosts where the unit is active.'),
-      systemd_failed: hsig('Failed units', 'count(node_systemd_unit_state{name=~"' + unit + '", state="failed", %(queriesSelector)s} == 1) or vector(0)', 'short', 'failed', desc='Hosts where the unit is in the failed state.'),
-      systemd_hosts: hsig('Hosts', 'count(count by (instance) (node_systemd_unit_state{name=~"' + unit + '", %(queriesSelector)s}))', 'short', 'hosts', desc='Hosts that have the unit installed at all.'),
-      // ===== Host process (process-exporter namedprocess_* by groupname) =====
-      hproc_cpu: hsig('Process CPU', 'sum by (instance) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'short', desc='CPU cores used by the process group on each host (process-exporter, all processes of the group summed).'),
-      hproc_rss: hsig('Process RSS', 'sum by (instance) (namedprocess_namegroup_memory_bytes{groupname=~"' + grp + '", memtype="resident", %(queriesSelector)s})', 'bytes', desc='Resident memory of the process group on each host.'),
-      hproc_procs: hsig('Processes', 'sum by (instance) (namedprocess_namegroup_num_procs{groupname=~"' + grp + '", %(queriesSelector)s})', 'short', desc='Processes in the group per host. More than expected usually means forks or workers piling up.'),
-      hproc_threads: hsig('Threads', 'sum by (instance) (namedprocess_namegroup_num_threads{groupname=~"' + grp + '", %(queriesSelector)s})', 'short', desc='Threads across the process group.'),
-      hproc_fds: hsig('Open file descriptors', 'sum by (instance) (namedprocess_namegroup_open_filedesc{groupname=~"' + grp + '", %(queriesSelector)s})', 'short', desc='Open file descriptors across the process group.'),
-      hproc_fdRatio: hsig('Worst FD ratio', 'max by (instance) (namedprocess_namegroup_worst_fd_ratio{groupname=~"' + grp + '", %(queriesSelector)s})', 'percentunit', desc='Open descriptors of the worst process divided by its soft limit. Near 1 the process starts failing with too many open files.'),
-      hproc_uptime: hsig('Process uptime', 'time() - min by (instance) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"' + grp + '", %(queriesSelector)s})', 's', desc='Time since the oldest process of the group started.'),
-      hproc_ioRead: hsig('Process read', 'sum by (instance) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} read', desc='Bytes read from storage by the process group per second.'),
-      hproc_ioWrite: hsig('Process write', 'sum by (instance) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} write', desc='Bytes written to storage by the process group per second.'),
-      hproc_majFaults: hsig('Major page faults', 'sum by (instance) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"' + grp + '", %(queriesSelector)s}[$__rate_interval]))', 'short', desc='Major page faults per second: the process is reading pages back from disk, a sign of memory pressure.'),
       // ===== Process (the app's own process_* client metrics) =====
       proc_cpu: jsig('Process CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the process, from its own /metrics (process_cpu_seconds_total).'),
       proc_rss: jsig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', cfg.legend + ' rss', desc='Resident set size reported by the process itself. The dashed line is the virtual address space size.'),
@@ -198,33 +193,11 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       win_threads: hsig('Threads', 'sum by (instance) (windows_process_threads{process=~"' + wproc + '", %(queriesSelector)s})', 'short', desc='Threads of the matching Windows processes.'),
       win_io: hsig('Process IO', 'sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"' + wproc + '", %(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{instance}} {{mode}}', desc='Bytes read and written by the matching Windows processes per second, by IO mode.'),
       win_uptime: hsig('Process uptime', 'time() - min by (instance) (windows_process_start_time{process=~"' + wproc + '", %(queriesSelector)s})', 's', desc='Time since the oldest matching Windows process started.'),
-      // ===== Ingress (ingress-nginx, series carry the backend service name) =====
-      ing_rate: isig('Requests', 'sum(rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))', 'reqps', 'requests', desc='Requests per second arriving through ingress-nginx for the Ingress objects that route to this service.'),
-      ing_byStatus: isig('Requests by status', 'sum by (status) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))', 'reqps', '{{status}}', desc='Requests per second by HTTP status code returned to the client.'),
-      ing_byHost: isig('Requests by host', 'sum by (host) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))', 'reqps', '{{host}}', desc='Requests per second by Ingress host name.'),
-      ing_byPath: isig('Requests by path', 'topk(10, sum by (host, path) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval])))', 'reqps', '{{host}}{{path}}', desc='The ten busiest host and path combinations.'),
-      ing_err5xx: isig('5xx ratio', 'sum(rate(nginx_ingress_controller_requests{%(queriesSelector)s, status=~"5.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))', 'percentunit', '5xx', desc='Share of requests answered with a 5xx as seen at the ingress (includes upstream failures and nginx 502/504 timeouts). The second line is the 4xx share.'),
-      ing_err4xx: isig('4xx ratio', 'sum(rate(nginx_ingress_controller_requests{%(queriesSelector)s, status=~"4.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))', 'percentunit', '4xx', desc='Share of requests answered with a 4xx (client errors: auth, not found, bad requests).'),
-      ing_p99: isig('Request p99', 'histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', 'p99', desc='Request duration as measured by nginx from first byte in to last byte out: p99, p95 and p50.'),
-      ing_p95: isig('Request p95', 'histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', 'p95', desc='95th percentile of request duration at the ingress.'),
-      ing_p50: isig('Request p50', 'histogram_quantile(0.50, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', 'p50', desc='Median request duration at the ingress.'),
-      ing_upstreamP99: isig('Upstream p99', 'histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_response_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', 'upstream p99', desc='Slowest 1 percent of upstream (backend) response times as seen by nginx. Compare with the request p99: a gap is time spent in nginx or on the client side.'),
-      ing_bytesIn: isig('Request bytes', 'sum(rate(nginx_ingress_controller_request_size_sum{%(queriesSelector)s}[$__rate_interval]))', 'Bps', 'in', desc='Request bytes received per second (in) and response bytes sent per second (out).'),
-      ing_bytesOut: isig('Response bytes', 'sum(rate(nginx_ingress_controller_response_size_sum{%(queriesSelector)s}[$__rate_interval]))', 'Bps', 'out', desc='Response bytes sent to clients per second.'),
-      ing_hosts: isig('Hosts', 'count(count by (host) (nginx_ingress_controller_requests{%(queriesSelector)s}))', 'short', 'hosts', desc='Distinct host names currently serving traffic for this service.'),
-      ing_ingresses: isig('Ingresses', 'count(count by (ingress) (nginx_ingress_controller_requests{%(queriesSelector)s}))', 'short', 'ingresses', desc='Distinct Ingress objects routing to this service.'),
-
       // ===== Logs (Loki) =====
       logs_pod: lsig('Pod logs', 'cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"', desc='Log lines of the selected pods, from Loki.'),
       logs_journal: lsig('Journal', 'instance=~"$host", unit=~"' + unit + '"', desc='Journal lines of the systemd unit on the selected hosts, from Loki.'),
     };
 
-    local unitMappings = stateMappings({
-      '1': { text: 'active', color: 'green', index: 0 },
-      '2': { text: 'transitioning', color: 'yellow', index: 1 },
-      '3': { text: 'inactive', color: 'text', index: 2 },
-      '4': { text: 'failed', color: 'red', index: 3 },
-    });
     local winMappings = stateMappings({
       '1': { text: 'running', color: 'green', index: 0 },
       '2': { text: 'starting', color: 'yellow', index: 1 },
@@ -243,6 +216,38 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     // (deployment / replicaset / statefulset carry the workload name, not a pod).
     local kubeEvents(extra) =
       '{' + cfg.kubeEventsSelector + ', name=~"$pod|' + wl + '"' + extra + '}';
+
+    // ----- platform packs embedded for this service -----
+    local sysd = systemdLib.units(cfg.datasource, cfg.hostSelector, unit);
+    local hproc = processLib.group(cfg.datasource, cfg.hostSelector, grp);
+    local ingr = ingressLib.ingress(cfg.datasource, ingressSelector);
+    local platformSignals =
+      { ['systemd_' + k]: sysd.signals[k] for k in std.objectFields(sysd.signals) }
+      + { ['hproc_' + k]: hproc.signals[k] for k in std.objectFields(hproc.signals) }
+      + { ['ing_' + k]: ingr.signals[k] for k in std.objectFields(ingr.signals) };
+
+    // static per-platform scopes for the merged rules (the dashboard variables
+    // do not exist in a ruler). Kube pods are matched by the workload regex.
+    local rs(block, default) = if std.objectHas(block, 'ruleSelector') then block.ruleSelector else default;
+    local scopes = {
+      kube: rs(cfg.kubernetes, 'pod=~"' + wl + '"'),
+      docker: rs(cfg.docker, 'name=~"' + cfg.docker.container + '"'),
+      systemd: rs(cfg.systemd, 'name=~"' + unit + '"'),
+      process: rs(cfg.process, 'groupname=~"' + grp + '"'),
+      ingress: rs(cfg.ingress, 'service=~"' + cfg.ingress.service + '"'),
+    };
+    local scoped(lib, ruleSelector) = lib.new({ datasource: cfg.datasource, ruleSelector: ruleSelector, docTabs: false }).prometheus;
+    local rename(groups) = [g { name: app + '-' + g.name } for g in groups];
+    local platformPacks =
+      (if cfg.kubernetes.enabled then [scoped(podLib, scopes.kube), scoped(cadvisorLib, scopes.kube)] else [])
+      + (if cfg.docker.enabled then [scoped(dockerLib, scopes.docker)] else [])
+      + (if cfg.systemd.enabled then [scoped(systemdLib, scopes.systemd)] else [])
+      + (if cfg.process.enabled then [scoped(processLib, scopes.process)] else [])
+      + (if cfg.ingress.enabled then [scoped(ingressLib, scopes.ingress)] else [])
+      // Go rules alert on `up == 0` and friends: only with a static job scope.
+      + (if cfg.golang && cfg.ruleSelector != '' then [scoped(golangLib, cfg.ruleSelector)] else []);
+    local platformAlerts = if cfg.platformRules then std.flattenArrays([rename(p.alerts) for p in platformPacks]) else [];
+    local platformRules = if cfg.platformRules then std.flattenArrays([rename(p.rules) for p in platformPacks]) else [];
 
     // ----- annotations: firing alerts by severity + kubernetes events -----
     local alertAnn(sev) = annotations.base.target(cfg.datasource, 'ALERTS{alertstate="firing", severity="' + sev + '", ' + cfg.selector + '}');
@@ -331,34 +336,17 @@ local stateMappings(m) = [{ type: 'value', options: m }];
            title: 'systemd',
            presence: { query: 'node_systemd_unit_state{' + cfg.hostSelector + ', name=~"' + unit + '"}', label: 'instance' },
            groups: [
-             { title: 'State', elements: {
-               s01_active: signals.systemd_active.asStat('Active'),
-               s02_failed: signals.systemd_failed.asStat('Failed') + red1,
-               s03_hosts: signals.systemd_hosts.asStat('Hosts'),
-             } } + stats,
-             { title: 'Units', elements: {
-               s11_state: timeline('Unit state', signals.systemd_state, unitMappings),
-             } } + wide,
+             { title: 'State', elements: sysd.stats } + stats,
+             { title: 'Units', elements: sysd.wide } + wide,
+             { title: 'Detail', elements: sysd.charts } + charts,
            ],
          }] else [])
       + (if cfg.process.enabled then [{
            title: 'Host process',
            presence: { query: 'namedprocess_namegroup_num_procs{' + cfg.hostSelector + ', groupname=~"' + grp + '"}', label: 'instance' },
            groups: [
-             { title: 'Overview', elements: {
-               h01_procs: signals.hproc_procs.asStat('Processes'),
-               h02_threads: signals.hproc_threads.asStat('Threads'),
-               h03_fds: signals.hproc_fds.asStat('Open file descriptors'),
-               h04_fdRatio: signals.hproc_fdRatio.asStat('Worst FD ratio'),
-               h05_uptime: signals.hproc_uptime.asStat('Uptime'),
-             } } + stats,
-             { title: 'Usage', elements: {
-               h11_cpu: signals.hproc_cpu.asTimeSeries('CPU (cores)'),
-               h12_rss: signals.hproc_rss.asTimeSeries('Resident memory'),
-               h13_io: signals.hproc_ioRead.asTimeSeries('Disk read / write')
-                       + panel.withTargetsMixin([signals.hproc_ioWrite.asTarget()]),
-               h14_majFaults: signals.hproc_majFaults.asTimeSeries('Major page faults/s'),
-             } } + charts,
+             { title: 'Overview', elements: hproc.stats } + stats,
+             { title: 'Usage', elements: hproc.charts } + charts,
            ],
          }] else [])
       + [{
@@ -406,26 +394,8 @@ local stateMappings(m) = [{ type: 'value', options: m }];
            title: 'Ingress',
            presence: { query: 'nginx_ingress_controller_requests{' + ingressSelector + '}', label: 'ingress' },
            groups: [
-             { title: 'Overview', elements: {
-               i01_rate: signals.ing_rate.asStat('Requests/s'),
-               i02_err5xx: signals.ing_err5xx.asStat('5xx ratio'),
-               i03_err4xx: signals.ing_err4xx.asStat('4xx ratio'),
-               i04_p99: signals.ing_p99.asStat('Request p99'),
-               i05_hosts: signals.ing_hosts.asStat('Hosts'),
-               i06_ingresses: signals.ing_ingresses.asStat('Ingresses'),
-             } } + stats,
-             { title: 'Traffic', elements: {
-               i11_byStatus: signals.ing_byStatus.asTimeSeries('Requests/s by status'),
-               i12_byHost: signals.ing_byHost.asTimeSeries('Requests/s by host'),
-               i13_byPath: signals.ing_byPath.asTimeSeries('Top paths'),
-               i14_errors: signals.ing_err5xx.asTimeSeries('Error ratio')
-                           + panel.withTargetsMixin([signals.ing_err4xx.asTarget()]),
-               i15_latency: signals.ing_p99.asTimeSeries('Request duration p50 / p95 / p99')
-                            + panel.withTargetsMixin([signals.ing_p95.asTarget(), signals.ing_p50.asTarget()]),
-               i16_upstream: signals.ing_upstreamP99.asTimeSeries('Upstream response p99'),
-               i17_bytes: signals.ing_bytesIn.asTimeSeries('Bytes in / out')
-                          + panel.withTargetsMixin([signals.ing_bytesOut.asTarget()]),
-             } } + charts,
+             { title: 'Overview', elements: ingr.stats } + stats,
+             { title: 'Traffic', elements: ingr.charts } + charts,
            ],
          }] else [])
       + (if cfg.logs then [{
@@ -476,7 +446,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     ];
 
     local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs };
-    local built = pack.build(pcfg, wb.signals + signals, wb.grafana.groups, wb.prometheus.alerts, wb.prometheus.rules, tabs);
+    local built = pack.build(pcfg, wb.signals + signals + platformSignals, wb.grafana.groups, wb.prometheus.alerts + platformAlerts, wb.prometheus.rules + platformRules, tabs);
     built {
       whitebox: wb,
       grafana+: { dashboard: super.dashboard + dashboard.withVariablesMixin(extraVars) + dashboard.withAnnotationsMixin(annList) },

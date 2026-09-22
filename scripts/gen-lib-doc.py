@@ -15,12 +15,12 @@ OUTDIR = os.path.join(ROOT, "docs", "observ-libs")
 
 GROUPS = {
     "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs"],
-    "System": ["system.linux", "system.docker", "system.windows"],
+    "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter"],
     "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor"],
     "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd"],
     "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana"],
     "Collector": ["collector.alloy"],
-    "Networking": ["networking.wireguard", "networking.unifi"],
+    "Networking": ["networking.wireguard", "networking.unifi", "networking.ingressNginx"],
     "Applications": ["applications.syncthing"],
     "Services": ["services.alloy", "services.grafana", "services.mimir"],
     "Cross-cutting": ["alerts", "logs"],

@@ -11,7 +11,7 @@ OUT = os.path.join(ROOT, "docs", "libs.md")
 
 GROUPS = {
     "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs"],
-    "System": ["system.linux", "system.docker", "system.windows"],
+    "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter"],
     "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor"],
     "Databases": [
         "databases.sql.postgres", "databases.sql.mysql",
@@ -22,6 +22,7 @@ GROUPS = {
         "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana",
     ],
     "Collector": ["collector.alloy"],
+    "Networking": ["networking.ingressNginx"],
     "Services": ["services.alloy", "services.grafana", "services.mimir"],
     "Cross-cutting": ["alerts", "logs"],
 }

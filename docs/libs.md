@@ -23,6 +23,8 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `system.linux` | Linux Server | 96 | 118 |
 | `system.docker` | Docker containers | 7 | 9 |
 | `system.windows` | Windows Server | 58 | 82 |
+| `system.systemd` | systemd units | 9 | 11 |
+| `system.processExporter` | Process groups | 15 | 16 |
 
 ## Kubernetes
 
@@ -58,13 +60,19 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `collector.alloy` | Alloy | 10 | 12 |
 
+## Networking
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `networking.ingressNginx` | Ingress NGINX | 27 | 28 |
+
 ## Services
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 77 | 104 |
-| `services.grafana` | Grafana service | 111 | 134 |
-| `services.mimir` | Mimir service | 73 | 100 |
+| `services.alloy` | Alloy service | 85 | 110 |
+| `services.grafana` | Grafana service | 119 | 140 |
+| `services.mimir` | Mimir service | 81 | 106 |
 
 ## Cross-cutting
 
