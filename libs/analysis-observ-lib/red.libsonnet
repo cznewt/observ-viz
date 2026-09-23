@@ -8,6 +8,7 @@ local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 
 {
   // new({ source: <profile>, ... }) -> a pack
@@ -21,6 +22,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varLabels: [],
       legendLabels: [],
       tabbed: true,
+      // the shape most hand-instrumented services emit; override per board
+      source: sources.red.prometheusClient,
     } + config;
     local src = cfg.source;
     local by = std.join(', ', src.groupBy);

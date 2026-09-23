@@ -6,6 +6,7 @@
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 
 {
   new(config={}):
@@ -18,6 +19,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varLabels: [],
       legendLabels: [],
       tabbed: true,
+      source: sources.use.node,
     } + config;
     local src = cfg.source;
     local by = std.join(', ', src.groupBy);
