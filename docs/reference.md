@@ -23,7 +23,15 @@ variables (`job` plus any cascading `varLabels` filters) carry over:
 
 The panel reference is the exception (panels aren't a mixin, so those boards are
 built directly from `g.panel.*`); each panel type is one board laid out as rows:
-an *Overview* row with the Grafana docs link, then a row per example.
+an *Overview* row with the Grafana docs link, then a row per example. Most
+examples run on the `grafana-testdata` datasource, so they render anywhere; two
+need live data:
+
+* **Logs** carries a Loki datasource variable and queries whatever namespaces
+  that Loki holds, 100 lines per panel.
+* **Node graph** reads a service graph from a Backstage catalog through the
+  Infinity datasource (`config.backstage`: datasource uid, catalog url and the
+  entity the graph is centred on).
 
 The runtime boards pass the filter/legend options every pack accepts:
 
