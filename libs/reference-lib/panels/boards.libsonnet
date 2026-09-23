@@ -24,6 +24,9 @@ local rich = {
   xyChart: import 'libs/reference-lib/panels/xyChart.libsonnet',
   nodeGraph: import 'libs/reference-lib/panels/nodeGraph.libsonnet',
   logs: import 'libs/reference-lib/panels/logs.libsonnet',
+  flameGraph: import 'libs/reference-lib/panels/flameGraph.libsonnet',
+  geomap: import 'libs/reference-lib/panels/geomap.libsonnet',
+  traces: import 'libs/reference-lib/panels/traces.libsonnet',
 };
 
 local label = {
@@ -57,7 +60,7 @@ local label = {
 // panel types without a rich example board -> a single example panel.
 local simpleKinds = [
   'text', 'news', 'dashList', 'alertList', 'annotationsList',
-  'traces', 'flameGraph', 'geomap', 'canvas',
+  'canvas',
 ];
 
 // example content for the panels that don't need a special datasource.
