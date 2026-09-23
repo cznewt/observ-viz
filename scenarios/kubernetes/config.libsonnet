@@ -5,7 +5,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Kubernetes',
   datasource: '${datasource}',
   tags: ['kubernetes'],
-  folder: { uid: 'observ-viz-kubernetes', title: 'Kubernetes' },
+  folder: { uid: 'scenario-kubernetes', title: 'Kubernetes', parent: { uid: 'scenarios', title: 'Scenarios' } },
   alloyConfig: 'scenarios/kubernetes/alloy.alloy',
   members: [
     { key: 'pods', pack: libs.kubernetes.pod, config: { selector: 'namespace=~".+"' } },

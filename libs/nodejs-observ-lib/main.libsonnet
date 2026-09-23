@@ -3,8 +3,8 @@
 // v2 elements. Usage:
 //   g.libs.runtimes.nodejs.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.nodejs.new({...}).grafana.elements   // reuse in a board
+local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
@@ -15,6 +15,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTags: ['nodejs', 'runtime'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
+      // cascading filter variables + series legend, e.g. ['namespace', 'pod'].
+      varLabels: [],
+      legendLabels: [],
+      // signals shown as columns of the Overview instances table.
+      overviewSignals: ['rss', 'heapUsed', 'eventloopLag', 'activeHandles', 'activeRequests'],
       varMetric: 'nodejs_version_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
@@ -22,8 +27,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    local sig = filters.sig(cfg);
 
     local signals = {
       eventloopLag: sig('Event loop lag', 'nodejs_eventloop_lag_seconds{%(queriesSelector)s}', 's'),

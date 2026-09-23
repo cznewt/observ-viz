@@ -9,7 +9,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Platform',
   datasource: '${datasource}',
   tags: ['platform'],
-  folder: { uid: 'observ-viz-platform', title: 'Platform (observ-viz)' },
+  folder: { uid: 'lab-platform', title: 'Lab platform', parent: { uid: 'scenarios', title: 'Scenarios' } },
   includeAlerts: false,
   includeLogs: false,
   members: [

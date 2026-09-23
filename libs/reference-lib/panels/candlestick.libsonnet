@@ -43,7 +43,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Candlestick')
+    g.dashboard.new('Candlestick')
     + g.dashboard.withUid('observ-viz-panel-candlestick')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

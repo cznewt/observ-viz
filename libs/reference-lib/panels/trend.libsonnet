@@ -34,7 +34,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Trend')
+    g.dashboard.new('Trend')
     + g.dashboard.withUid('observ-viz-panel-trend')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

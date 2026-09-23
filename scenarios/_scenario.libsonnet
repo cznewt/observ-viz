@@ -64,7 +64,9 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       grafanaDashboards: {
         ['scn-' + cfg.uid + '-' + inst.key + '.json']:
           inst.instance.grafana.dashboard
-          + dashboard.withFolder(folder.uid, folder.title)
+          + (if std.objectHas(folder, 'parent')
+             then dashboard.withFolder(folder.uid, folder.title, folder.parent.uid, folder.parent.title)
+             else dashboard.withFolder(folder.uid, folder.title))
           + dashboard.withTagsMixin(tags)
         for inst in instances
       },

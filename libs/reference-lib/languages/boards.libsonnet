@@ -1,29 +1,77 @@
-// observ-viz reference — Language folder. One TABBED board per language runtime:
-// an Overview tab (markdown signal descriptions) + one tab per signal group.
+// observ-viz reference — Runtimes folder. One TABBED board per language runtime:
+// an Overview tab (what the board is, reference links, a table of instances) +
+// one tab per signal group, each opening with that group's signal table.
 local g = import 'g.libsonnet';
 local util = import 'libs/reference-lib/_util.libsonnet';
 
+// runtime key, board title, one-line description, reference links.
 local runtimes = [
-  ['golang', 'Go'],
-  ['jvm', 'JVM'],
-  ['python', 'Python'],
-  ['dotnet', '.NET'],
-  ['nodejs', 'Node.js'],
+  {
+    key: 'golang',
+    title: 'Go',
+    description: 'The Go runtime as exposed by `client_golang`: goroutines, threads, heap, stack and garbage collection, plus the shared `process_*` metrics.',
+    references: [
+      { title: 'Go runtime metrics', url: 'https://pkg.go.dev/runtime/metrics', description: 'what the runtime itself measures' },
+      { title: 'client_golang', url: 'https://github.com/prometheus/client_golang', description: 'the exporter behind go_* and process_*' },
+      { title: 'Instrumenting a Go application', url: 'https://prometheus.io/docs/guides/go-application/', description: 'Prometheus guide' },
+    ],
+  },
+  {
+    key: 'jvm',
+    title: 'JVM',
+    description: 'JVM memory pools, threads, loaded classes and garbage collection, as exposed by Micrometer or the JMX exporter.',
+    references: [
+      { title: 'Micrometer JVM metrics', url: 'https://docs.micrometer.io/micrometer/reference/reference/jvm.html', description: 'jvm_* meter binders' },
+      { title: 'JMX exporter', url: 'https://github.com/prometheus/jmx_exporter', description: 'for apps without Micrometer' },
+    ],
+  },
+  {
+    key: 'python',
+    title: 'Python',
+    description: 'CPython garbage collection plus the process metrics exposed by `prometheus_client` default collectors.',
+    references: [
+      { title: 'prometheus_client', url: 'https://prometheus.github.io/client_python/', description: 'the exporter behind python_* and process_*' },
+      { title: 'gc module', url: 'https://docs.python.org/3/library/gc.html', description: 'what the generational collector counts' },
+    ],
+  },
+  {
+    key: 'dotnet',
+    title: '.NET',
+    description: 'The .NET runtime as exposed by prometheus-net: managed heap, thread pool, exceptions and JIT activity.',
+    references: [
+      { title: 'prometheus-net', url: 'https://github.com/prometheus-net/prometheus-net', description: 'the exporter behind dotnet_*' },
+      { title: '.NET runtime metrics', url: 'https://learn.microsoft.com/dotnet/core/diagnostics/available-counters', description: 'the counters underneath' },
+    ],
+  },
+  {
+    key: 'nodejs',
+    title: 'Node.js',
+    description: 'The Node.js event loop, V8 heap and handle/request counts, as exposed by `prom-client` default metrics.',
+    references: [
+      { title: 'prom-client', url: 'https://github.com/siimon/prom-client', description: 'the exporter behind nodejs_*' },
+      { title: 'Event loop lag', url: 'https://nodejs.org/api/perf_hooks.html#perf_hooksmonitoreventloopdelayoptions', description: 'what the lag signals measure' },
+    ],
+  },
 ];
 
 {
   _config+:: {},
   grafanaDashboards+:: {
-    ['lang-' + r[0] + '.json']:
+    ['lang-' + r.key + '.json']:
       util.place(
         util.tabbedBoard(
-          g.libs.runtimes[r[0]].new({
-            uid: 'observ-viz-lang-' + r[0],
-            dashboardTitle: r[1] + ' runtime',
+          g.libs.runtimes[r.key].new({
+            uid: 'observ-viz-lang-' + r.key,
+            dashboardTitle: r.title + ' runtime',
             datasource: $._config.datasource,
+            description: r.description,
+            references: r.references,
+            // cascading filters + a legend that names the pod, not the URL.
+            varLabels: ['namespace', 'pod'],
+            legendLabels: ['namespace', 'pod'],
           }),
-          r[1] + ' runtime',
-          'observ-viz-lang-' + r[0],
+          r.title + ' runtime',
+          'observ-viz-lang-' + r.key,
         ),
         $._config.folders.languages,
         $._config.tags,

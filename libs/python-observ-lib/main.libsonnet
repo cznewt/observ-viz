@@ -4,8 +4,8 @@
 //   g.libs.runtimes.python.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.python.new({...}).grafana.elements   // reuse in a board
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
@@ -15,6 +15,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['python', 'runtime'],
       datasource: '${datasource}',
       selector: 'job=~"$job"',
+      // cascading filter variables + series legend, e.g. ['namespace', 'pod'].
+      varLabels: [],
+      legendLabels: [],
+      // signals shown as columns of the Overview instances table.
+      overviewSignals: ['cpu', 'rss', 'openFds', 'gcCollections'],
       varMetric: 'python_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
@@ -22,8 +27,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
-    local sig(name, expr, unit) =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector);
+    local sig = filters.sig(cfg);
 
     local signals = {
       gcCollections: sig('GC collections', 'sum without(generation)(rate(python_gc_collections_total{%(queriesSelector)s}[$__rate_interval]))', 'ops'),

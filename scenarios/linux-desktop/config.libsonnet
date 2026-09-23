@@ -5,7 +5,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Linux desktop',
   datasource: '${datasource}',
   tags: ['linux', 'desktop'],
-  folder: { uid: 'observ-viz-linux-desktop', title: 'Linux desktop' },
+  folder: { uid: 'scenario-linux-desktop', title: 'Linux desktop', parent: { uid: 'scenarios', title: 'Scenarios' } },
   alloyConfig: 'scenarios/linux-desktop/alloy.alloy',
   members: [
     { key: 'host', pack: libs.system.linux, config: { selector: 'job=~"node|integrations/node_exporter"' } },

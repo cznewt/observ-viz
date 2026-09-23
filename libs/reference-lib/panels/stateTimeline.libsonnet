@@ -44,7 +44,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / State timeline')
+    g.dashboard.new('State timeline')
     + g.dashboard.withUid('observ-viz-panel-stateTimeline')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

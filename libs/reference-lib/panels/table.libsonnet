@@ -72,7 +72,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Table')
+    g.dashboard.new('Table')
     + g.dashboard.withUid('observ-viz-panel-table')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

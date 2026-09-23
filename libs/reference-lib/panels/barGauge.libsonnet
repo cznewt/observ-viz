@@ -49,7 +49,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Bar gauge')
+    g.dashboard.new('Bar gauge')
     + g.dashboard.withUid('observ-viz-panel-barGauge')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

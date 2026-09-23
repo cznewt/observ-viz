@@ -42,7 +42,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Heatmap')
+    g.dashboard.new('Heatmap')
     + g.dashboard.withUid('observ-viz-panel-heatmap')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

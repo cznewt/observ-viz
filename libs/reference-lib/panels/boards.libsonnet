@@ -1,10 +1,10 @@
-// observ-viz reference — Panels folder. Every panel type is a TABBED board:
-// tab 1 "Overview" (description + Grafana docs link), then example tabs. Data
+// observ-viz reference — Panels folder. Every panel type is one board laid out
+// as rows: an Overview row (description + Grafana docs link), then example rows. Data
 // panels get rich testdata-driven examples (ported from the models/catalog
 // reference-mixin); the rest are a single example panel.
 local g = import 'g.libsonnet';
 local place = (import 'libs/reference-lib/_util.libsonnet').place;
-local tabbed = (import 'libs/reference-lib/panels/_tab.libsonnet').tabbed;
+local rowed = (import 'libs/reference-lib/panels/_tab.libsonnet').rowed;
 
 // rich example boards: function(config) -> { board }
 local rich = {
@@ -78,7 +78,7 @@ local example(name) =
   else p;
 
 local simpleBoard(name) =
-  g.dashboard.new('Panel / ' + label[name])
+  g.dashboard.new(label[name])
   + g.dashboard.withUid('observ-viz-panel-' + name)
   + g.dashboard.withElements(g.element.panel('panel', example(name)))
   + g.dashboard.withLayout(g.layout.grid.new() + g.layout.grid.withItems([g.layout.grid.item('panel', 0, 0, 16, 9)]));
@@ -87,11 +87,11 @@ local simpleBoard(name) =
   _config+:: {},
   grafanaDashboards+:: {
     ['panel-' + name + '.json']:
-      place(tabbed(rich[name]($._config).board, name, label[name]), $._config.folders.panels, $._config.tags)
+      place(rowed(rich[name]($._config).board, name, label[name]), $._config.folders.panels, $._config.tags)
     for name in std.objectFields(rich)
   } + {
     ['panel-' + name + '.json']:
-      place(tabbed(simpleBoard(name), name, label[name]), $._config.folders.panels, $._config.tags)
+      place(rowed(simpleBoard(name), name, label[name]), $._config.folders.panels, $._config.tags)
     for name in simpleKinds
   },
 }

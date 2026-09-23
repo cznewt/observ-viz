@@ -5,7 +5,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Linux Podman host',
   datasource: '${datasource}',
   tags: ['linux', 'podman'],
-  folder: { uid: 'observ-viz-linux-podman', title: 'Linux Podman host' },
+  folder: { uid: 'scenario-linux-podman', title: 'Linux Podman host', parent: { uid: 'scenarios', title: 'Scenarios' } },
   alloyConfig: 'scenarios/linux-podman/alloy.alloy',
   members: [
     { key: 'host', pack: libs.system.linux, config: { selector: 'job=~"node|integrations/node_exporter"' } },

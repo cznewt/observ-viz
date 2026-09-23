@@ -7,7 +7,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Linux server',
   datasource: '${datasource}',
   tags: ['linux', 'server'],
-  folder: { uid: 'observ-viz-linux-server', title: 'Linux server' },
+  folder: { uid: 'scenario-linux-server', title: 'Linux server', parent: { uid: 'scenarios', title: 'Scenarios' } },
   // the alloy config that ships telemetry for this deployment.
   alloyConfig: 'scenarios/linux-server/alloy.alloy',
   members: [

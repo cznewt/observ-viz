@@ -39,7 +39,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Histogram')
+    g.dashboard.new('Histogram')
     + g.dashboard.withUid('observ-viz-panel-histogram')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

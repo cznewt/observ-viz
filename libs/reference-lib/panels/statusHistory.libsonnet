@@ -33,7 +33,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Status history')
+    g.dashboard.new('Status history')
     + g.dashboard.withUid('observ-viz-panel-statusHistory')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

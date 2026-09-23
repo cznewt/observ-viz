@@ -1,6 +1,7 @@
-// observ-viz reference — panel-board tabbing. Wraps a panel reference board so
-// the FIRST tab is an "Overview" (panel description + a link to the Grafana
-// docs), and the remaining tabs are the board's example rows.
+// observ-viz reference — panel-board layout. Wraps a panel reference board so
+// the FIRST row is an "Overview" (panel description + a link to the Grafana
+// docs), and the remaining rows are the board's own example rows. Rows, not
+// tabs: every example stays on one scrollable page.
 local g = import 'g.libsonnet';
 
 // friendly type -> { slug (grafana docs), desc }
@@ -33,10 +34,9 @@ local docs = {
 };
 
 {
-  // tabbed(board, type, title): board (a built dashboard with a Grid or Rows
-  // layout) -> a TabsLayout board: Overview tab + one tab per row (or a single
-  // example tab for grid boards).
-  tabbed(board, type, title)::
+  // rowed(board, type, title): board (a built dashboard with a Grid or Rows
+  // layout) -> a RowsLayout board: an Overview row + one row per example.
+  rowed(board, type, title)::
     local d = if std.objectHas(docs, type) then docs[type] else { slug: '', desc: '' };
     local overview =
       g.panel.text.new('Overview')
@@ -44,20 +44,23 @@ local docs = {
         mode: 'markdown',
         content: '# ' + title + '\n\n' + d.desc
                  + (if d.slug != ''
-                    then '\n\n[Grafana docs ↗](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/' + d.slug + '/)'
+                    then '\n\n[Grafana docs \u2197](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/' + d.slug + '/)'
                     else ''),
       });
     local lay = board.spec.layout;
-    local exampleTabs =
+    local exampleRows =
       if lay.kind == 'RowsLayout'
-      then [g.layout.tabs.tab(r.spec.title, r.spec.layout) for r in lay.spec.rows]
-      else [g.layout.tabs.tab('Example', lay)];
-    local overviewTab =
-      g.layout.tabs.tab('Overview', g.layout.grid.new() + g.layout.grid.withItems([g.layout.grid.item('__overview', 0, 0, 24, 8)]));
+      then lay.spec.rows
+      else [g.layout.rows.row('Example', lay)];
+    local overviewRow =
+      g.layout.rows.row(
+        'Overview',
+        g.layout.grid.new() + g.layout.grid.withItems([g.layout.grid.item('__overview', 0, 0, 24, 6)])
+      );
     board + {
       spec+: {
         elements+: g.element.panel('__overview', overview),
-        layout: g.layout.tabs.new() + g.layout.tabs.withTabs([overviewTab] + exampleTabs),
+        layout: g.layout.rows.new() + g.layout.rows.withRows([overviewRow] + exampleRows),
       },
     },
 }

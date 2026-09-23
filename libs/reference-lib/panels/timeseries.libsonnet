@@ -74,7 +74,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Time series')
+    g.dashboard.new('Time series')
     + g.dashboard.withUid('observ-viz-panel-timeSeries')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

@@ -39,7 +39,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / XY chart')
+    g.dashboard.new('XY chart')
     + g.dashboard.withUid('observ-viz-panel-xyChart')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

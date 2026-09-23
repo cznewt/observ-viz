@@ -5,7 +5,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Linux Docker host',
   datasource: '${datasource}',
   tags: ['linux', 'docker'],
-  folder: { uid: 'observ-viz-linux-docker', title: 'Linux Docker host' },
+  folder: { uid: 'scenario-linux-docker', title: 'Linux Docker host', parent: { uid: 'scenarios', title: 'Scenarios' } },
   alloyConfig: 'scenarios/linux-docker/alloy.alloy',
   members: [
     { key: 'host', pack: libs.system.linux, config: { selector: 'job=~"node|integrations/node_exporter"' } },

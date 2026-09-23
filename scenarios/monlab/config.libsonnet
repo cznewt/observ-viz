@@ -12,7 +12,7 @@ local scoped(key, pack, namespace, pod='', title=null) =
   title: 'Monitoring lab',
   datasource: '${datasource}',
   tags: ['monlab', 'services'],
-  folder: { uid: 'monlab-services', title: 'Monitoring lab — services' },
+  folder: { uid: 'lab-services', title: 'Lab services', parent: { uid: 'scenarios', title: 'Scenarios' } },
   includeAlerts: false,
   includeLogs: false,
   members: [

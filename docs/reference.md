@@ -13,10 +13,30 @@ libs/reference-lib/
 ```
 
 All non-panel reference boards **come from the pack mixins** — each is a pack's
-output rendered as a **tabbed board**: an *Overview* tab (a markdown panel
-listing every signal's name/unit/query) followed by one tab per signal group.
+output rendered as a **tabbed board** on top of the pack's own dashboard, so its
+variables (`job` plus any cascading `varLabels` filters) carry over:
+
+* an *Overview* tab: what the board is and its reference links side by side,
+  then an **Instances table** — one row per instance, joined from an instant
+  query per column (`config.overviewSignals`);
+* one tab per signal group, opening with that group's **signal table**
+  (name / unit / description / query) above the group's panels.
+
 The panel reference is the exception (panels aren't a mixin, so those boards are
-built directly from `g.panel.*`).
+built directly from `g.panel.*`); each panel type is one board laid out as rows:
+an *Overview* row with the Grafana docs link, then a row per example.
+
+The runtime boards pass the filter/legend options every pack accepts:
+
+```jsonnet
+g.libs.runtimes.golang.new({
+  varLabels: ['namespace', 'pod'],     // cascading filter variables
+  legendLabels: ['namespace', 'pod'],  // legend '{{namespace}} / {{pod}}'
+  overviewSignals: ['cpu', 'rss', 'goroutines', 'heapInuse', 'gcRate'],
+  description: 'The Go runtime as exposed by client_golang.',
+  references: [{ title: 'Go runtime metrics', url: 'https://pkg.go.dev/runtime/metrics' }],
+})
+```
 
 Load them:
 

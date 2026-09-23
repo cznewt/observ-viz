@@ -5,7 +5,7 @@ local libs = import 'libs/observ-libs.libsonnet';
   title: 'Grafana LGTM stack',
   datasource: '${datasource}',
   tags: ['lgtm', 'grafana'],
-  folder: { uid: 'observ-viz-lgtm', title: 'Grafana LGTM stack' },
+  folder: { uid: 'scenario-lgtm', title: 'Grafana LGTM stack', parent: { uid: 'scenarios', title: 'Scenarios' } },
   alloyConfig: 'scenarios/lgtm/alloy.alloy',
   members: [
     { key: 'mimir', pack: libs.monitoring.mimir },

@@ -39,7 +39,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Bar chart')
+    g.dashboard.new('Bar chart')
     + g.dashboard.withUid('observ-viz-panel-barChart')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(

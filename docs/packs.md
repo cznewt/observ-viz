@@ -23,6 +23,15 @@ returns:
 selector, varMetric }` and produces a self-contained dashboard (with
 `datasource` + `job` variables).
 
+Optional, on every pack built through `libs/common-lib/filters.libsonnet`:
+
+| key | effect |
+| --- | --- |
+| `varLabels` | cascading filter variables, e.g. `['namespace', 'pod']`; each one is a `label_values()` query scoped by `job` and the variables before it, and each is appended to the query selector |
+| `legendLabels` | series legend built from labels, e.g. `['namespace', 'pod']` -> `{{namespace}} / {{pod}}` |
+| `overviewSignals` | the signals a reference board shows as columns of its instances table |
+| `description`, `references` | board description and reference links (used by the reference boards' Overview tab) |
+
 ## Catalog
 
 | Group | Packs |

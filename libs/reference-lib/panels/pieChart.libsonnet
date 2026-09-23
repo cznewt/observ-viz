@@ -42,7 +42,7 @@ function(config) {
   ],
 
   board:
-    g.dashboard.new('Panel / Pie chart')
+    g.dashboard.new('Pie chart')
     + g.dashboard.withUid('observ-viz-panel-pieChart')
     + g.dashboard.withElements(std.foldl(function(acc, r) acc + r.elements, rows, {}))
     + g.dashboard.withLayout(
