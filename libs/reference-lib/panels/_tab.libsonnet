@@ -39,7 +39,7 @@ local docs = {
   rowed(board, type, title)::
     local d = if std.objectHas(docs, type) then docs[type] else { slug: '', desc: '' };
     local overview =
-      g.panel.text.new('Overview')
+      g.panel.text.new('')
       + g.panel.text.withOptions({
         mode: 'markdown',
         content: '# ' + title + '\n\n' + d.desc

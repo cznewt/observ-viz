@@ -19,14 +19,15 @@ local boards = [
     overviewSignals: ['cpuBusy', 'memUsedRatio', 'diskUsedRatio', 'processes', 'uptime'],
   }],
   [g.libs.kubernetes.pod, 'kube-pod', 'Kubernetes pod', {
-    overviewSignals: ['phase', 'restarts', 'cpuUsage', 'memWorkingSet', 'containersReady'],
-    instanceLabel: 'pod',
-    varLabels: ['namespace'],
+    // the pack aggregates by (pod), so that is what a row can be keyed by
+    overviewSignals: ['cpuUsage', 'memWorkingSet', 'restarts', 'containersReady', 'cpuLimits'],
+    varLabels: ['namespace', 'pod'],
+    rowLabels: ['pod'],
   }],
   [g.libs.kubernetes.cadvisor, 'cadvisor', 'Container resources', {
     overviewSignals: ['cpuUsage', 'memWorkingSet', 'cpuThrottleRatio', 'netRx', 'netTx'],
-    instanceLabel: 'pod',
-    varLabels: ['namespace'],
+    varLabels: ['namespace', 'pod'],
+    rowLabels: ['pod'],
   }],
 ];
 

@@ -21,6 +21,8 @@ local shared = {
     { kind: t.id, spec: { id: t.id, options: (if std.objectHas(t, 'options') then t.options else {}) } }
     for t in value
   ] } } } },
+  // per-panel query options: maxDataPoints, interval, cacheTimeout, ...
+  withQueryOptions(value): { spec+: { data+: { spec+: { queryOptions+: value } } } },
   // withTargets auto-assigns refIds (A, B, C, ...) to queries that have none.
   withTargets(targets): { spec+: { data+: { spec+: { queries: util.resource.assignRefIds(targets) } } } },
   // withTargetsMixin appends queries and assigns refIds to the new ones, continuing after the existing ones.

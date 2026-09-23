@@ -67,8 +67,10 @@ local runtimes = [
             description: r.description,
             references: r.references,
             // cascading filters + a legend that names the pod, not the URL.
-            varLabels: ['namespace', 'pod'],
+            varLabels: ['namespace', 'pod', 'instance'],
             legendLabels: ['namespace', 'pod'],
+            // the Overview table is keyed by namespace/pod
+            rowLabels: ['namespace', 'pod'],
           }),
           r.title + ' runtime',
           'observ-viz-lang-' + r.key,

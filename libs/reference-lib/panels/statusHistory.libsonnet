@@ -8,10 +8,12 @@ function(config) {
   local td(scn='random_walk') = g.query.base('grafana-testdata-datasource', { scenarioId: scn }) + g.query.withDatasource(ds),
   local targets = [td(), td(), td()],  // 3 random-walk series
 
-  // a status-history panel with options + custom fieldConfig
+  // a status-history panel with options + custom fieldConfig. One cell per
+  // data point, so the example asks for a handful of points, not a screenful.
   local sh(label, options={}, custom={}) =
     g.panel.statusHistory.new(label)
     + g.panel.statusHistory.withTargets(targets)
+    + g.panel.statusHistory.withQueryOptions({ maxDataPoints: 20 })
     + g.panel.statusHistory.withOptions(options)
     + g.panel.statusHistory.withFieldConfigDefaults({ custom: custom }),
 

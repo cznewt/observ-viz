@@ -20,6 +20,8 @@ function(config) {
   local stl(label, options={}, custom={}) =
     g.panel.stateTimeline.new(label)
     + g.panel.stateTimeline.withTargets(targets)
+    // one band per data point: a handful of points reads as states, not noise
+    + g.panel.stateTimeline.withQueryOptions({ maxDataPoints: 30 })
     + g.panel.stateTimeline.withFieldConfigDefaults({ mappings: mappings, custom: custom })
     + g.panel.stateTimeline.withOptions({ showValue: 'auto', legend: { displayMode: 'list', placement: 'bottom' } } + options),
 
