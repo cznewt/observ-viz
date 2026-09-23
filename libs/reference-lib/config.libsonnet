@@ -6,6 +6,7 @@
     local reference = { uid: 'observ-viz-reference', title: 'Reference' },
     folders: {
       panels: { uid: 'observ-viz-panels', title: 'Panels', parent: reference },
+      analysis: { uid: 'observ-viz-analysis', title: 'Analysis', parent: reference },
       languages: { uid: 'observ-viz-languages', title: 'Runtimes', parent: reference },
       deployments: { uid: 'observ-viz-deployments', title: 'Deployments', parent: reference },
     },

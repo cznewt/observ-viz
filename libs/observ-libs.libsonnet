@@ -106,6 +106,8 @@
     django: import 'libs/django-observ-lib/main.libsonnet',
     rails: import 'libs/rails-observ-lib/main.libsonnet',
   },
+  // analysis methods (RED / USE) over any instrumentation - they own no metrics
+  analysis: import 'libs/analysis-observ-lib/main.libsonnet',
   // CI/CD platforms: the Backstage catalog (Infinity datasource) and Argo CD.
   cicd: {
     backstage: import 'libs/backstage-observ-lib/main.libsonnet',
