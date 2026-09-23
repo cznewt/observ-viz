@@ -1,6 +1,6 @@
 # SRE sample: front (JVM) service  (`g.libs.services.sreFront`)
 
-Dashboard uid `observ-viz-svc-sre-front` · 83 signals · 27 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-sre-front` · 87 signals · 27 alerts · 15 recording rules.
 
 ## Signals
 
@@ -82,6 +82,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `systemd_inactive` | short | `count(node_systemd_unit_state{name=~"sre-front.service", state="inactive", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"sre-front.service", instance=~"$host"}[$__rate_interval]))` | — |
 | `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"sre-front.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"sre-front.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"sre-front.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"sre-front.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `systemd_tasks` | short | `node_systemd_unit_tasks_current{name=~"sre-front.service", instance=~"$host"}` | — |
+| `systemd_tasksMax` | short | `node_systemd_unit_tasks_max{name=~"sre-front.service", instance=~"$host"}` | — |
+| `systemd_tasksUtil` | percent | `100 * node_systemd_unit_tasks_current{name=~"sre-front.service", instance=~"$host"} / clamp_min(node_systemd_unit_tasks_max{name=~"sre-front.service", instance=~"$host"}, 1)` | — |
+| `systemd_uptime` | s | `time() - node_systemd_unit_start_time_seconds{name=~"sre-front.service", instance=~"$host"}` | — |
 | `threadsDaemon` | short | `jvm_threads_daemon_threads{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `threadsLive` | short | `jvm_threads_live_threads{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)sre-front", instance=~"$host"}[$__rate_interval]))` | — |

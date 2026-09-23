@@ -90,6 +90,22 @@
   services: import 'libs/service-observ-lib/presets.libsonnet',
   // cross-cutting observ-libs (signals + annotations + reusable panels)
   alerts: import 'libs/alerts-observ-lib/main.libsonnet',
+  // what an application reports about its own work, whatever it is written in
+  instrumentation: {
+    httpServer: import 'libs/http-server-observ-lib/main.libsonnet',
+    httpClient: import 'libs/http-client-observ-lib/main.libsonnet',
+    rpc: import 'libs/rpc-observ-lib/main.libsonnet',
+    messaging: import 'libs/messaging-observ-lib/main.libsonnet',
+    otelSdk: import 'libs/otel-sdk-observ-lib/main.libsonnet',
+  },
+  webservers: {
+    nginx: import 'libs/nginx-observ-lib/main.libsonnet',
+    caddy: import 'libs/caddy-observ-lib/main.libsonnet',
+  },
+  frameworks: {
+    django: import 'libs/django-observ-lib/main.libsonnet',
+    rails: import 'libs/rails-observ-lib/main.libsonnet',
+  },
   // CI/CD platforms: the Backstage catalog (Infinity datasource) and Argo CD.
   cicd: {
     backstage: import 'libs/backstage-observ-lib/main.libsonnet',

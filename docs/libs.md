@@ -28,7 +28,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `system.linux` | Linux Server | 96 | 118 |
 | `system.docker` | Docker containers | 7 | 9 |
 | `system.windows` | Windows Server | 58 | 87 |
-| `system.systemd` | systemd units | 9 | 11 |
+| `system.systemd` | systemd units | 13 | 15 |
 | `system.processExporter` | Process groups | 15 | 16 |
 
 ## Kubernetes
@@ -75,6 +75,30 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `networking.ingressNginx` | Ingress NGINX | 27 | 28 |
 
+## Instrumentation
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `instrumentation.httpServer` | HTTP server | 13 | 16 |
+| `instrumentation.httpClient` | HTTP client | 13 | 14 |
+| `instrumentation.rpc` | gRPC | 14 | 15 |
+| `instrumentation.messaging` | Queues and background work | 14 | 15 |
+| `instrumentation.otelSdk` | OpenTelemetry SDK | 15 | 15 |
+
+## Web servers
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `webservers.nginx` | NGINX | 11 | 12 |
+| `webservers.caddy` | Caddy | 11 | 12 |
+
+## Frameworks
+
+| `g.libs.…` | Dashboard | Signals | Panels |
+|---|---|---|---|
+| `frameworks.django` | Django | 15 | 16 |
+| `frameworks.rails` | Rails | 11 | 12 |
+
 ## CI/CD
 
 | `g.libs.…` | Dashboard | Signals | Panels |
@@ -86,30 +110,30 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 85 | 202 |
-| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 85 | 202 |
-| `services.grafana` | Grafana service | 119 | 232 |
-| `services.grafanaTest` | Grafana (test) service | 119 | 232 |
-| `services.mimir` | Mimir service | 81 | 198 |
-| `services.loki` | Loki service | 81 | 198 |
-| `services.tempo` | Tempo service | 84 | 201 |
-| `services.pyroscope` | Pyroscope service | 83 | 200 |
-| `services.redisTest` | Redis (test) service | 81 | 198 |
-| `services.demoGoDev` | Demo Go (dev) service | 86 | 202 |
-| `services.demoGoProd` | Demo Go (prod) service | 86 | 202 |
-| `services.demoGoWorkshop` | Demo Go (workshop) service | 86 | 202 |
-| `services.demoPythonDev` | Demo Python (dev) service | 81 | 198 |
-| `services.demoPythonProd` | Demo Python (prod) service | 81 | 198 |
-| `services.demoPythonWorkshop` | Demo Python (workshop) service | 81 | 198 |
-| `services.sreBack` | SRE sample: back (JVM) service | 83 | 200 |
-| `services.sreFront` | SRE sample: front (JVM) service | 83 | 200 |
-| `services.sreReader` | SRE sample: reader (JVM) service | 83 | 200 |
-| `services.backstage` | Backstage service (Postgres) | 81 | 198 |
-| `services.alertmanager` | Alertmanager service | 109 | 227 |
-| `services.alertHandler` | Alert-handler service | 93 | 211 |
-| `services.opencost` | Opencost service | 96 | 211 |
-| `services.anomalyExporter` | Anomaly-exporter service | 86 | 201 |
-| `services.argocd` | Argo CD service | 101 | 219 |
+| `services.alloy` | Alloy service | 89 | 267 |
+| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 89 | 267 |
+| `services.grafana` | Grafana service | 123 | 297 |
+| `services.grafanaTest` | Grafana (test) service | 123 | 297 |
+| `services.mimir` | Mimir service | 85 | 263 |
+| `services.loki` | Loki service | 85 | 263 |
+| `services.tempo` | Tempo service | 88 | 266 |
+| `services.pyroscope` | Pyroscope service | 87 | 265 |
+| `services.redisTest` | Redis (test) service | 85 | 263 |
+| `services.demoGoDev` | Demo Go (dev) service | 90 | 267 |
+| `services.demoGoProd` | Demo Go (prod) service | 90 | 267 |
+| `services.demoGoWorkshop` | Demo Go (workshop) service | 90 | 267 |
+| `services.demoPythonDev` | Demo Python (dev) service | 85 | 263 |
+| `services.demoPythonProd` | Demo Python (prod) service | 85 | 263 |
+| `services.demoPythonWorkshop` | Demo Python (workshop) service | 85 | 263 |
+| `services.sreBack` | SRE sample: back (JVM) service | 87 | 265 |
+| `services.sreFront` | SRE sample: front (JVM) service | 87 | 265 |
+| `services.sreReader` | SRE sample: reader (JVM) service | 87 | 265 |
+| `services.backstage` | Backstage service (Postgres) | 85 | 263 |
+| `services.alertmanager` | Alertmanager service | 113 | 292 |
+| `services.alertHandler` | Alert-handler service | 97 | 276 |
+| `services.opencost` | Opencost service | 100 | 276 |
+| `services.anomalyExporter` | Anomaly-exporter service | 90 | 266 |
+| `services.argocd` | Argo CD service | 105 | 284 |
 
 ## Cross-cutting
 

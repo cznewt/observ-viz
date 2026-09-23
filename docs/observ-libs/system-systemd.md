@@ -1,6 +1,6 @@
 # systemd units  (`g.libs.system.systemd`)
 
-Dashboard uid `observ-viz-systemd` · 9 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-systemd` · 13 signals · 3 alerts · 2 recording rules.
 
 ## Signals
 
@@ -16,13 +16,18 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~".*", cluster=~"$cluster", instance=~"$instance"}[$__rate_interval]))` | — |
 | `running` | short | `node_systemd_system_running{cluster=~"$cluster", instance=~"$instance"}` | — |
 | `state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~".*", state="active", cluster=~"$cluster", instance=~"$instance"} == 1) * 1 or (node_systemd_unit_state{name=~".*", state=~"activating\|deactivating", cluster=~"$cluster", instance=~"$instance"} == 1) * 2 or (node_systemd_unit_state{name=~".*", state="inactive", cluster=~"$cluster", instance=~"$instance"} == 1) * 3 or (node_systemd_unit_state{name=~".*", state="failed", cluster=~"$cluster", instance=~"$instance"} == 1) * 4)` | — |
+| `tasks` | short | `node_systemd_unit_tasks_current{name=~".*", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `tasksMax` | short | `node_systemd_unit_tasks_max{name=~".*", cluster=~"$cluster", instance=~"$instance"}` | — |
+| `tasksUtil` | percent | `100 * node_systemd_unit_tasks_current{name=~".*", cluster=~"$cluster", instance=~"$instance"} / clamp_min(node_systemd_unit_tasks_max{name=~".*", cluster=~"$cluster", instance=~"$instance"}, 1)` | — |
 | `unitsByState` | short | `sum by (state) (node_systemd_units{cluster=~"$cluster", instance=~"$instance"})` | — |
+| `uptime` | s | `time() - node_systemd_unit_start_time_seconds{name=~".*", cluster=~"$cluster", instance=~"$instance"}` | — |
 
 ## Dashboard
 
 - **Overview** — `s01_active`, `s02_failed`, `s03_inactive`, `s04_hosts`, `s05_system`
 - **Units** — `s11_state`
 - **Detail** — `s21_restarts`, `s22_failedTable`, `s23_byState`
+- **Resources** — `s31_tasks`, `s32_tasksUtil`, `s33_uptime`, `s34_restarts`
 
 ## Alerts
 

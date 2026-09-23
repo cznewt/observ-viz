@@ -29,6 +29,11 @@ local unitSignals(datasource, selector, unit) = {
   hosts: sig('Hosts', 'count(count by (instance) (node_systemd_unit_state{' + u + '%(queriesSelector)s}))', 'short', 'hosts', desc='Hosts that have a matching unit at all.'),
   failedTable: sig('Failed units', 'node_systemd_unit_state{' + u + 'state="failed", %(queriesSelector)s} == 1', 'short', '{{instance}} {{name}}', desc='Units currently failed, by host.'),
   restarts: sig('Unit restarts', 'sum by (instance, name) (increase(node_systemd_service_restart_total{' + u + '%(queriesSelector)s}[$__rate_interval]))', 'short', '{{instance}} {{name}}', desc='Service restarts (needs the collector restart metrics: --collector.systemd.enable-restarts-metrics).'),
+  // resource use per unit, from the collector's task metrics
+  tasks: sig('Tasks', 'node_systemd_unit_tasks_current{' + u + '%(queriesSelector)s}', 'short', '{{instance}} {{name}}', desc='Tasks (threads and processes) the unit runs. Needs --collector.systemd.enable-task-metrics.'),
+  tasksMax: sig('Task limit', 'node_systemd_unit_tasks_max{' + u + '%(queriesSelector)s}', 'short', '{{instance}} {{name}} limit', desc='TasksMax for the unit. Hitting it blocks the unit from forking.'),
+  tasksUtil: sig('Task usage', '100 * node_systemd_unit_tasks_current{' + u + '%(queriesSelector)s} / clamp_min(node_systemd_unit_tasks_max{' + u + '%(queriesSelector)s}, 1)', 'percent', '{{instance}} {{name}}', desc='Tasks against the unit limit.'),
+  uptime: sig('Uptime', 'time() - node_systemd_unit_start_time_seconds{' + u + '%(queriesSelector)s}', 's', '{{instance}} {{name}}', desc='Time since the unit last started. A drop marks a restart.'),
 };
 
 local unitElements(signals, prefix='') = {
@@ -97,6 +102,14 @@ local unitElements(signals, prefix='') = {
       { title: 'Units', width: 24, height: 8, elements: els.wide },
       { title: 'Detail', width: 12, height: 7, elements: els.charts {
         s23_byState: sys.unitsByState.asTimeSeries('Units by state'),
+      } },
+      // what the units use, next to what they are doing
+      { title: 'Resources', width: 12, height: 7, elements: {
+        s31_tasks: u.tasks.asTimeSeries('Tasks')
+                   + panel.withTargetsMixin([u.tasksMax.asTarget()]),
+        s32_tasksUtil: u.tasksUtil.asTimeSeries('Task usage'),
+        s33_uptime: u.uptime.asTimeSeries('Uptime'),
+        s34_restarts: u.restarts.asTimeSeries('Unit restarts'),
       } },
     ], [
       alert.rule.group('systemd', [

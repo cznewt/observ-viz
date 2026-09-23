@@ -1,6 +1,6 @@
 # Demo Python (prod) service  (`g.libs.services.demoPythonProd`)
 
-Dashboard uid `observ-viz-svc-demo-python-prod` · 81 signals · 27 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-demo-python-prod` · 85 signals · 27 alerts · 15 recording rules.
 
 ## Signals
 
@@ -82,6 +82,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `systemd_inactive` | short | `count(node_systemd_unit_state{name=~"demo-python-prod.service", state="inactive", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_restarts` | short | `sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"demo-python-prod.service", instance=~"$host"}[$__rate_interval]))` | — |
 | `systemd_state` | short | `max by (instance, name) ((node_systemd_unit_state{name=~"demo-python-prod.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"demo-python-prod.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"demo-python-prod.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"demo-python-prod.service", state="failed", instance=~"$host"} == 1) * 4)` | — |
+| `systemd_tasks` | short | `node_systemd_unit_tasks_current{name=~"demo-python-prod.service", instance=~"$host"}` | — |
+| `systemd_tasksMax` | short | `node_systemd_unit_tasks_max{name=~"demo-python-prod.service", instance=~"$host"}` | — |
+| `systemd_tasksUtil` | percent | `100 * node_systemd_unit_tasks_current{name=~"demo-python-prod.service", instance=~"$host"} / clamp_min(node_systemd_unit_tasks_max{name=~"demo-python-prod.service", instance=~"$host"}, 1)` | — |
+| `systemd_uptime` | s | `time() - node_systemd_unit_start_time_seconds{name=~"demo-python-prod.service", instance=~"$host"}` | — |
 | `win_cpu` | short | `sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)demo-python-prod", instance=~"$host"}[$__rate_interval]))` | — |
 | `win_handles` | short | `sum by (instance) (windows_process_handles{process=~"(?i)demo-python-prod", instance=~"$host"})` | — |
 | `win_io` | Bps | `sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)demo-python-prod", instance=~"$host"}[$__rate_interval]))` | — |

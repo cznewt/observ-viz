@@ -53,6 +53,11 @@ local variable =
 local cadvisorLib = import 'libs/cadvisor-observ-lib/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local beamLib = import 'libs/beam-observ-lib/main.libsonnet';
+local httpClientLib = import 'libs/http-client-observ-lib/main.libsonnet';
+local httpServerLib = import 'libs/http-server-observ-lib/main.libsonnet';
+local messagingLib = import 'libs/messaging-observ-lib/main.libsonnet';
+local otelSdkLib = import 'libs/otel-sdk-observ-lib/main.libsonnet';
+local rpcLib = import 'libs/rpc-observ-lib/main.libsonnet';
 local golangLib = import 'libs/golang-observ-lib/main.libsonnet';
 local jvmLib = import 'libs/jvm-observ-lib/main.libsonnet';
 local nodejsLib = import 'libs/nodejs-observ-lib/main.libsonnet';
@@ -107,6 +112,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // runtime tabs, each shown only where its own metrics exist. 'go' stays
       // on by default for compatibility with the golang flag.
       runtimes: ['go', 'python', 'jvm', 'dotnet', 'nodejs', 'rust', 'php', 'ruby', 'beam'],
+      // what the application reports about its own work, each shown only
+      // where those metrics exist
+      instrumentation: ['httpServer', 'httpClient', 'rpc', 'messaging', 'otelSdk'],
       // merge the embedded platform packs' alert/recording rules, scoped per
       // platform (kubernetes.ruleSelector, docker.ruleSelector, ...; defaults
       // derive from the identity fields). Whitebox + Go rules use ruleSelector.
@@ -287,6 +295,8 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // restarts: the process start time moving, and a container restarting
       annotations.restart.new('Restarts', annotations.restart.process(cfg.datasource, cfg.selector), ['instance', 'pod']),
       annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, cfg.kubeSelector), ['pod', 'container']),
+      // rollouts: the controller observed a new spec for this workload
+      annotations.deploy.new('Deploys', annotations.deploy.kubeDeployment(cfg.datasource, cfg.workloadSelector + ', deployment=~"' + cfg.kubernetes.workload + '"'), ['deployment']),
     ] + (if cfg.logs then [
            annotations.warning.new('Kube events (warning)', annotations.base.target('${loki_datasource}', kubeEvents(', level="Warning"'), 'loki')),
            annotations.info.new('Kube events (all)', annotations.base.target('${loki_datasource}', kubeEvents(''), 'loki')) + { spec+: { enable: false } },
@@ -404,6 +414,25 @@ local stateMappings(m) = [{ type: 'value', options: m }];
           } } + charts,
         ],
       }]
+      // what the service reports about its own work: requests it serves, calls
+      // it makes, queues it works off, and its telemetry pipeline
+      + local instrumentationTabs = {
+        httpServer: { title: 'HTTP server', marker: '(http_server_request_duration_seconds_count or http_requests_total)', prefix: 'hs_', lib: httpServerLib },
+        httpClient: { title: 'HTTP client', marker: 'http_client_request_duration_seconds_count', prefix: 'hc_', lib: httpClientLib },
+        rpc: { title: 'gRPC', marker: 'grpc_server_started_total', prefix: 'rpc_', lib: rpcLib },
+        messaging: { title: 'Queues', marker: '(celery_worker_up or kafka_consumergroup_lag)', prefix: 'msg_', lib: messagingLib },
+        otelSdk: { title: 'OpenTelemetry SDK', marker: 'otel_sdk_span_live', prefix: 'otel_', lib: otelSdkLib },
+      };
+      [
+        {
+          title: instrumentationTabs[i].title,
+          presence: { query: instrumentationTabs[i].marker + '{' + cfg.selector + '}', label: 'instance' },
+          groups: embedGroups(instrumentationTabs[i].prefix, instrumentationTabs[i].lib.new({ datasource: cfg.datasource, selector: cfg.selector, docTabs: false })),
+        }
+        for i in cfg.instrumentation
+        if std.objectHas(instrumentationTabs, i)
+      ]
+
       // one tab per runtime, each gated on that runtime's own marker metric, so
       // a service written in any of them lights up the right tab and no other.
       + local runtimeTabs = {
