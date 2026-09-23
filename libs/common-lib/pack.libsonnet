@@ -29,6 +29,8 @@ local variable =
     grafana: {
       // the raw group structure (so consumers can re-lay-out, e.g. as tabs).
       groups: groups,
+      // the optional tabs too, so a composer can fold them in as extra rows.
+      optionalTabs: optionalTabs,
       // flatten every group's (and optional/doc tab's) elements into one elements map.
       // a tab either holds one grid (`elements`) or rows of grids (`groups`).
       local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,

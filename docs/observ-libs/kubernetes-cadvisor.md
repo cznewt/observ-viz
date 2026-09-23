@@ -1,6 +1,6 @@
 # Container resources  (`g.libs.kubernetes.cadvisor`)
 
-Dashboard uid `observ-viz-cadvisor` · 16 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-cadvisor` · 24 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -22,6 +22,14 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `memSwap` | bytes | `sum by (pod,container)(container_memory_swap{namespace=~"$namespace",container!=""})` | — |
 | `memUsage` | bytes | `sum by (pod,container)(container_memory_usage_bytes{namespace=~"$namespace",container!=""})` | — |
 | `memWorkingSet` | bytes | `sum by (pod,container)(container_memory_working_set_bytes{namespace=~"$namespace",container!=""})` | — |
+| `netRx` | Bps | `sum by (pod)(rate(container_network_receive_bytes_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netRxDropped` | pps | `sum by (pod)(rate(container_network_receive_packets_dropped_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netRxErrors` | pps | `sum by (pod)(rate(container_network_receive_errors_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netRxPackets` | pps | `sum by (pod)(rate(container_network_receive_packets_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netTx` | Bps | `sum by (pod)(rate(container_network_transmit_bytes_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netTxDropped` | pps | `sum by (pod)(rate(container_network_transmit_packets_dropped_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netTxErrors` | pps | `sum by (pod)(rate(container_network_transmit_errors_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `netTxPackets` | pps | `sum by (pod)(rate(container_network_transmit_packets_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
 | `oomEvents` | short | `sum by (pod)(rate(container_oom_events_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
 | `specMemLimit` | bytes | `sum by (pod,container)(container_spec_memory_limit_bytes{namespace=~"$namespace",container!=""})` | — |
 
@@ -30,6 +38,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 - **CPU** — `cpuSystem`, `cpuThrottleRatio`, `cpuThrottling`, `cpuUsage`, `cpuUser`
 - **Memory** — `memCache`, `memRss`, `memSwap`, `memUsage`, `memWorkingSet`, `oomEvents`, `specMemLimit`
 - **Disk** — `diskReadIops`, `diskReads`, `diskWriteIops`, `diskWrites`
+- **Network** — `netDropped`, `netErrors`, `netPackets`, `netThroughput`
 
 ## Alerts
 

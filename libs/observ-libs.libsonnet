@@ -4,11 +4,17 @@
   // base/cluster fleet overview boards (ported from the base-mixin into common-lib)
   base: import 'libs/common-lib/base.libsonnet',
   runtimes: {
+    // the base every client library exposes; the language packs embed it
+    process: import 'libs/process-observ-lib/main.libsonnet',
     golang: import 'libs/golang-observ-lib/main.libsonnet',
     jvm: import 'libs/jvm-observ-lib/main.libsonnet',
     python: import 'libs/python-observ-lib/main.libsonnet',
     dotnet: import 'libs/dotnet-observ-lib/main.libsonnet',
     nodejs: import 'libs/nodejs-observ-lib/main.libsonnet',
+    rust: import 'libs/rust-observ-lib/main.libsonnet',
+    php: import 'libs/php-observ-lib/main.libsonnet',
+    ruby: import 'libs/ruby-observ-lib/main.libsonnet',
+    beam: import 'libs/beam-observ-lib/main.libsonnet',
   },
   system: {
     linux: import 'libs/linux-observ-lib/main.libsonnet',

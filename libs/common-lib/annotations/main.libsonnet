@@ -9,5 +9,6 @@
   info: import 'libs/common-lib/annotations/info.libsonnet',
   fatal: import 'libs/common-lib/annotations/fatal.libsonnet',
   reboot: import 'libs/common-lib/annotations/reboot.libsonnet',
+  restart: import 'libs/common-lib/annotations/restart.libsonnet',
   serviceFailed: import 'libs/common-lib/annotations/service_failed.libsonnet',
 }

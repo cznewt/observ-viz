@@ -10,7 +10,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "docs", "libs.md")
 
 GROUPS = {
-    "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs"],
+    "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.process", "runtimes.nodejs", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam"],
     "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter"],
     "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor"],
     "Databases": [

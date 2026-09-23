@@ -3,6 +3,7 @@
 // emitted as native v2 elements. Usage:
 //   g.libs.kubernetes.cadvisor.new({ selector: 'namespace="default"' }).grafana.dashboard
 //   g.libs.kubernetes.cadvisor.new({...}).grafana.elements   // reuse in a board
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
@@ -51,6 +52,15 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       cpuSystem: sig('CPU system', 'sum by (pod,container)(rate(container_cpu_system_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short', desc='CPU time spent in kernel mode per container.'),
       specMemLimit: sig('Memory limit (spec)', 'sum by (pod,container)(container_spec_memory_limit_bytes{%(queriesSelector)s,container!=""})', 'bytes', desc='Memory limit configured on the container.'),
       oomEvents: sig('OOM kills', 'sum by (pod)(rate(container_oom_events_total{%(queriesSelector)s}[$__rate_interval]))', 'short', desc='Out-of-memory kills per pod per second.'),
+      // --- Network (pod level: cAdvisor reports it on the pause container) ---
+      netRx: sig('Network received', 'sum by (pod)(rate(container_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', desc='Traffic the pod received per second.'),
+      netTx: sig('Network transmitted', 'sum by (pod)(rate(container_network_transmit_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', desc='Traffic the pod sent per second.'),
+      netRxPackets: sig('Packets received', 'sum by (pod)(rate(container_network_receive_packets_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Packets the pod received per second.'),
+      netTxPackets: sig('Packets transmitted', 'sum by (pod)(rate(container_network_transmit_packets_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Packets the pod sent per second.'),
+      netRxDropped: sig('Received packets dropped', 'sum by (pod)(rate(container_network_receive_packets_dropped_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Inbound packets dropped, often a full socket buffer or a saturated interface.'),
+      netTxDropped: sig('Transmitted packets dropped', 'sum by (pod)(rate(container_network_transmit_packets_dropped_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Outbound packets dropped.'),
+      netRxErrors: sig('Receive errors', 'sum by (pod)(rate(container_network_receive_errors_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Inbound packet errors.'),
+      netTxErrors: sig('Transmit errors', 'sum by (pod)(rate(container_network_transmit_errors_total{%(queriesSelector)s}[$__rate_interval]))', 'pps', desc='Outbound packet errors.'),
       // --- Disk detail ---
       diskReadIops: sig('Disk read IOPS', 'sum by (pod)(rate(container_fs_reads_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', desc='Read operations per pod per second.'),
       diskWriteIops: sig('Disk write IOPS', 'sum by (pod)(rate(container_fs_writes_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', desc='Write operations per pod per second.'),
@@ -92,6 +102,21 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           diskWrites: signals.diskWrites.asTimeSeries('Disk write'),
           diskReadIops: signals.diskReadIops.asTimeSeries('Disk read IOPS'),
           diskWriteIops: signals.diskWriteIops.asTimeSeries('Disk write IOPS'),
+        },
+      },
+      {
+        title: 'Network',
+        width: 12,
+        height: 7,
+        elements: {
+          netThroughput: signals.netRx.asTimeSeries('Network throughput')
+                         + panel.withTargetsMixin([signals.netTx.asTarget()]),
+          netPackets: signals.netRxPackets.asTimeSeries('Packets/s')
+                      + panel.withTargetsMixin([signals.netTxPackets.asTarget()]),
+          netDropped: signals.netRxDropped.asTimeSeries('Dropped packets/s')
+                      + panel.withTargetsMixin([signals.netTxDropped.asTarget()]),
+          netErrors: signals.netRxErrors.asTimeSeries('Packet errors/s')
+                     + panel.withTargetsMixin([signals.netTxErrors.asTarget()]),
         },
       },
     ], [

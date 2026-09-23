@@ -52,7 +52,15 @@ local variable =
   { query: gv.query + cv.query, datasource: gv.datasource + cv.datasource };
 local cadvisorLib = import 'libs/cadvisor-observ-lib/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
+local beamLib = import 'libs/beam-observ-lib/main.libsonnet';
 local golangLib = import 'libs/golang-observ-lib/main.libsonnet';
+local jvmLib = import 'libs/jvm-observ-lib/main.libsonnet';
+local nodejsLib = import 'libs/nodejs-observ-lib/main.libsonnet';
+local phpLib = import 'libs/php-observ-lib/main.libsonnet';
+local pythonLib = import 'libs/python-observ-lib/main.libsonnet';
+local rubyLib = import 'libs/ruby-observ-lib/main.libsonnet';
+local rustLib = import 'libs/rust-observ-lib/main.libsonnet';
+local dotnetLib = import 'libs/dotnet-observ-lib/main.libsonnet';
 local podLib = import 'libs/kubernetes-observ-lib/main.libsonnet';
 local ingressLib = import 'libs/ingress-nginx-observ-lib/main.libsonnet';
 local systemdLib = import 'libs/systemd-observ-lib/main.libsonnet';
@@ -66,6 +74,15 @@ local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length
 // keys sort alphabetically inside a tab grid, so the prefix also orders them.
 local embed(prefix, elements) =
   { [prefix + k]: elements[k] for k in std.objectFields(elements) if std.substr(k, 0, 4) != 'doc_' };
+// a pack's own groups (rows), prefixed: keeps 'telemetry first, resources
+// after' instead of flattening a pack into one wall of panels. Only the main
+// groups, so a pack's optional tabs (its embedded process rows) stay out.
+local embedGroups(prefix, pack, skip=['Process']) =
+  local rows(t) = if std.objectHas(t, 'groups') then t.groups else [t];
+  [
+    g { elements: embed(prefix, g.elements) }
+    for g in pack.grafana.groups + std.flattenArrays([rows(t) for t in pack.grafana.optionalTabs if !std.member(skip, t.title)])
+  ];
 local stateMappings(m) = [{ type: 'value', options: m }];
 
 {
@@ -87,6 +104,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       docTabs: true,
       logs: true,
       golang: true,
+      // runtime tabs, each shown only where its own metrics exist. 'go' stays
+      // on by default for compatibility with the golang flag.
+      runtimes: ['go', 'python', 'jvm', 'dotnet', 'nodejs', 'rust', 'php', 'ruby', 'beam'],
       // merge the embedded platform packs' alert/recording rules, scoped per
       // platform (kubernetes.ruleSelector, docker.ruleSelector, ...; defaults
       // derive from the identity fields). Whitebox + Go rules use ruleSelector.
@@ -264,6 +284,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       annotations.critical.new('Critical alerts', alertAnn('critical')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
       annotations.warning.new('Warning alerts', alertAnn('warning')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
       annotations.info.new('Info alerts', alertAnn('info')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']) + { spec+: { enable: false } },
+      // restarts: the process start time moving, and a container restarting
+      annotations.restart.new('Restarts', annotations.restart.process(cfg.datasource, cfg.selector), ['instance', 'pod']),
+      annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, cfg.kubeSelector), ['pod', 'container']),
     ] + (if cfg.logs then [
            annotations.warning.new('Kube events (warning)', annotations.base.target('${loki_datasource}', kubeEvents(', level="Warning"'), 'loki')),
            annotations.info.new('Kube events (all)', annotations.base.target('${loki_datasource}', kubeEvents(''), 'loki')) + { spec+: { enable: false } },
@@ -300,19 +323,13 @@ local stateMappings(m) = [{ type: 'value', options: m }];
                k06_age: signals.kube_youngest.asStat('Youngest pod'),
              },
            } + stats,
+           // pod telemetry first: what the pods are doing, then what they use
            {
-             title: 'Resources',
+             title: 'Pods',
              elements: {
-               k11_cpu: signals.kube_cpu.asTimeSeries('CPU: usage vs requests / limits')
-                        + panel.withTargetsMixin([signals.kube_cpuRequests.asTarget(), signals.kube_cpuLimits.asTarget()])
-                        + dashed('/ (requests|limits)$/'),
-               k12_mem: signals.kube_mem.asTimeSeries('Memory: working set vs requests / limits')
-                        + panel.withTargetsMixin([signals.kube_memRequests.asTarget(), signals.kube_memLimits.asTarget()])
-                        + dashed('/ (requests|limits)$/'),
-               k13_restarts: signals.kube_restarts.asTimeSeries('Container restarts (total)'),
-               k14_phase: signals.kube_phase.asTimeSeries('Pods by phase'),
-               k15_waiting: signals.kube_waiting.asTimeSeries('Containers waiting by reason'),
-               k16_pvc: signals.kube_pvcUsage.asTimeSeries('PVC usage (namespace)'),
+               k11_phase: signals.kube_phase.asTimeSeries('Pods by phase'),
+               k12_restarts: signals.kube_restarts.asTimeSeries('Container restarts (total)'),
+               k13_waiting: signals.kube_waiting.asTimeSeries('Containers waiting by reason'),
              },
            } + charts,
            {
@@ -329,18 +346,30 @@ local stateMappings(m) = [{ type: 'value', options: m }];
                        + dashed('/ desired$/'),
              },
            } + charts,
+           {
+             title: 'Resources',
+             elements: {
+               k31_cpu: signals.kube_cpu.asTimeSeries('CPU: usage vs requests / limits')
+                        + panel.withTargetsMixin([signals.kube_cpuRequests.asTarget(), signals.kube_cpuLimits.asTarget()])
+                        + dashed('/ (requests|limits)$/'),
+               k32_mem: signals.kube_mem.asTimeSeries('Memory: working set vs requests / limits')
+                        + panel.withTargetsMixin([signals.kube_memRequests.asTarget(), signals.kube_memLimits.asTarget()])
+                        + dashed('/ (requests|limits)$/'),
+               k33_pvc: signals.kube_pvcUsage.asTimeSeries('PVC usage (namespace)'),
+             },
+           } + charts,
          ],
        }, {
          title: 'Containers',
          presence: { query: 'container_cpu_usage_seconds_total{' + cfg.kubeSelector + ', container!=""}', label: 'pod' },
-         // the cadvisor observ-lib's full element set, scoped to these pods.
-         elements: embed('cadvisor_', cadvisorLib.new({ datasource: cfg.datasource, selector: cfg.kubeSelector, docTabs: false }).grafana.elements),
-       } + charts] else [])
+         // the cadvisor observ-lib, scoped to these pods, keeping its rows
+         groups: embedGroups('cadvisor_', cadvisorLib.new({ datasource: cfg.datasource, selector: cfg.kubeSelector, docTabs: false })),
+       }] else [])
       + (if cfg.docker.enabled then [{
            title: 'Docker',
            presence: { query: 'container_last_seen{' + cfg.hostSelector + ', name=~"' + cfg.docker.container + '"}', label: 'instance' },
-           elements: embed('docker_', dockerLib.new({ datasource: cfg.datasource, selector: cfg.hostSelector + ', name=~"' + cfg.docker.container + '"', docTabs: false }).grafana.elements),
-         } + charts] else [])
+           groups: embedGroups('docker_', dockerLib.new({ datasource: cfg.datasource, selector: cfg.hostSelector + ', name=~"' + cfg.docker.container + '"', docTabs: false })),
+         }] else [])
       + (if cfg.systemd.enabled then [{
            title: 'systemd',
            presence: { query: 'node_systemd_unit_state{' + cfg.hostSelector + ', name=~"' + unit + '"}', label: 'instance' },
@@ -375,11 +404,29 @@ local stateMappings(m) = [{ type: 'value', options: m }];
           } } + charts,
         ],
       }]
-      + (if cfg.golang then [{
-           title: 'Go runtime',
-           presence: { query: 'go_goroutines{' + cfg.selector + '}', label: 'instance' },
-           elements: embed('go_', golangLib.new({ datasource: cfg.datasource, selector: cfg.selector }).grafana.elements),
-         } + charts] else [])
+      // one tab per runtime, each gated on that runtime's own marker metric, so
+      // a service written in any of them lights up the right tab and no other.
+      + local runtimeTabs = {
+        go: { title: 'Go runtime', marker: 'go_goroutines', prefix: 'go_', lib: golangLib },
+        python: { title: 'Python runtime', marker: 'python_info', prefix: 'py_', lib: pythonLib },
+        jvm: { title: 'JVM runtime', marker: 'jvm_info', prefix: 'jvm_', lib: jvmLib },
+        dotnet: { title: '.NET runtime', marker: 'dotnet_build_info', prefix: 'net_', lib: dotnetLib },
+        nodejs: { title: 'Node.js runtime', marker: 'nodejs_version_info', prefix: 'node_', lib: nodejsLib },
+        rust: { title: 'Rust runtime', marker: 'tokio_workers_count', prefix: 'rs_', lib: rustLib },
+        php: { title: 'PHP runtime', marker: 'phpfpm_up', prefix: 'php_', lib: phpLib },
+        ruby: { title: 'Ruby runtime', marker: 'puma_workers', prefix: 'rb_', lib: rubyLib },
+        beam: { title: 'BEAM runtime', marker: 'erlang_vm_processes', prefix: 'beam_', lib: beamLib },
+      };
+      local wanted = if cfg.golang then cfg.runtimes else [r for r in cfg.runtimes if r != 'go'];
+      [
+        {
+          title: runtimeTabs[r].title,
+          presence: { query: runtimeTabs[r].marker + '{' + cfg.selector + '}', label: 'instance' },
+          groups: embedGroups(runtimeTabs[r].prefix, runtimeTabs[r].lib.new({ datasource: cfg.datasource, selector: cfg.selector, docTabs: false })),
+        }
+        for r in wanted
+        if std.objectHas(runtimeTabs, r)
+      ]
       + (if cfg.windows.enabled then [{
            title: 'Windows',
            presence: { query: 'windows_service_state{' + cfg.hostSelector + ', name=~"' + wsvc + '"}', label: 'instance' },

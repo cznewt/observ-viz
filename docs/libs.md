@@ -14,7 +14,12 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `runtimes.jvm` | JVM runtime | 8 | 8 |
 | `runtimes.python` | Python runtime | 6 | 6 |
 | `runtimes.dotnet` | .NET runtime | 8 | 8 |
+| `runtimes.process` | Process (base instrumentation) | 14 | 17 |
 | `runtimes.nodejs` | Node.js runtime | 8 | 8 |
+| `runtimes.rust` | Rust runtime | 11 | 26 |
+| `runtimes.php` | PHP runtime | 13 | 29 |
+| `runtimes.ruby` | Ruby runtime | 18 | 27 |
+| `runtimes.beam` | BEAM runtime | 24 | 36 |
 
 ## System
 
@@ -31,7 +36,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `kubernetes.pod` | Kubernetes pod | 29 | 31 |
-| `kubernetes.cadvisor` | Container resources | 16 | 18 |
+| `kubernetes.cadvisor` | Container resources | 24 | 22 |
 
 ## Databases
 
@@ -81,30 +86,30 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 85 | 118 |
-| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 85 | 118 |
-| `services.grafana` | Grafana service | 119 | 148 |
-| `services.grafanaTest` | Grafana (test) service | 119 | 148 |
-| `services.mimir` | Mimir service | 81 | 114 |
-| `services.loki` | Loki service | 81 | 114 |
-| `services.tempo` | Tempo service | 84 | 117 |
-| `services.pyroscope` | Pyroscope service | 83 | 116 |
-| `services.redisTest` | Redis (test) service | 81 | 114 |
-| `services.demoGoDev` | Demo Go (dev) service | 86 | 118 |
-| `services.demoGoProd` | Demo Go (prod) service | 86 | 118 |
-| `services.demoGoWorkshop` | Demo Go (workshop) service | 86 | 118 |
-| `services.demoPythonDev` | Demo Python (dev) service | 81 | 114 |
-| `services.demoPythonProd` | Demo Python (prod) service | 81 | 114 |
-| `services.demoPythonWorkshop` | Demo Python (workshop) service | 81 | 114 |
-| `services.sreBack` | SRE sample: back (JVM) service | 83 | 116 |
-| `services.sreFront` | SRE sample: front (JVM) service | 83 | 116 |
-| `services.sreReader` | SRE sample: reader (JVM) service | 83 | 116 |
-| `services.backstage` | Backstage service (Postgres) | 81 | 114 |
-| `services.alertmanager` | Alertmanager service | 109 | 143 |
-| `services.alertHandler` | Alert-handler service | 93 | 127 |
-| `services.opencost` | Opencost service | 96 | 127 |
-| `services.anomalyExporter` | Anomaly-exporter service | 86 | 117 |
-| `services.argocd` | Argo CD service | 101 | 135 |
+| `services.alloy` | Alloy service | 85 | 202 |
+| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 85 | 202 |
+| `services.grafana` | Grafana service | 119 | 232 |
+| `services.grafanaTest` | Grafana (test) service | 119 | 232 |
+| `services.mimir` | Mimir service | 81 | 198 |
+| `services.loki` | Loki service | 81 | 198 |
+| `services.tempo` | Tempo service | 84 | 201 |
+| `services.pyroscope` | Pyroscope service | 83 | 200 |
+| `services.redisTest` | Redis (test) service | 81 | 198 |
+| `services.demoGoDev` | Demo Go (dev) service | 86 | 202 |
+| `services.demoGoProd` | Demo Go (prod) service | 86 | 202 |
+| `services.demoGoWorkshop` | Demo Go (workshop) service | 86 | 202 |
+| `services.demoPythonDev` | Demo Python (dev) service | 81 | 198 |
+| `services.demoPythonProd` | Demo Python (prod) service | 81 | 198 |
+| `services.demoPythonWorkshop` | Demo Python (workshop) service | 81 | 198 |
+| `services.sreBack` | SRE sample: back (JVM) service | 83 | 200 |
+| `services.sreFront` | SRE sample: front (JVM) service | 83 | 200 |
+| `services.sreReader` | SRE sample: reader (JVM) service | 83 | 200 |
+| `services.backstage` | Backstage service (Postgres) | 81 | 198 |
+| `services.alertmanager` | Alertmanager service | 109 | 227 |
+| `services.alertHandler` | Alert-handler service | 93 | 211 |
+| `services.opencost` | Opencost service | 96 | 211 |
+| `services.anomalyExporter` | Anomaly-exporter service | 86 | 201 |
+| `services.argocd` | Argo CD service | 101 | 219 |
 
 ## Cross-cutting
 

@@ -17,7 +17,7 @@ PACKS = [
     "system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter",
     "networking.ingressNginx",
     "kubernetes.pod", "kubernetes.cadvisor",
-    "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
+    "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs", "runtimes.process", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam",
     "services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd",
     "alerts",
     "backstage", "cicd.argocd", "cicd.backstage",
