@@ -23,6 +23,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // columns of the Overview tab's instances table
+      overviewSignals: ['alertsActive', 'notifications', 'notificationsFailed', 'silencesActive', 'rss'],
       folderUid: 'components-monitoring',
       folderTitle: 'Monitoring',
       folderParentUid: 'components',

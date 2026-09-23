@@ -80,6 +80,8 @@ local unitElements(signals, prefix='') = {
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // columns of the Overview tab's instances table
+      overviewSignals: ['running', 'failed', 'restarts', 'tasksUtil', 'uptime'],
       folderUid: 'components-system',
       folderTitle: 'System',
       folderParentUid: 'components',

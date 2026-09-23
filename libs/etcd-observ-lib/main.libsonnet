@@ -22,6 +22,8 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // deploy target: Components / Database (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // columns of the Overview tab's instances table
+      overviewSignals: ['dbSize', 'hasLeader', 'leaderChanges', 'proposalsFailed', 'walFsyncP99'],
       folderPath: [
         { uid: 'components', title: 'Components' },
         { uid: 'components-database', title: 'Database' },

@@ -72,9 +72,17 @@ local panel = import 'custom/panel.libsonnet';
       if std.length(r) > 0 then r else [instanceLabel];
     local rowField = '__row__';
     local rowTitle = std.join(' / ', [cap(l) for l in rowLabels]);
+    // columns: config.overviewSignals, else the first signal group's signals -
+    // a pack's first group is its summary, which beats four signals picked
+    // alphabetically out of the whole set.
     local cols =
       local wanted = std.filter(function(k) std.objectHas(signals, k), opt('overviewSignals', []));
-      if std.length(wanted) > 0 then wanted else std.objectFields(signals)[0:4];
+      local firstGroup =
+        if std.length(groups) > 0
+        then std.filter(function(k) std.objectHas(signals, k), std.objectFields(groups[0].elements))
+        else [];
+      local fallback = if std.length(firstGroup) > 0 then firstGroup else std.objectFields(signals);
+      if std.length(wanted) > 0 then wanted else fallback[0:5];
     local nCols = std.length(cols);
     local valueName(i) = 'Value #' + std.char(std.codepoint('A') + i);
     // label_join(<query>, "__row__", "/", "namespace", "pod")

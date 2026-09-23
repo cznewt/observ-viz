@@ -22,6 +22,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // deploy target: Components / Monitoring (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // columns of the Overview tab's instances table
+      overviewSignals: ['lines', 'bytes', 'streams', 'requestP99', 'heap'],
       folderUid: 'components-monitoring',
       folderTitle: 'Monitoring',
       folderParentUid: 'components',
