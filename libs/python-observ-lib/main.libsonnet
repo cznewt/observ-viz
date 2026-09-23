@@ -30,12 +30,12 @@ local pack = import 'libs/common-lib/pack.libsonnet';
     local sig = filters.sig(cfg);
 
     local signals = {
-      gcCollections: sig('GC collections', 'sum without(generation)(rate(python_gc_collections_total{%(queriesSelector)s}[$__rate_interval]))', 'ops'),
-      gcObjects: sig('GC objects collected', 'rate(python_gc_objects_collected_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
-      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
-      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short'),
-      maxFds: sig('Max FDs', 'process_max_fds{%(queriesSelector)s}', 'short'),
+      gcCollections: sig('GC collections', 'sum without(generation)(rate(python_gc_collections_total{%(queriesSelector)s}[$__rate_interval]))', 'ops', 'Generational collections per second.'),
+      gcObjects: sig('GC objects collected', 'rate(python_gc_objects_collected_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Objects the collector frees per second.'),
+      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Process CPU cores used.'),
+      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
+      openFds: sig('Open FDs', 'process_open_fds{%(queriesSelector)s}', 'short', 'Open file descriptors.'),
+      maxFds: sig('Max FDs', 'process_max_fds{%(queriesSelector)s}', 'short', 'File-descriptor limit for the process.'),
     };
 
     pack.build(cfg, signals, [

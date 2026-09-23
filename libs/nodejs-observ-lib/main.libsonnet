@@ -30,14 +30,14 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
     local sig = filters.sig(cfg);
 
     local signals = {
-      eventloopLag: sig('Event loop lag', 'nodejs_eventloop_lag_seconds{%(queriesSelector)s}', 's'),
-      eventloopLagP99: sig('Event loop lag p99', 'nodejs_eventloop_lag_p99_seconds{%(queriesSelector)s}', 's'),
-      heapUsed: sig('Heap used', 'nodejs_heap_size_used_bytes{%(queriesSelector)s}', 'bytes'),
-      heapTotal: sig('Heap total', 'nodejs_heap_size_total_bytes{%(queriesSelector)s}', 'bytes'),
-      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      gcDuration: sig('GC duration', 'rate(nodejs_gc_duration_seconds_sum{%(queriesSelector)s}[$__rate_interval])', 's'),
-      activeHandles: sig('Active handles', 'nodejs_active_handles_total{%(queriesSelector)s}', 'short'),
-      activeRequests: sig('Active requests', 'nodejs_active_requests_total{%(queriesSelector)s}', 'short'),
+      eventloopLag: sig('Event loop lag', 'nodejs_eventloop_lag_seconds{%(queriesSelector)s}', 's', 'Mean delay before a scheduled callback runs.'),
+      eventloopLagP99: sig('Event loop lag p99', 'nodejs_eventloop_lag_p99_seconds{%(queriesSelector)s}', 's', '99th percentile event-loop delay.'),
+      heapUsed: sig('Heap used', 'nodejs_heap_size_used_bytes{%(queriesSelector)s}', 'bytes', 'V8 heap in use.'),
+      heapTotal: sig('Heap total', 'nodejs_heap_size_total_bytes{%(queriesSelector)s}', 'bytes', 'V8 heap allocated.'),
+      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
+      gcDuration: sig('GC duration', 'rate(nodejs_gc_duration_seconds_sum{%(queriesSelector)s}[$__rate_interval])', 's', 'Seconds spent in garbage collection per second.'),
+      activeHandles: sig('Active handles', 'nodejs_active_handles_total{%(queriesSelector)s}', 'short', 'Open handles keeping the loop alive.'),
+      activeRequests: sig('Active requests', 'nodejs_active_requests_total{%(queriesSelector)s}', 'short', 'In-flight libuv requests.'),
     };
 
     pack.build(cfg, signals, [

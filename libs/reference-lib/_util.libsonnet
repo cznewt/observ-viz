@@ -34,10 +34,13 @@ local g = import 'g.libsonnet';
     local sigKeys(grp) = std.filter(function(k) std.objectHas(signals, k), std.objectFields(grp.elements));
 
     // --- one signal table per group, rendered on that group's own tab --------
+    // the query as written, with the dashboard's filter variables left as '...'
+    // - the table documents the signal, it is not a copy of the panel's query.
     local sigRow(key) =
       local s = signals[key];
       local desc = if s._description != '' then esc(s._description) else '';
-      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | `' + esc(s._effectiveExpr()) + '` |';
+      local expr = s._expr % { queriesSelector: '...', filteringSelector: '...' };
+      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | `' + esc(expr) + '` |';
     local sigPanel(grp) =
       local keys = sigKeys(grp);
       g.panel.text.new(grp.title + ' signals')

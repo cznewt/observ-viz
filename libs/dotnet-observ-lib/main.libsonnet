@@ -31,18 +31,18 @@ local pack = import 'libs/common-lib/pack.libsonnet';
 
     local signals = {
       // GC. prometheus-net exposes total managed heap and per-generation collection counts.
-      gcHeap: sig('GC heap', 'dotnet_total_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      gcCollections: sig('GC collections', 'sum without(generation)(rate(dotnet_collection_count_total{%(queriesSelector)s}[$__rate_interval]))', 'ops'),
+      gcHeap: sig('GC heap', 'dotnet_total_memory_bytes{%(queriesSelector)s}', 'bytes', 'Managed heap the runtime reports.'),
+      gcCollections: sig('GC collections', 'sum without(generation)(rate(dotnet_collection_count_total{%(queriesSelector)s}[$__rate_interval]))', 'ops', 'Collections per second across all generations.'),
       // Process memory + CPU exposed alongside the dotnet_* family by prometheus-net.
-      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes'),
-      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', 'Resident set size (RSS).'),
+      cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Process CPU cores used.'),
       // Threads. Number of thread-pool threads in use, plus total OS threads.
-      threadpool: sig('Thread-pool threads', 'dotnet_threadpool_num_threads{%(queriesSelector)s}', 'short'),
-      processThreads: sig('Process threads', 'process_num_threads{%(queriesSelector)s}', 'short'),
+      threadpool: sig('Thread-pool threads', 'dotnet_threadpool_num_threads{%(queriesSelector)s}', 'short', 'Threads in the thread pool.'),
+      processThreads: sig('Process threads', 'process_num_threads{%(queriesSelector)s}', 'short', 'OS threads in the process.'),
       // Exceptions thrown per second.
-      exceptions: sig('Exceptions', 'rate(dotnet_exceptions_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      exceptions: sig('Exceptions', 'rate(dotnet_exceptions_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Exceptions thrown per second.'),
       // JIT. Methods compiled per second.
-      jitMethods: sig('JIT methods', 'rate(dotnet_jit_method_total{%(queriesSelector)s}[$__rate_interval])', 'short'),
+      jitMethods: sig('JIT methods', 'rate(dotnet_jit_method_total{%(queriesSelector)s}[$__rate_interval])', 'short', 'Methods JIT-compiled per second.'),
     };
 
     pack.build(cfg, signals, [

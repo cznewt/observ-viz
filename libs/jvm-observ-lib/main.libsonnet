@@ -30,14 +30,14 @@ local pack = import 'libs/common-lib/pack.libsonnet';
     local sig = filters.sig(cfg);
 
     local signals = {
-      heapUsed: sig('Heap used', 'sum without(area,id)(jvm_memory_used_bytes{area="heap",%(queriesSelector)s})', 'bytes'),
-      heapMax: sig('Heap max', 'sum without(area,id)(jvm_memory_max_bytes{area="heap",%(queriesSelector)s})', 'bytes'),
-      nonheapUsed: sig('Non-heap used', 'sum without(area,id)(jvm_memory_used_bytes{area="nonheap",%(queriesSelector)s})', 'bytes'),
-      gcPauseAvg: sig('GC pause (avg)', 'rate(jvm_gc_pause_seconds_sum{%(queriesSelector)s}[$__rate_interval]) / rate(jvm_gc_pause_seconds_count{%(queriesSelector)s}[$__rate_interval])', 's'),
-      gcRate: sig('GC rate', 'rate(jvm_gc_pause_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops'),
-      threadsLive: sig('Live threads', 'jvm_threads_live_threads{%(queriesSelector)s}', 'short'),
-      threadsDaemon: sig('Daemon threads', 'jvm_threads_daemon_threads{%(queriesSelector)s}', 'short'),
-      classesLoaded: sig('Loaded classes', 'jvm_classes_loaded_classes{%(queriesSelector)s}', 'short'),
+      heapUsed: sig('Heap used', 'sum without(area,id)(jvm_memory_used_bytes{area="heap",%(queriesSelector)s})', 'bytes', 'Heap memory in use across all heap pools.'),
+      heapMax: sig('Heap max', 'sum without(area,id)(jvm_memory_max_bytes{area="heap",%(queriesSelector)s})', 'bytes', 'Maximum heap the JVM may commit.'),
+      nonheapUsed: sig('Non-heap used', 'sum without(area,id)(jvm_memory_used_bytes{area="nonheap",%(queriesSelector)s})', 'bytes', 'Non-heap memory in use (metaspace, code cache).'),
+      gcPauseAvg: sig('GC pause (avg)', 'rate(jvm_gc_pause_seconds_sum{%(queriesSelector)s}[$__rate_interval]) / rate(jvm_gc_pause_seconds_count{%(queriesSelector)s}[$__rate_interval])', 's', 'Mean stop-the-world pause per collection.'),
+      gcRate: sig('GC rate', 'rate(jvm_gc_pause_seconds_count{%(queriesSelector)s}[$__rate_interval])', 'ops', 'Completed collections per second.'),
+      threadsLive: sig('Live threads', 'jvm_threads_live_threads{%(queriesSelector)s}', 'short', 'Live threads, daemon and non-daemon.'),
+      threadsDaemon: sig('Daemon threads', 'jvm_threads_daemon_threads{%(queriesSelector)s}', 'short', 'Live daemon threads.'),
+      classesLoaded: sig('Loaded classes', 'jvm_classes_loaded_classes{%(queriesSelector)s}', 'short', 'Classes currently loaded.'),
     };
 
     pack.build(cfg, signals, [
