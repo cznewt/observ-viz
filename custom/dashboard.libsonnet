@@ -53,6 +53,21 @@ local util = import 'custom/util/main.libsonnet';
                     + (if parentTitle != null then { 'observ-viz.dev/folder-parent-title': parentTitle } else {}),
     },
   },
+  // place the dashboard deeper than one level: an ancestor chain, root first,
+  // e.g. [{uid:'components',title:'Components'},{uid:'components-database',title:'Database'}]
+  // plus the folder itself. The chain rides in a private annotation the loader
+  // walks (creating each folder under the one before it) and strips.
+  withFolderPath(path): {
+    assert std.length(path) > 0 : 'withFolderPath needs at least one folder',
+    local leaf = path[std.length(path) - 1],
+    metadata+: {
+      annotations+: {
+        'grafana.app/folder': leaf.uid,
+        'observ-viz.dev/folder-title': leaf.title,
+        'observ-viz.dev/folder-path': std.manifestJsonMinified(path),
+      },
+    },
+  },
   withElements(elements): { spec+: { elements+: elements } },
   withElementsMixin(elements): { spec+: { elements+: elements } },
   withLayout(layout): { spec+: { layout: layout } },

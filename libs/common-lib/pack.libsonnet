@@ -7,6 +7,7 @@ local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (impor
 local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
 local panel = import 'custom/panel.libsonnet';
+local tabbed = import 'libs/common-lib/tabbed.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
@@ -34,7 +35,13 @@ local variable =
       // flatten every group's (and optional/doc tab's) elements into one elements map.
       // a tab either holds one grid (`elements`) or rows of grids (`groups`).
       local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,
-      elements: std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList, {}),
+      local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList, {}),
+      // `config.tabbed` swaps the rows layout for the shared tabbed board:
+      // an Overview tab (description, references, instances table) and one tab
+      // per signal group, each opening with that group's signal table.
+      local tabbedOn = std.objectHas(config, 'tabbed') && config.tabbed,
+      local tabbedBoard = tabbed.build(config, signals, groups, baseElements),
+      elements: if tabbedOn then tabbedBoard.elements else baseElements,
 
       local gridOf(grp) =
         layout.grid.new()
@@ -93,7 +100,15 @@ local variable =
       // board in a primary tab and append each optional tab with showIfData(), so
       // it renders only on targets that actually have those metrics.
       layout:
-        if std.length(optionalTabs) + std.length(docTabList) > 0 then
+        if tabbedOn then
+          layout.tabs.new()
+          + layout.tabs.withTabs(
+            [tabbedBoard.overviewTab] + tabbedBoard.groupTabs
+            + [layout.tabs.tab(t.title, tabLayout(t)) + tabGate(t) for t in optionalTabs]
+            // the Signals doc tab would repeat what every group tab already shows
+            + [layout.tabs.tab(t.title, gridOf(t)) for t in docTabList if t.title != 'Signals']
+          )
+        else if std.length(optionalTabs) + std.length(docTabList) > 0 then
           layout.tabs.new()
           + layout.tabs.withTabs(
             [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
@@ -124,7 +139,10 @@ local variable =
         + (if std.objectHas(config, 'description') then dashboard.withDescription(config.description) else {})
         // optional dashboard-level links (config.links: []DashboardLink specs)
         + (if std.objectHas(config, 'links') then dashboard.withLinks(config.links) else {})
-        + (if std.objectHas(config, 'folderUid') then
+        // folderPath is the general form: an ancestor chain ending in the
+        // folder itself, for a tree deeper than parent/child.
+        + (if std.objectHas(config, 'folderPath') then dashboard.withFolderPath(config.folderPath)
+           else if std.objectHas(config, 'folderUid') then
              dashboard.withFolder(config.folderUid, opt('folderTitle'), opt('folderParentUid'), opt('folderParentTitle'))
            else {})
         + dashboard.withVariables([

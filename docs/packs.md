@@ -30,7 +30,63 @@ Optional, on every pack built through `libs/common-lib/filters.libsonnet`:
 | `varLabels` | cascading filter variables, e.g. `['namespace', 'pod']`; each one is a `label_values()` query scoped by `job` and the variables before it, and each is appended to the query selector |
 | `legendLabels` | series legend built from labels, e.g. `['namespace', 'pod']` -> `{{namespace}} / {{pod}}` |
 | `overviewSignals` | the signals a reference board shows as columns of its instances table |
-| `description`, `references` | board description and reference links (used by the reference boards' Overview tab) |
+| `description`, `references` | board description and reference links, shown on the Overview tab |
+| `tabbed` | lay the board out as tabs (see the board spec below) instead of one row per signal group |
+| `rowLabels`, `instanceLabel` | what one row of the instances table is, e.g. `['namespace', 'pod']` |
+| `folderPath` | where the board is filed, as an ancestor chain: `[{uid, title}, ...]` ending in the folder itself |
+
+## The board
+
+A pack renders one board, and the same board everywhere, so a reader who knows
+one knows them all.
+
+**Header.** `datasource` and `job` variables, then one cascading filter variable
+per `varLabels` entry - each a `label_values()` query scoped by `job` and the
+variables before it, and each appended to every query's selector.
+
+**Tabs** (`config.tabbed`, the default for component packs):
+
+| Tab | Holds |
+| --- | --- |
+| Overview | what the board is and its reference links side by side, then an instances table: one row per `rowLabels` identity, a column per `overviewSignals` entry, each an instant query joined on that identity. A signal group the pack itself calls "Overview" folds in below. |
+| one per signal group | that group's signal table (name, unit, description, and the query as written, with the filter variables left as `...`), then the group's panels |
+| Runbooks | the pack's alerting rules and their runbook links, when `docTabs` is on |
+
+Without `tabbed` the same content is one `RowsLayout` row per signal group.
+
+### Optional sections
+
+Not every target has every exporter: a Kubernetes service has cAdvisor and
+kubelet series, the same service on a host has neither, and logs only exist
+where a logs datasource is wired up. Those sections are **optional tabs**, and a
+pack declares them next to its groups:
+
+```jsonnet
+pack.build(cfg, signals, groups, alerts, rules, [
+  {
+    title: 'Containers',
+    presence: { label: 'pod', query: 'container_cpu_usage_seconds_total{%(selector)s}' },
+    width: 12, height: 7,
+    elements: { ... },
+  },
+])
+```
+
+Each entry is gated one of three ways:
+
+* **`presence`** - the pack adds a hidden `has_<tab>` variable holding
+  `label_values(<query>, <label>)`, and the tab renders only when it is not
+  empty. Use this when the tab's own panels would look empty rather than absent
+  (a marker metric decides).
+* **nothing** - the tab gets `showIfData()`, Grafana's conditional rendering:
+  it appears only when its own queries return data.
+* **`alwaysShow: true`** - no gate.
+
+An entry carries either `elements` (one grid) or `groups` (rows inside the tab).
+`libs/service-observ-lib` is the worked example: one board per service with
+Kubernetes / Containers / Docker / systemd / Host process / Go runtime /
+Windows / Logs tabs, each gated this way, so the same pack covers a service in
+Kubernetes and the same service on a host.
 
 ## Catalog
 

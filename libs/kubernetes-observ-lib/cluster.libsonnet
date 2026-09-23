@@ -33,10 +33,12 @@ local query = import 'custom/query.libsonnet';
       podBoardUid: 'observ-viz-kube-pod',  // per-row drill target
       ruleSelector: '',  // static label filter for the alerting/recording rules
       docTabs: true,
-      folderUid: 'software-kubernetes',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-kubernetes',
       folderTitle: 'Kubernetes',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local s = cfg.selector;
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

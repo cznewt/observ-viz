@@ -24,10 +24,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       ruleSelector: '',
       legend: '{{grpc_service}}/{{grpc_method}}',
       docTabs: true,
-      folderUid: 'software-instrumentation',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-instrumentation',
       folderTitle: 'Instrumentation',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

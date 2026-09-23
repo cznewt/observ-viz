@@ -78,9 +78,17 @@ def push_doc(doc, label):
     title = anns.pop("observ-viz.dev/folder-title", None)  # private hint -> strip before push
     parent_uid = anns.pop("observ-viz.dev/folder-parent-uid", None)
     parent_title = anns.pop("observ-viz.dev/folder-parent-title", None)
-    if parent_uid:
-        ensure_folder(parent_uid, parent_title)
-    ensure_folder(folder, title, parent_uid)
+    path = anns.pop("observ-viz.dev/folder-path", None)  # deeper than one level
+    if path:
+        chain = json.loads(path)
+        prev = None
+        for node in chain:
+            ensure_folder(node["uid"], node.get("title"), prev)
+            prev = node["uid"]
+    else:
+        if parent_uid:
+            ensure_folder(parent_uid, parent_title)
+        ensure_folder(folder, title, parent_uid)
     status, _ = req("POST", API, doc)
     if status == 409:  # exists -> replace
         req("DELETE", f"{API}/{name}", None)

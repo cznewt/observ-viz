@@ -22,10 +22,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       ruleSelector: '',
       legend: '{{instance}}',
       docTabs: true,
-      folderUid: 'software-runtimes',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-runtimes',
       folderTitle: 'Runtimes',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local sig(name, expr, unit, legend=cfg.legend, desc='') =

@@ -25,10 +25,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       ruleSelector: '',
       legend: '{{view}}',
       docTabs: true,
-      folderUid: 'software-frameworks',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-frameworks',
       folderTitle: 'Frameworks',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

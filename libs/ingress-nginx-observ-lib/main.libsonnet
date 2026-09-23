@@ -82,10 +82,12 @@ local ingressElements(signals, prefix='') = {
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       docTabs: true,
-      folderUid: 'software-networking',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-networking',
       folderTitle: 'Networking',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

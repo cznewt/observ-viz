@@ -30,10 +30,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       ruleSelector: '',
       legend: '{{instance}}',
       docTabs: true,
-      folderUid: 'software-runtimes',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-runtimes',
       folderTitle: 'Runtimes',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';

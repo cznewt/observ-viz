@@ -126,11 +126,13 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // loki.source.kubernetes_events): job + cluster/namespace + the object's
       // `name` + `reason`/`level` labels, logfmt body with kind/type/msg.
       kubeEventsSelector: 'job="integrations/kubernetes/eventhandler", cluster=~"$cluster", namespace=~"$namespace"',
-      // deploy target: Software / Services (nested Grafana folders; loader creates both).
-      folderUid: 'software-services',
+      // deploy target: Components / Services (nested Grafana folders; loader creates both).
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-services',
       folderTitle: 'Services',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local app = base.app;
     local def(k, v) = if std.objectHas(base, k) then base[k] else v;

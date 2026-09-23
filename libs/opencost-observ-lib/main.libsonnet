@@ -23,10 +23,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varLabels: ['cluster'],
       ruleSelector: '',
       docTabs: true,
-      folderUid: 'software-kubernetes',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-kubernetes',
       folderTitle: 'Kubernetes',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

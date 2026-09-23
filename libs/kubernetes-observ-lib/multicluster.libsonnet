@@ -31,10 +31,12 @@ local query = import 'custom/query.libsonnet';
       clusterBoardUid: 'kube-cluster',  // per-row drill target
       ruleSelector: '',
       docTabs: true,
-      folderUid: 'software-kubernetes',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-kubernetes',
       folderTitle: 'Kubernetes',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local s = cfg.selector;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';

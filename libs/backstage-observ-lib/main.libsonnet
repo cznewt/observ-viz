@@ -102,10 +102,12 @@ local gqlList = '{ catalog { list { kind metadata { name annotations labels } sp
       datasource: '${backstage_datasource}',
       backendUrl: '',
       api: 'rest',
-      folderUid: 'software-cicd',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-cicd',
       folderTitle: 'CI/CD',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local list(kind) = cfg.backendUrl + '/api/catalog/entities?filter=kind=' + kind;
     local components =

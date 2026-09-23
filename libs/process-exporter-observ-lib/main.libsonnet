@@ -68,10 +68,12 @@ local groupElements(signals, prefix='') = {
       group: '.*',
       ruleSelector: '',
       docTabs: true,
-      folderUid: 'software-system',
+      // the shared tabbed board: Overview + a tab per signal group
+      tabbed: true,
+      folderUid: 'components-system',
       folderTitle: 'System',
-      folderParentUid: 'software',
-      folderParentTitle: 'Software',
+      folderParentUid: 'components',
+      folderParentTitle: 'Components',
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
