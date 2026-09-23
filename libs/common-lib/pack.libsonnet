@@ -81,19 +81,67 @@ local variable =
       local signalsMd =
         'Signals this pack emits — dashboard query + unit.\n\n| Signal | Query | Unit |\n| --- | --- | --- |\n'
         + std.join('\n', ['| ' + k + ' | `' + mdEsc(sigExpr(signals[k])) + '` | ' + (local u = sigUnit(signals[k]); if u != '' then u else '—') + ' |' for k in std.objectFields(signals)]),
-      local runbooksMd =
-        local items = [
-          '- **' + r.alert + '**'
-          + (if std.objectHas(r, 'labels') && std.objectHas(r.labels, 'severity') then ' `' + r.labels.severity + '`' else '')
-          + (if std.objectHas(r, 'for') then ' · for ' + r['for'] else '')
-          + (if std.objectHas(r, 'annotations') && std.objectHas(r.annotations, 'runbook_url') && r.annotations.runbook_url != '' then ' — [runbook](' + r.annotations.runbook_url + ')' else '')
-          for grp in alerts
-          for r in grp.rules
-        ];
-        if std.length(items) > 0 then 'Alerting rules and their runbooks.\n\n' + std.join('\n', items) else '_No alerting rules defined for this pack._',
+      // One panel per alerting rule, titled with the alert name: the runbook the
+      // rule carries (alert.rule.withRunbook) if it has one, else a generated
+      // one in the shape of runbooks.prometheus-operator.dev - what it means,
+      // what it affects, how to check it, what to do about it.
+      // one panel per alert name: a composed board merges groups that repeat an
+      // alert under different selectors, and the runbook is about the alert
+      local alertRules =
+        local all = [r for grp in alerts for r in grp.rules if std.objectHas(r, 'alert')];
+        local byName = std.foldl(function(acc, r) if std.objectHas(acc, r.alert) then acc else acc { [r.alert]: r }, all, {});
+        [byName[n] for n in std.objectFields(byName)],
+      local ann(r, k, fallback='') = if std.objectHas(r, 'annotations') && std.objectHas(r.annotations, k) && r.annotations[k] != '' then r.annotations[k] else fallback,
+      local sev(r) = if std.objectHas(r, 'labels') && std.objectHas(r.labels, 'severity') then r.labels.severity else 'warning',
+      local generatedRunbook(r) =
+        local summary = ann(r, 'summary', r.alert + ' is firing.');
+        local description = ann(r, 'description', '');
+        local url = ann(r, 'runbook_url', '');
+        local impact =
+          if sev(r) == 'critical' then 'Something users depend on is already broken or about to be. Treat it as an incident.'
+          else if sev(r) == 'warning' then 'Nothing is broken yet, and it will be if the trend holds. Look at it this working day.'
+          else 'Informational. It is context for another alert rather than work of its own.';
+        std.join('\n', [
+          '### Meaning',
+          '',
+          summary,
+          '',
+        ] + (if description != '' then [description, ''] else []) + [
+          'It fires when the expression below holds for ' + (if std.objectHas(r, 'for') then r['for'] else 'one evaluation') + '.',
+          '',
+          '### Impact',
+          '',
+          impact,
+          '',
+          '### Diagnosis',
+          '',
+          'Run the alert expression and look at which series cross the threshold:',
+          '',
+          '```promql',
+          r.expr,
+          '```',
+          '',
+          'Then open this board with the same selectors: the tab that carries those metrics shows how long the series has been where it is, and the restart and deploy annotations show whether a release or a restart lines up with the change.',
+          '',
+          '### Mitigation',
+          '',
+          '- Confirm the target is the one you think it is: check the labels on the firing series.',
+          '- Compare against the same series on a healthy peer; a single instance out of line is a different problem from every instance moving together.',
+          '- If a deploy or restart lines up with the change, that is the first thing to undo.',
+          '- If the threshold no longer matches how this service behaves, change the rule rather than living with a permanent alert.',
+        ] + (if url != '' then ['', 'Written runbook: ' + url] else [])),
+      local runbookPanels =
+        if std.length(alertRules) == 0 then
+          { doc_runbooks: panel.text.new('Runbooks') + panel.text.withOptions({ mode: 'markdown', content: '_No alerting rules defined for this pack._' }) }
+        else {
+          ['doc_runbook_' + r.alert]:
+            panel.text.new(r.alert + '  ·  ' + sev(r) + (if std.objectHas(r, 'for') then ' · for ' + r['for'] else ''))
+            + panel.text.withOptions({ mode: 'markdown', content: ann(r, 'runbook', generatedRunbook(r)) })
+          for r in alertRules
+        },
       local docTabList = if docTabsOn then [
         { title: 'Signals', width: 24, height: 12, elements: { doc_signals: panel.text.new('Signals') + panel.text.withOptions({ mode: 'markdown', content: signalsMd }) } },
-        { title: 'Runbooks', width: 24, height: 12, elements: { doc_runbooks: panel.text.new('Runbooks') + panel.text.withOptions({ mode: 'markdown', content: runbooksMd }) } },
+        { title: 'Runbooks', width: 12, height: 14, elements: runbookPanels },
       ] else [],
 
       // default: one RowsLayout row per group. With optionalTabs, wrap the main

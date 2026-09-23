@@ -11,6 +11,11 @@
     annotations: annotations,
   },
 
+  // withRunbook(markdown) -> attach a written runbook to a rule. The pack's
+  // Runbooks tab shows it verbatim; without it the tab generates one from the
+  // rule itself.
+  withRunbook(markdown):: { annotations+: { runbook: markdown } },
+
   // record(name, expr, labels) -> a single recording rule.
   record(name, expr, labels={}): {
     record: name,

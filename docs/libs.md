@@ -14,126 +14,126 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `runtimes.jvm` | JVM runtime | 8 | 8 |
 | `runtimes.python` | Python runtime | 6 | 6 |
 | `runtimes.dotnet` | .NET runtime | 8 | 8 |
-| `runtimes.process` | Process (base instrumentation) | 14 | 17 |
+| `runtimes.process` | Process (base instrumentation) | 14 | 27 |
 | `runtimes.nodejs` | Node.js runtime | 8 | 8 |
-| `runtimes.rust` | Rust runtime | 11 | 26 |
-| `runtimes.php` | PHP runtime | 13 | 29 |
-| `runtimes.ruby` | Ruby runtime | 18 | 27 |
-| `runtimes.beam` | BEAM runtime | 24 | 36 |
+| `runtimes.rust` | Rust runtime | 11 | 40 |
+| `runtimes.php` | PHP runtime | 13 | 45 |
+| `runtimes.ruby` | Ruby runtime | 18 | 42 |
+| `runtimes.beam` | BEAM runtime | 24 | 53 |
 
 ## System
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux Server | 96 | 118 |
-| `system.docker` | Docker containers | 7 | 9 |
-| `system.windows` | Windows Server | 58 | 87 |
-| `system.systemd` | systemd units | 13 | 15 |
-| `system.processExporter` | Process groups | 15 | 16 |
+| `system.linux` | Linux Server | 96 | 138 |
+| `system.docker` | Docker containers | 7 | 12 |
+| `system.windows` | Windows Server | 58 | 92 |
+| `system.systemd` | systemd units | 13 | 24 |
+| `system.processExporter` | Process groups | 15 | 24 |
 
 ## Kubernetes
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `kubernetes.pod` | Kubernetes pod | 29 | 31 |
-| `kubernetes.cadvisor` | Container resources | 24 | 22 |
+| `kubernetes.pod` | Kubernetes pod | 29 | 42 |
+| `kubernetes.cadvisor` | Container resources | 24 | 32 |
 
 ## Databases
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `databases.sql.postgres` | PostgreSQL | 6 | 8 |
-| `databases.sql.mysql` | MySQL | 7 | 9 |
-| `databases.kv.redis` | Redis | 6 | 8 |
-| `databases.kv.memcached` | Memcached | 10 | 12 |
-| `databases.kv.etcd` | etcd | 6 | 8 |
+| `databases.sql.postgres` | PostgreSQL | 6 | 18 |
+| `databases.sql.mysql` | MySQL | 7 | 19 |
+| `databases.kv.redis` | Redis | 6 | 18 |
+| `databases.kv.memcached` | Memcached | 10 | 22 |
+| `databases.kv.etcd` | etcd | 6 | 17 |
 
 ## Monitoring
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `monitoring.prometheus` | Prometheus | 7 | 9 |
-| `monitoring.mimir` | Mimir | 6 | 8 |
-| `monitoring.loki` | Loki | 6 | 8 |
-| `monitoring.tempo` | Tempo | 9 | 11 |
-| `monitoring.pyroscope` | Pyroscope | 8 | 10 |
-| `monitoring.grafana` | Grafana | 44 | 42 |
-| `monitoring.alertmanager` | Alertmanager | 34 | 37 |
-| `monitoring.alertHandler` | Alert handler | 18 | 21 |
-| `monitoring.opencost` | OpenCost | 21 | 21 |
-| `monitoring.anomalyExporter` | Anomaly exporter | 11 | 11 |
+| `monitoring.prometheus` | Prometheus | 7 | 19 |
+| `monitoring.mimir` | Mimir | 6 | 17 |
+| `monitoring.loki` | Loki | 6 | 17 |
+| `monitoring.tempo` | Tempo | 9 | 21 |
+| `monitoring.pyroscope` | Pyroscope | 8 | 19 |
+| `monitoring.grafana` | Grafana | 44 | 56 |
+| `monitoring.alertmanager` | Alertmanager | 34 | 50 |
+| `monitoring.alertHandler` | Alert handler | 18 | 32 |
+| `monitoring.opencost` | OpenCost | 21 | 29 |
+| `monitoring.anomalyExporter` | Anomaly exporter | 11 | 19 |
 
 ## Collector
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `collector.alloy` | Alloy | 10 | 12 |
+| `collector.alloy` | Alloy | 10 | 15 |
 
 ## Networking
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `networking.ingressNginx` | Ingress NGINX | 27 | 28 |
+| `networking.ingressNginx` | Ingress NGINX | 27 | 38 |
 
 ## Instrumentation
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `instrumentation.httpServer` | HTTP server | 13 | 16 |
-| `instrumentation.httpClient` | HTTP client | 13 | 14 |
-| `instrumentation.rpc` | gRPC | 14 | 15 |
-| `instrumentation.messaging` | Queues and background work | 14 | 15 |
-| `instrumentation.otelSdk` | OpenTelemetry SDK | 15 | 15 |
+| `instrumentation.httpServer` | HTTP server | 13 | 24 |
+| `instrumentation.httpClient` | HTTP client | 13 | 21 |
+| `instrumentation.rpc` | gRPC | 14 | 23 |
+| `instrumentation.messaging` | Queues and background work | 14 | 24 |
+| `instrumentation.otelSdk` | OpenTelemetry SDK | 15 | 23 |
 
 ## Web servers
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `webservers.nginx` | NGINX | 11 | 12 |
-| `webservers.caddy` | Caddy | 11 | 12 |
+| `webservers.nginx` | NGINX | 11 | 19 |
+| `webservers.caddy` | Caddy | 11 | 18 |
 
 ## Frameworks
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `frameworks.django` | Django | 15 | 16 |
-| `frameworks.rails` | Rails | 11 | 12 |
+| `frameworks.django` | Django | 15 | 24 |
+| `frameworks.rails` | Rails | 11 | 20 |
 
 ## CI/CD
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `cicd.argocd` | Argo CD | 26 | 29 |
+| `cicd.argocd` | Argo CD | 26 | 41 |
 | `cicd.backstage` | Backstage catalog | 0 | 3 |
 
 ## Services
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 89 | 267 |
-| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 89 | 267 |
-| `services.grafana` | Grafana service | 123 | 297 |
-| `services.grafanaTest` | Grafana (test) service | 123 | 297 |
-| `services.mimir` | Mimir service | 85 | 263 |
-| `services.loki` | Loki service | 85 | 263 |
-| `services.tempo` | Tempo service | 88 | 266 |
-| `services.pyroscope` | Pyroscope service | 87 | 265 |
-| `services.redisTest` | Redis (test) service | 85 | 263 |
-| `services.demoGoDev` | Demo Go (dev) service | 90 | 267 |
-| `services.demoGoProd` | Demo Go (prod) service | 90 | 267 |
-| `services.demoGoWorkshop` | Demo Go (workshop) service | 90 | 267 |
-| `services.demoPythonDev` | Demo Python (dev) service | 85 | 263 |
-| `services.demoPythonProd` | Demo Python (prod) service | 85 | 263 |
-| `services.demoPythonWorkshop` | Demo Python (workshop) service | 85 | 263 |
-| `services.sreBack` | SRE sample: back (JVM) service | 87 | 265 |
-| `services.sreFront` | SRE sample: front (JVM) service | 87 | 265 |
-| `services.sreReader` | SRE sample: reader (JVM) service | 87 | 265 |
-| `services.backstage` | Backstage service (Postgres) | 85 | 263 |
-| `services.alertmanager` | Alertmanager service | 113 | 292 |
-| `services.alertHandler` | Alert-handler service | 97 | 276 |
-| `services.opencost` | Opencost service | 100 | 276 |
-| `services.anomalyExporter` | Anomaly-exporter service | 90 | 266 |
-| `services.argocd` | Argo CD service | 105 | 284 |
+| `services.alloy` | Alloy service | 89 | 297 |
+| `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 89 | 297 |
+| `services.grafana` | Grafana service | 123 | 332 |
+| `services.grafanaTest` | Grafana (test) service | 123 | 332 |
+| `services.mimir` | Mimir service | 85 | 293 |
+| `services.loki` | Loki service | 85 | 293 |
+| `services.tempo` | Tempo service | 88 | 297 |
+| `services.pyroscope` | Pyroscope service | 87 | 295 |
+| `services.redisTest` | Redis (test) service | 85 | 294 |
+| `services.demoGoDev` | Demo Go (dev) service | 90 | 297 |
+| `services.demoGoProd` | Demo Go (prod) service | 90 | 297 |
+| `services.demoGoWorkshop` | Demo Go (workshop) service | 90 | 297 |
+| `services.demoPythonDev` | Demo Python (dev) service | 85 | 293 |
+| `services.demoPythonProd` | Demo Python (prod) service | 85 | 293 |
+| `services.demoPythonWorkshop` | Demo Python (workshop) service | 85 | 293 |
+| `services.sreBack` | SRE sample: back (JVM) service | 87 | 296 |
+| `services.sreFront` | SRE sample: front (JVM) service | 87 | 296 |
+| `services.sreReader` | SRE sample: reader (JVM) service | 87 | 296 |
+| `services.backstage` | Backstage service (Postgres) | 85 | 294 |
+| `services.alertmanager` | Alertmanager service | 113 | 326 |
+| `services.alertHandler` | Alert-handler service | 97 | 308 |
+| `services.opencost` | Opencost service | 100 | 305 |
+| `services.anomalyExporter` | Anomaly-exporter service | 90 | 295 |
+| `services.argocd` | Argo CD service | 105 | 317 |
 
 ## Cross-cutting
 
