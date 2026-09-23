@@ -5,7 +5,7 @@
 ## alerts
 
 - **patterns**: `ALERTS`, `ALERTS_FOR_STATE`
-- **consuming signals**: alerts.critical, alerts.firing, alerts.info, alerts.warning
+- **consuming signals**: alerts.critical, alerts.firing, alerts.info, alerts.warning, kubernetes.multicluster.alerts
 
 ### Live metrics (2)
 

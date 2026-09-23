@@ -76,7 +76,7 @@
 - **patterns**: `node_hwmon_.*`
 - **consuming signals**: system.linux.batoceraTemp, system.linux.tempCelsius
 
-### Live metrics (48)
+### Live metrics (49)
 
 - `node_hwmon_chip_names`
 - `node_hwmon_curr_amps`
@@ -87,6 +87,7 @@
 - `node_hwmon_fan_rpm`
 - `node_hwmon_fan_target_rpm`
 - `node_hwmon_in_average_volts`
+- `node_hwmon_in_lcrit_alarm_volts`
 - `node_hwmon_in_max_volts`
 - `node_hwmon_in_min_volts`
 - `node_hwmon_in_volts`
@@ -267,9 +268,9 @@
 
 - **notes**: unclassified node_exporter families (catch-all).
 - **patterns**: `node_.*`
-- **consuming signals**: system.linux.raplPower, system.linux.socketsMem, system.linux.socketsTcp, system.linux.softnetDropped, system.linux.softnetSqueezed, system.linux.tcpActiveOpens, system.linux.tcpEstablished, system.linux.tcpInErrs, system.linux.tcpRetrans, system.linux.thermalZone, system.linux.udpQueues
+- **consuming signals**: system.linux.raplPower, system.linux.rebootRequired, system.linux.socketsMem, system.linux.socketsTcp, system.linux.softnetDropped, system.linux.softnetSqueezed, system.linux.tcpActiveOpens, system.linux.tcpEstablished, system.linux.tcpInErrs, system.linux.tcpRetrans, system.linux.thermalZone, system.linux.udpQueues
 
-### Live metrics (140)
+### Live metrics (141)
 
 - `node_arp_entries`
 - `node_authorizer_graph_actions_duration_seconds_bucket`
@@ -338,6 +339,7 @@
 - `node_rapl_package_joules_total`
 - `node_rapl_psys_joules_total`
 - `node_rapl_uncore_joules_total`
+- `node_reboot_required`
 - `node_scrape_collector_duration_seconds`
 - `node_scrape_collector_success`
 - `node_selinux_enabled`
@@ -417,7 +419,7 @@
 - **patterns**: `node_pressure_.*`, `node_vmstat_.*`, `node_procs_.*`, `node_context_switches_total`, `node_intr_total`, `node_entropy_.*`, `node_filefd_.*`, `node_nf_conntrack_.*`, `node_time.*`, `node_power_supply_.*`, `node_nfs.*`, `node_zfs_.*`
 - **consuming signals**: system.linux.batteryCapacity, system.linux.batteryOnline, system.linux.batteryPower, system.linux.batteryVoltage, system.linux.conntrackMax, system.linux.conntrackUsed, system.linux.contextSwitches, system.linux.entropy, system.linux.fdMax, system.linux.fdUsed, system.linux.nfsRetransmissions, system.linux.nfsRpcs, system.linux.pgFaults, system.linux.pgMajFaults, system.linux.procsBlocked, system.linux.procsRunning, system.linux.psiCpu, system.linux.psiIo, system.linux.psiIoFull, system.linux.psiMem, system.linux.psiMemFull, system.linux.swapIn, system.linux.swapIoPages, system.linux.swapOut, system.linux.zfsArcCMax, system.linux.zfsArcHitRatio, system.linux.zfsArcHits, system.linux.zfsArcMisses, system.linux.zfsArcSize
 
-### Live metrics (386)
+### Live metrics (388)
 
 - `node_context_switches_total`
 - `node_entropy_available_bits`
@@ -457,6 +459,7 @@
 - `node_nfsd_server_threads`
 - `node_power_supply_capacity`
 - `node_power_supply_charge_ampere`
+- `node_power_supply_charge_counter`
 - `node_power_supply_charge_empty_design`
 - `node_power_supply_charge_full`
 - `node_power_supply_charge_full_design`
@@ -478,6 +481,7 @@
 - `node_power_supply_temp_celsius`
 - `node_power_supply_temp_max_celsius`
 - `node_power_supply_temp_min_celsius`
+- `node_power_supply_time_to_empty_seconds`
 - `node_power_supply_voltage_max`
 - `node_power_supply_voltage_max_design`
 - `node_power_supply_voltage_min`
@@ -810,7 +814,7 @@
 
 - **notes**: Enabled 2026-07-23 with a curated unit allowlist (salt-minion/alloy/sshd/docker/containerd/crio/kubelet/gdm/gnome-session/wg-quick/zerotier).
 - **patterns**: `node_systemd_.*`
-- **consuming signals**: system.linux.servicesActive, system.linux.servicesFailed
+- **consuming signals**: services.alloy.systemd_active, services.alloy.systemd_failed, services.alloy.systemd_hosts, services.alloy.systemd_state, services.grafana.systemd_active, services.grafana.systemd_failed, services.grafana.systemd_hosts, services.grafana.systemd_state, services.mimir.systemd_active, services.mimir.systemd_failed, services.mimir.systemd_hosts, services.mimir.systemd_state, system.linux.servicesActive, system.linux.servicesFailed
 
 ### Live metrics (4)
 

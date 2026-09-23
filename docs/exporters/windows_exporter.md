@@ -130,7 +130,7 @@
 
 - **notes**: unclassified windows_exporter families (catch-all).
 - **patterns**: `windows_.*`
-- **consuming signals**: system.windows.collectorDuration, system.windows.collectorSuccess, system.windows.scrapeDuration, system.windows.tempBySensor, system.windows.tempMax
+- **consuming signals**: services.alloy.win_cpu, services.alloy.win_handles, services.alloy.win_io, services.alloy.win_threads, services.alloy.win_uptime, services.alloy.win_workingSet, services.grafana.win_cpu, services.grafana.win_handles, services.grafana.win_io, services.grafana.win_threads, services.grafana.win_uptime, services.grafana.win_workingSet, services.mimir.win_cpu, services.mimir.win_handles, services.mimir.win_io, services.mimir.win_threads, services.mimir.win_uptime, services.mimir.win_workingSet, system.windows.collectorDuration, system.windows.collectorSuccess, system.windows.scrapeDuration, system.windows.tempBySensor, system.windows.tempMax
 
 ### Live metrics (5)
 
@@ -143,7 +143,7 @@
 ## service
 
 - **patterns**: `windows_service_.*`
-- **consuming signals**: system.windows.serviceState, system.windows.servicesRunning, system.windows.servicesStopped
+- **consuming signals**: services.alloy.win_state, services.grafana.win_state, services.mimir.win_state, system.windows.serviceState, system.windows.servicesRunning, system.windows.servicesStopped
 
 ### Live metrics (4)
 

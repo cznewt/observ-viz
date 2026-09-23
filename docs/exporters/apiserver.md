@@ -7,7 +7,7 @@
 - **patterns**: `apiserver_.*`
 - **consuming signals**: kubernetes.cluster.apiserverErrors, kubernetes.cluster.apiserverInflight, kubernetes.cluster.apiserverRate
 
-### Live metrics (152)
+### Live metrics (153)
 
 - `apiserver_admission_controller_admission_duration_seconds_bucket`
 - `apiserver_admission_controller_admission_duration_seconds_count`
@@ -21,6 +21,7 @@
 - `apiserver_admission_webhook_admission_duration_seconds_bucket`
 - `apiserver_admission_webhook_admission_duration_seconds_count`
 - `apiserver_admission_webhook_admission_duration_seconds_sum`
+- `apiserver_admission_webhook_rejection_count`
 - `apiserver_admission_webhook_request_total`
 - `apiserver_audit_event_total`
 - `apiserver_audit_requests_rejected_total`

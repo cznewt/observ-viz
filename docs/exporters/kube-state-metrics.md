@@ -5,9 +5,9 @@
 ## kube
 
 - **patterns**: `kube_.*`
-- **consuming signals**: kubernetes.pod.containersReady, kubernetes.pod.containersWaiting, kubernetes.pod.cpuLimits, kubernetes.pod.cpuRequests, kubernetes.pod.cronjobActive, kubernetes.pod.deployAvailable, kubernetes.pod.deployDesired, kubernetes.pod.deployUnavailable, kubernetes.pod.dsDesired, kubernetes.pod.dsReady, kubernetes.pod.dsUnavailable, kubernetes.pod.jobActive, kubernetes.pod.jobFailed, kubernetes.pod.jobSucceeded, kubernetes.pod.memLimits, kubernetes.pod.memRequests, kubernetes.pod.phase, kubernetes.pod.pvcCapacity, kubernetes.pod.pvcPhase, kubernetes.pod.restarts, kubernetes.pod.stsReady, kubernetes.pod.stsReplicas
+- **consuming signals**: kubernetes.multicluster.clusters, kubernetes.multicluster.cpuUtil, kubernetes.multicluster.memUtil, kubernetes.multicluster.nodes, kubernetes.multicluster.pods, kubernetes.multicluster.podsByCluster, kubernetes.multicluster.restartsByCluster, kubernetes.pod.containersReady, kubernetes.pod.containersWaiting, kubernetes.pod.cpuLimits, kubernetes.pod.cpuRequests, kubernetes.pod.cronjobActive, kubernetes.pod.deployAvailable, kubernetes.pod.deployDesired, kubernetes.pod.deployUnavailable, kubernetes.pod.dsDesired, kubernetes.pod.dsReady, kubernetes.pod.dsUnavailable, kubernetes.pod.jobActive, kubernetes.pod.jobFailed, kubernetes.pod.jobSucceeded, kubernetes.pod.memLimits, kubernetes.pod.memRequests, kubernetes.pod.phase, kubernetes.pod.pvcCapacity, kubernetes.pod.pvcPhase, kubernetes.pod.restarts, kubernetes.pod.stsReady, kubernetes.pod.stsReplicas, services.alloy.kube_age, services.alloy.kube_cpuLimits, services.alloy.kube_cpuRequests, services.alloy.kube_deployAvailable, services.alloy.kube_deployDesired, services.alloy.kube_dsDesired, services.alloy.kube_dsReady, services.alloy.kube_memLimits, services.alloy.kube_memRequests, services.alloy.kube_phase, services.alloy.kube_ready, services.alloy.kube_restarts, services.alloy.kube_stsDesired, services.alloy.kube_stsReady, services.alloy.kube_waiting, services.grafana.kube_age, services.grafana.kube_cpuLimits, services.grafana.kube_cpuRequests, services.grafana.kube_deployAvailable, services.grafana.kube_deployDesired, services.grafana.kube_dsDesired, services.grafana.kube_dsReady, services.grafana.kube_memLimits, services.grafana.kube_memRequests, services.grafana.kube_phase, services.grafana.kube_ready, services.grafana.kube_restarts, services.grafana.kube_stsDesired, services.grafana.kube_stsReady, services.grafana.kube_waiting, services.mimir.kube_age, services.mimir.kube_cpuLimits, services.mimir.kube_cpuRequests, services.mimir.kube_deployAvailable, services.mimir.kube_deployDesired, services.mimir.kube_dsDesired, services.mimir.kube_dsReady, services.mimir.kube_memLimits, services.mimir.kube_memRequests, services.mimir.kube_phase, services.mimir.kube_ready, services.mimir.kube_restarts, services.mimir.kube_stsDesired, services.mimir.kube_stsReady, services.mimir.kube_waiting
 
-### Live metrics (193)
+### Live metrics (194)
 
 - `kube_apiserver_clusterip_allocator_allocated_ips`
 - `kube_apiserver_clusterip_allocator_allocation_duration_seconds_bucket`
@@ -28,6 +28,7 @@
 - `kube_cronjob_metadata_resource_version`
 - `kube_cronjob_next_schedule_time`
 - `kube_cronjob_spec_failed_job_history_limit`
+- `kube_cronjob_spec_starting_deadline_seconds`
 - `kube_cronjob_spec_successful_job_history_limit`
 - `kube_cronjob_spec_suspend`
 - `kube_cronjob_status_active`

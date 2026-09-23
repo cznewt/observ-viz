@@ -43,6 +43,21 @@ Which exporter/collector(s) can supply each observ-lib signal (multiple = cross-
 | workqueueAdds | `workqueue_adds_total` | [apiserver/workqueue](apiserver.md) |
 | workqueueDepth | `workqueue_depth` | [apiserver/workqueue](apiserver.md) |
 
+## kubernetes.multicluster
+
+| Signal | Metrics | Exporter/collector |
+| --- | --- | --- |
+| alerts | `ALERTS` | [alerting/alerts](alerting.md) |
+| clusters | `kube_node_info` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| cpuByCluster | `container_cpu_usage_seconds_total` | [cadvisor/container](cadvisor.md) |
+| cpuUtil | `container_cpu_usage_seconds_total`<br>`kube_node_status_allocatable` | [cadvisor/container](cadvisor.md), [kube-state-metrics/kube](kube-state-metrics.md) |
+| memByCluster | `container_memory_working_set_bytes` | [cadvisor/container](cadvisor.md) |
+| memUtil | `container_memory_working_set_bytes`<br>`kube_node_status_allocatable` | [cadvisor/container](cadvisor.md), [kube-state-metrics/kube](kube-state-metrics.md) |
+| nodes | `kube_node_info` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| pods | `kube_pod_status_phase` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| podsByCluster | `kube_pod_status_phase` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| restartsByCluster | `kube_pod_container_status_restarts_total` | [kube-state-metrics/kube](kube-state-metrics.md) |
+
 ## kubernetes.pod
 
 | Signal | Metrics | Exporter/collector |
@@ -76,6 +91,108 @@ Which exporter/collector(s) can supply each observ-lib signal (multiple = cross-
 | restarts | `kube_pod_container_status_restarts_total` | [kube-state-metrics/kube](kube-state-metrics.md) |
 | stsReady | `kube_statefulset_status_replicas_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
 | stsReplicas | `kube_statefulset_status_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+
+## services.alloy
+
+| Signal | Metrics | Exporter/collector |
+| --- | --- | --- |
+| kube_age | `kube_pod_start_time` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpu | `container_cpu_usage_seconds_total` | [cadvisor/container](cadvisor.md) |
+| kube_cpuLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpuRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployAvailable | `kube_deployment_status_replicas_available` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployDesired | `kube_deployment_spec_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsDesired | `kube_daemonset_status_desired_number_scheduled` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsReady | `kube_daemonset_status_number_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_mem | `container_memory_working_set_bytes` | [cadvisor/container](cadvisor.md) |
+| kube_memLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_memRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_phase | `kube_pod_status_phase` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_pvcUsage | `kubelet_volume_stats_capacity_bytes`<br>`kubelet_volume_stats_used_bytes` | [kubelet/kubelet](kubelet.md) |
+| kube_ready | `kube_pod_container_status_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_restarts | `kube_pod_container_status_restarts_total` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsDesired | `kube_statefulset_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsReady | `kube_statefulset_status_replicas_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_waiting | `kube_pod_container_status_waiting_reason` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| systemd_active | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_failed | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_hosts | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_state | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| win_cpu | `windows_process_cpu_time_total` | [windows_exporter/other](windows_exporter.md) |
+| win_handles | `windows_process_handles` | [windows_exporter/other](windows_exporter.md) |
+| win_io | `windows_process_io_bytes_total` | [windows_exporter/other](windows_exporter.md) |
+| win_state | `windows_service_state` | [windows_exporter/service](windows_exporter.md) |
+| win_threads | `windows_process_threads` | [windows_exporter/other](windows_exporter.md) |
+| win_uptime | `windows_process_start_time` | [windows_exporter/other](windows_exporter.md) |
+| win_workingSet | `windows_process_working_set_bytes`<br>`windows_process_working_set_private_bytes` | [windows_exporter/other](windows_exporter.md) |
+
+## services.grafana
+
+| Signal | Metrics | Exporter/collector |
+| --- | --- | --- |
+| kube_age | `kube_pod_start_time` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpu | `container_cpu_usage_seconds_total` | [cadvisor/container](cadvisor.md) |
+| kube_cpuLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpuRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployAvailable | `kube_deployment_status_replicas_available` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployDesired | `kube_deployment_spec_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsDesired | `kube_daemonset_status_desired_number_scheduled` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsReady | `kube_daemonset_status_number_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_mem | `container_memory_working_set_bytes` | [cadvisor/container](cadvisor.md) |
+| kube_memLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_memRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_phase | `kube_pod_status_phase` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_pvcUsage | `kubelet_volume_stats_capacity_bytes`<br>`kubelet_volume_stats_used_bytes` | [kubelet/kubelet](kubelet.md) |
+| kube_ready | `kube_pod_container_status_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_restarts | `kube_pod_container_status_restarts_total` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsDesired | `kube_statefulset_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsReady | `kube_statefulset_status_replicas_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_waiting | `kube_pod_container_status_waiting_reason` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| systemd_active | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_failed | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_hosts | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_state | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| win_cpu | `windows_process_cpu_time_total` | [windows_exporter/other](windows_exporter.md) |
+| win_handles | `windows_process_handles` | [windows_exporter/other](windows_exporter.md) |
+| win_io | `windows_process_io_bytes_total` | [windows_exporter/other](windows_exporter.md) |
+| win_state | `windows_service_state` | [windows_exporter/service](windows_exporter.md) |
+| win_threads | `windows_process_threads` | [windows_exporter/other](windows_exporter.md) |
+| win_uptime | `windows_process_start_time` | [windows_exporter/other](windows_exporter.md) |
+| win_workingSet | `windows_process_working_set_bytes`<br>`windows_process_working_set_private_bytes` | [windows_exporter/other](windows_exporter.md) |
+
+## services.mimir
+
+| Signal | Metrics | Exporter/collector |
+| --- | --- | --- |
+| kube_age | `kube_pod_start_time` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpu | `container_cpu_usage_seconds_total` | [cadvisor/container](cadvisor.md) |
+| kube_cpuLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_cpuRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployAvailable | `kube_deployment_status_replicas_available` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_deployDesired | `kube_deployment_spec_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsDesired | `kube_daemonset_status_desired_number_scheduled` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_dsReady | `kube_daemonset_status_number_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_mem | `container_memory_working_set_bytes` | [cadvisor/container](cadvisor.md) |
+| kube_memLimits | `kube_pod_container_resource_limits` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_memRequests | `kube_pod_container_resource_requests` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_phase | `kube_pod_status_phase` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_pvcUsage | `kubelet_volume_stats_capacity_bytes`<br>`kubelet_volume_stats_used_bytes` | [kubelet/kubelet](kubelet.md) |
+| kube_ready | `kube_pod_container_status_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_restarts | `kube_pod_container_status_restarts_total` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsDesired | `kube_statefulset_replicas` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_stsReady | `kube_statefulset_status_replicas_ready` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| kube_waiting | `kube_pod_container_status_waiting_reason` | [kube-state-metrics/kube](kube-state-metrics.md) |
+| systemd_active | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_failed | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_hosts | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| systemd_state | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
+| win_cpu | `windows_process_cpu_time_total` | [windows_exporter/other](windows_exporter.md) |
+| win_handles | `windows_process_handles` | [windows_exporter/other](windows_exporter.md) |
+| win_io | `windows_process_io_bytes_total` | [windows_exporter/other](windows_exporter.md) |
+| win_state | `windows_service_state` | [windows_exporter/service](windows_exporter.md) |
+| win_threads | `windows_process_threads` | [windows_exporter/other](windows_exporter.md) |
+| win_uptime | `windows_process_start_time` | [windows_exporter/other](windows_exporter.md) |
+| win_workingSet | `windows_process_working_set_bytes`<br>`windows_process_working_set_private_bytes` | [windows_exporter/other](windows_exporter.md) |
 
 ## system.docker
 
@@ -151,6 +268,7 @@ Which exporter/collector(s) can supply each observ-lib signal (multiple = cross-
 | psiMem | `node_pressure_memory_waiting_seconds_total` | [node_exporter/pressure-vmstat-misc](node_exporter.md) |
 | psiMemFull | `node_pressure_memory_stalled_seconds_total` | [node_exporter/pressure-vmstat-misc](node_exporter.md) |
 | raplPower | `node_rapl_package_joules_total` | [node_exporter/other](node_exporter.md) |
+| rebootRequired | `node_reboot_required` | [node_exporter/other](node_exporter.md) |
 | schedWait | `node_schedstat_waiting_seconds_total` | [node_exporter/cpu](node_exporter.md) |
 | servicesActive | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |
 | servicesFailed | `node_systemd_unit_state` | [node_exporter/systemd](node_exporter.md) |

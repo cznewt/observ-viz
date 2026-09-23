@@ -6,10 +6,11 @@
 
 - **patterns**: `ohm_battery_.*`
 
-### Live metrics (5)
+### Live metrics (6)
 
 - `ohm_battery_amps`
 - `ohm_battery_level_percent`
+- `ohm_battery_seconds`
 - `ohm_battery_volts`
 - `ohm_battery_watt_hours`
 - `ohm_battery_watts`

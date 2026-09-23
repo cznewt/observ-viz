@@ -5,7 +5,7 @@
 ## kubelet
 
 - **patterns**: `kubelet_.*`
-- **consuming signals**: kubernetes.cluster.kubeletErrors, kubernetes.cluster.kubeletPods
+- **consuming signals**: kubernetes.cluster.kubeletErrors, kubernetes.cluster.kubeletPods, services.alloy.kube_pvcUsage, services.grafana.kube_pvcUsage, services.mimir.kube_pvcUsage
 
 ### Live metrics (108)
 
