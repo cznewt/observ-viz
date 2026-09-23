@@ -8,6 +8,12 @@ local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 
 {
+  // the element map, for a board that embeds the Python runtime in a tab of
+  // its own (the Django pack does) rather than rendering this board.
+  elements(datasource, selector, prefix='')::
+    local p = $.new({ datasource: datasource, selector: selector, docTabs: false });
+    { [prefix + k]: p.grafana.elements[k] for k in std.objectFields(p.grafana.elements) },
+
   new(config={}):
     local cfg = {
       uid: 'observ-viz-python',

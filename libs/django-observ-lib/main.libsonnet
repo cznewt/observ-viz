@@ -5,7 +5,9 @@
 // rows come from runtimes.python.
 local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
+local python = import 'libs/python-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
@@ -21,6 +23,15 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       description: 'A Django application as django-prometheus reports it: requests by view and method, responses by status, latency measured inside and around the middleware stack, and exceptions by view and type.',
       datasource: '${datasource}',
       selector: 'job=~"$job"',
+      // same knobs as the runtime packs: cascading filters, a legend built from
+      // labels, and the columns of the Overview instances table
+      varLabels: [],
+      legendLabels: [],
+      overviewSignals: ['requests', 'errorRate', 'p95', 'exceptionsByType'],
+      references: [
+        { title: 'django-prometheus', url: 'https://github.com/korfuri/django-prometheus', description: 'the exporter behind every django_* series here' },
+        { title: 'Django middleware', url: 'https://docs.djangoproject.com/en/stable/topics/http/middleware/', description: 'why latency is measured twice, inside the view and around the stack' },
+      ],
       varMetric: 'django_http_requests_before_middlewares_total',
       ruleSelector: '',
       legend: '{{view}}',
@@ -34,8 +45,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
+    local sel = filters.selector(cfg);
     local sig(name, expr, unit, legend=cfg.legend, desc='') =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend).withDescription(desc);
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(sel).withLegendFormat(legend).withDescription(desc);
 
     local signals = {
       requests: sig('Requests', 'sum(rate(django_http_requests_before_middlewares_total{%(queriesSelector)s}[$__rate_interval]))', 'reqps', 'requests', desc='Requests per second entering the middleware stack.'),
@@ -89,6 +101,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           ajax: signals.ajax.asTimeSeries('AJAX requests/s'),
         },
       } + charts,
+      {
+        // the interpreter underneath: same signals as the Python runtime board
+        title: 'Python runtime',
+        width: 6,
+        height: 7,
+        elements: python.elements(cfg.datasource, sel, 'rt_'),
+      },
     ], [
       alert.rule.group('django', [
         alert.rule.new('DjangoErrorRateHigh',

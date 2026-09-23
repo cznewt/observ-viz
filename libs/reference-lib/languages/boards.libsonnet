@@ -1,6 +1,8 @@
-// observ-viz reference — Runtimes folder. One TABBED board per language runtime:
-// an Overview tab (what the board is, reference links, a table of instances) +
-// one tab per signal group, each opening with that group's signal table.
+// observ-viz reference — Runtimes folder. One TABBED board per language runtime
+// and per framework built on one: an Overview tab (what the board is, reference
+// links, a table of instances) + one tab per signal group, each opening with
+// that group's signal table. A framework board ends with the runtime it runs
+// on, so a slow request and a busy interpreter are one board apart.
 local g = import 'g.libsonnet';
 local util = import 'libs/reference-lib/_util.libsonnet';
 
@@ -54,6 +56,13 @@ local runtimes = [
   },
 ];
 
+// frameworks: the pack's own config already carries its description and
+// references, so these only need the folder, the filters and the legend.
+local frameworks = [
+  { key: 'django', lib: 'django' },
+  { key: 'rails', lib: 'rails' },
+];
+
 {
   _config+:: {},
   grafanaDashboards+:: {
@@ -79,5 +88,19 @@ local runtimes = [
         $._config.tags,
       )
     for r in runtimes
+  } + {
+    ['framework-' + f.key + '.json']:
+      util.place(
+        g.libs.frameworks[f.lib].new({
+          uid: 'observ-viz-framework-' + f.key,
+          datasource: $._config.datasource,
+          varLabels: ['namespace', 'pod', 'instance'],
+          legendLabels: ['namespace', 'pod'],
+          rowLabels: ['namespace', 'pod'],
+        }).grafana.dashboard,
+        $._config.folders.languages,
+        $._config.tags,
+      )
+    for f in frameworks
   },
 }
