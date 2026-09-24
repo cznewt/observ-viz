@@ -1,5 +1,6 @@
 // observ-viz reference — shared helpers (mixin-level; not part of the slim core).
 local g = import 'g.libsonnet';
+local utils = import 'libs/common-lib/utils.libsonnet';
 {
   // place a board in a Grafana folder (with a readable title) and tag it.
   place(dashboard, folder, tags):
@@ -40,7 +41,7 @@ local g = import 'g.libsonnet';
       local s = signals[key];
       local desc = if s._description != '' then esc(s._description) else '';
       local expr = s._expr % { queriesSelector: '...', filteringSelector: '...' };
-      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | `' + esc(expr) + '` |';
+      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | ' + utils.mdQuery(expr) + ' |';
     local sigPanel(grp) =
       local keys = sigKeys(grp);
       g.panel.text.new('Signals')
@@ -88,7 +89,7 @@ local g = import 'g.libsonnet';
     local rowTarget(key) =
       local t = signals[key].asTableTarget();
       local expr = t.spec.query.spec.expr;
-      t + { spec+: { query+: { spec+: { expr:
+      t { spec+: { query+: { spec+: { expr:
         'label_join(' + expr + ', "' + rowField + '", "/", ' + std.join(', ', ['"' + l + '"' for l in rowLabels]) + ')' } } } };
     local instances =
       g.panel.table.new('Instances')

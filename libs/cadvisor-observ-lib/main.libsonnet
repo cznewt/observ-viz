@@ -13,7 +13,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-cadvisor',
       dashboardTitle: 'Container resources',
-      dashboardTags: ['kubernetes', 'cadvisor', 'app-level'],
+      // node-level too: the containers on a node are reached from that node
+      dashboardTags: ['kubernetes', 'cadvisor', 'app-level', 'node-level'],
       description: 'Container resource usage from cAdvisor for Kubernetes pods: CPU with throttling, memory against limits, disk IO.',
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',

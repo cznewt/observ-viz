@@ -12,9 +12,10 @@
 // imports the veneers directly, not g.libsonnet: pack.libsonnet pulls this in,
 // and g would be an import cycle.
 local element = import 'custom/element.libsonnet';
-local grid = import 'custom/util/grid.libsonnet';
 local layout = import 'custom/layout.libsonnet';
 local panel = import 'custom/panel.libsonnet';
+local utils = import 'libs/common-lib/utils.libsonnet';
+local grid = import 'custom/util/grid.libsonnet';
 {
   // build(config, signals, groups, elements) -> { elements, tabs }
   build(cfg, signals, groups, packElements):: (
@@ -33,7 +34,7 @@ local panel = import 'custom/panel.libsonnet';
       local s = signals[key];
       local desc = if s._description != '' then esc(s._description) else '';
       local expr = s._expr % { queriesSelector: '...', filteringSelector: '...' };
-      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | `' + esc(expr) + '` |';
+      '| ' + s._name + ' | ' + s._unit + ' | ' + desc + ' | ' + utils.mdQuery(expr) + ' |';
     local sigPanel(grp) =
       local keys = sigKeys(grp);
       panel.text.new('Signals')
@@ -89,7 +90,7 @@ local panel = import 'custom/panel.libsonnet';
     local rowTarget(key) =
       local t = signals[key].asTableTarget();
       local expr = t.spec.query.spec.expr;
-      t + { spec+: { query+: { spec+: { expr:
+      t { spec+: { query+: { spec+: { expr:
         'label_join(' + expr + ', "' + rowField + '", "/", ' + std.join(', ', ['"' + l + '"' for l in rowLabels]) + ')' } } } };
     local instances =
       panel.table.new('Instances')

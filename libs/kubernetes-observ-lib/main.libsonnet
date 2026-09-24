@@ -12,7 +12,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-kube-pod',
       dashboardTitle: 'Kubernetes pod',
-      dashboardTags: ['kubernetes', 'pod', 'app-level'],
+      // node-level too: the pods on a node are reached from that node
+      dashboardTags: ['kubernetes', 'pod', 'app-level', 'node-level'],
       datasource: '${datasource}',
       selector: 'namespace=~"$namespace"',
       varMetric: 'kube_pod_info',

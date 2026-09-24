@@ -12,7 +12,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     local cfg = {
       uid: 'observ-viz-docker',
       dashboardTitle: 'Docker containers',
-      dashboardTags: ['docker', 'containers', 'app-level'],
+      // node-level too: the containers on a host are reached from that host
+      dashboardTags: ['docker', 'containers', 'app-level', 'node-level'],
       description: 'Container resource usage from cAdvisor on a Docker host: CPU, memory, network and disk IO per container.',
       datasource: '${datasource}',
       selector: 'job=~"$job"',

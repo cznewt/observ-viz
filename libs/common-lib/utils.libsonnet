@@ -15,6 +15,16 @@
 
   labelsToPanelLegend(labels, separator='/'): std.join(separator, ['{{%s}}' % [label] for label in labels]),
 
+  // One PromQL/LogQL expression as a markdown table cell: pipes escaped (they
+  // would end the cell), newlines folded, and a line break before each ' / ' so
+  // a ratio does not stretch the Query column. HTML <code> rather than a
+  // backtick span, because a markdown code span renders <br> literally.
+  mdQuery(expr, breakOn=[' / '])::
+    local oneLine = std.strReplace(expr, '\n', ' ');
+    local escaped = std.strReplace(oneLine, '|', '\\|');
+    local broken = std.foldl(function(acc, op) std.strReplace(acc, op, '<br>' + std.lstripChars(op, ' ')), breakOn, escaped);
+    '<code>' + broken + '</code>',
+
   toSentenceCase(string)::
     std.asciiUpper(string[0]) + std.slice(string, 1, std.length(string), 1),
 

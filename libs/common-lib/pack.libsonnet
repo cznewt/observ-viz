@@ -8,6 +8,7 @@ local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local tabbed = import 'libs/common-lib/tabbed.libsonnet';
+local utils = import 'libs/common-lib/utils.libsonnet';
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
   local cv = import 'custom/variable.libsonnet';
@@ -80,7 +81,7 @@ local variable =
       local sigUnit(sg) = local d = sg.asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; if std.objectHas(d, 'unit') then d.unit else '',
       local signalsMd =
         'Signals this pack emits — dashboard query + unit.\n\n| Signal | Query | Unit |\n| --- | --- | --- |\n'
-        + std.join('\n', ['| ' + k + ' | `' + mdEsc(sigExpr(signals[k])) + '` | ' + (local u = sigUnit(signals[k]); if u != '' then u else '—') + ' |' for k in std.objectFields(signals)]),
+        + std.join('\n', ['| ' + k + ' | ' + utils.mdQuery(sigExpr(signals[k])) + ' | ' + (local u = sigUnit(signals[k]); if u != '' then u else '—') + ' |' for k in std.objectFields(signals)]),
       // One panel per alerting rule, titled with the alert name: the runbook the
       // rule carries (alert.rule.withRunbook) if it has one, else a generated
       // one in the shape of runbooks.prometheus-operator.dev - what it means,
