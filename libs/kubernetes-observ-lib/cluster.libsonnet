@@ -37,6 +37,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // the Namespaces tab already tables what runs here
+      overviewInstances: false,
       // the base layer: what everything else runs on
       folderUid: 'base',
       folderTitle: 'Base',

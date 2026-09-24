@@ -35,6 +35,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // per cluster, with the four numbers that say whether a cluster is
       // busy, not the scrape-target table the default would build.
       tabbed: true,
+      // the Clusters tab is the table of what is out there; no scrape-target
+      // table on the Overview tab as well
+      overviewInstances: false,
       rowLabels: ['cluster'],
       overviewSignals: ['podsByCluster', 'cpuByCluster', 'memByCluster', 'restartsByCluster'],
       description: 'Every Kubernetes cluster that reports kube-state-metrics, side by side: how many nodes and pods each runs, what they are using, and what is restarting. A hand-port of the kubernetes-mixin multi-cluster board onto signals, so the numbers match what the mixin computes.',

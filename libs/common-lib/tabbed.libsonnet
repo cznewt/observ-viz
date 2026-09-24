@@ -21,6 +21,7 @@ local grid = import 'custom/util/grid.libsonnet';
   build(cfg, signals, groups, packElements):: (
     local opt(key, default) = if std.objectHas(cfg, key) then cfg[key] else default;
 
+    local showInstances = opt('overviewInstances', true);
     local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
     local slug(s) = std.asciiLower(std.strReplace(std.strReplace(s, ' ', '_'), '-', '_'));
     // escape table-breaking pipes (PromQL regex uses |).
@@ -119,7 +120,7 @@ local grid = import 'custom/util/grid.libsonnet';
       packElements
       + element.panel('__about', about)
       + element.panel('__references', references)
-      + element.panel('__instances', instances)
+      + (if showInstances then element.panel('__instances', instances) else {})
       + { ['__sig_' + slug(grp.title)]: sigPanel(grp) for grp in groups };
 
     // a group's tab: its signal table, then its panels
@@ -131,15 +132,19 @@ local grid = import 'custom/util/grid.libsonnet';
     // Fold it into this tab rather than opening a second one with the same name.
     local isOverview(grp) = std.asciiLower(grp.title) == 'overview';
     local ownOverview = std.filter(isOverview, groups);
-    local overviewHeight = 17;
+    // config.overviewInstances: false drops the instances table. A board whose
+    // own Overview group already answers "what is out there" - the cluster and
+    // multi-cluster boards, with their Clusters and Namespaces tables - does not
+    // need a second table of scrape targets on top.
+    local overviewHeight = if showInstances then 17 else 7;
     local overviewTab =
       layout.tabs.tab(
         'Overview',
         layout.grid.new() + layout.grid.withItems([
           layout.grid.item('__about', 0, 0, 12, 7),
           layout.grid.item('__references', 12, 0, 12, 7),
-          layout.grid.item('__instances', 0, 7, 24, 10),
-        ] + (if std.length(ownOverview) > 0 then groupItems(ownOverview[0], overviewHeight) else []))
+        ] + (if showInstances then [layout.grid.item('__instances', 0, 7, 24, 10)] else [])
+          + (if std.length(ownOverview) > 0 then groupItems(ownOverview[0], overviewHeight) else []))
       );
     // a group may repeat itself per value of a variable (`grp.repeat`): the
     // signal table stays put and the panels come back once per value.
