@@ -44,6 +44,9 @@ local defaults = {
   // Grafana folder the base boards name themselves (null leaves the folder to
   // the consumer, e.g. a monitor-tools config's grafanaDashboardFolder)
   folder: { uid: 'base', title: 'Base' },
+  // how many alert rows the state timeline may draw, and therefore how tall
+  // its tab is: one row per series, so the two travel together
+  alertLimit: 100,
   nodeUid: 'compute-linux-overview',  // per-node board for Linux node drill-through
   windowsNodeUid: 'compute-windows-overview',  // per-node board for Windows node drill-through
   tags: ['base'],
@@ -898,16 +901,18 @@ local storagePie(c) =
                        n79: storageStack(11, 11),
                        rest: storageStack(13, 13),
                      } },
-                     { title: 'Alerts', width: 24, height: 10, elements: {
+                     // the tab grows with the cap: 10 rows of grid for the
+                     // first 40 alerts, one more per 20 after that, up to 20
+                     { title: 'Alerts', width: 24, height: std.min(20, 10 + std.floor(std.max(0, c.alertLimit - 40) / 20)), elements: {
                        alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
                        alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c)),
-                       alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"'),
+                       alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"', c.alertLimit),
                      } },
                      { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
                    ], asTabs=true)
-                   + dashboard.withLinks(clusterTraversalLinks + [
-                     { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
-                   ]);
+                   // no explicit link to the Kubernetes board: it carries the
+                   // cluster-level tag, so the traversal dropdown already has it
+                   + dashboard.withLinks(clusterTraversalLinks);
       {
         config: c,
         local fdash = dash + folderOf(c),
