@@ -96,7 +96,7 @@ local gqlList = '{ catalog { list { kind metadata { name annotations labels } sp
   new(config={}):
     local cfg = {
       uid: 'observ-viz-backstage',
-      dashboardTitle: 'Backstage catalog',
+      dashboardTitle: 'Backstage',
       dashboardTags: ['backstage', 'catalog', 'app-level'],
       description: 'The Backstage software catalog read through the Infinity datasource: components with owner, lifecycle, type and system; systems; APIs.',
       datasource: '${backstage_datasource}',
