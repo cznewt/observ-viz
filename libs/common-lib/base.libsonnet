@@ -78,7 +78,9 @@ local tempSpark = [
   { id: 'max', value: 100 },
   { id: 'color', value: { mode: 'thresholds' } },  // scheme gradient paints the line by threshold color
   { id: 'thresholds', value: { mode: 'absolute', steps: [
-    { color: 'green', value: null }, { color: 'orange', value: 60 }, { color: 'red', value: 80 },
+    { color: 'green', value: null },
+    { color: 'orange', value: 60 },
+    { color: 'red', value: 80 },
   ] } },
 ];
 // utilization sparkline styling (CPU/Mem/Load/Used %): threshold-colored like
@@ -90,7 +92,8 @@ local pctSpark = [
   { id: 'max', value: 100 },
   { id: 'color', value: { mode: 'thresholds' } },
   { id: 'thresholds', value: { mode: 'absolute', steps: [
-    { color: 'green', value: null }, { color: 'red', value: 80 },
+    { color: 'green', value: null },
+    { color: 'red', value: 80 },
   ] } },
 ];
 
@@ -225,46 +228,46 @@ local serversTable(c, capacity=false) =
   local lot(sel) = if capacity then 'last_over_time(' + sel + '[$__range])' else sel;
   local qInfo =
     tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + lot(c.nodeMetric + '{' + s + '}') + ', "board", "' + c.nodeUid + '", "", ""))) or '
-        + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
+          + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
   local qCpuPct =
     tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
-        + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)');
+          + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)');
   local qMemPct =
     tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
-        + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)');
+          + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)');
   local qUptime =
     tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
-        + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))');
+          + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))');
   local qOs =
     tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (' + lot('node_os_info{' + s + '}') + ')) or '
-        + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "pretty_name", "$1", "product", "(.+)")))');
+          + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "pretty_name", "$1", "product", "(.+)")))');
   local qCpus =
     tq(c, '(count ' + byNode + ' (' + lot('node_cpu_seconds_total{mode="idle", ' + s + '}') + ')) or '
-        + '(count ' + byNode + ' (' + lot('windows_cpu_time_total{mode="idle", ' + s + '}') + '))');
+          + '(count ' + byNode + ' (' + lot('windows_cpu_time_total{mode="idle", ' + s + '}') + '))');
   // normalized run-queue pressure: Linux load1/cores; Windows has no loadavg,
   // so processor queue length/cores is the closest analog. Range query — the
   // column renders as a sparkline (orange >1, red >5).
   local qLoadPerCpu =
     query.prometheus.new(c.datasource,
-      '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
-      + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
+                         '(max ' + byNode + ' (node_load1{' + s + '}) / count ' + byNode + ' (node_cpu_seconds_total{mode="idle", ' + s + '})) or '
+                         + '(max ' + byNode + ' (windows_system_processor_queue_length{' + s + '}) / count ' + byNode + ' (windows_cpu_time_total{mode="idle", ' + s + '}))');
   local qMemTotal =
     tq(c, '(max ' + byNode + ' (' + lot('node_memory_MemTotal_bytes{' + s + '}') + ')) or '
-        + '(max ' + byNode + ' (' + lot('windows_memory_physical_total_bytes{' + s + '}') + '))');
+          + '(max ' + byNode + ' (' + lot('windows_memory_physical_total_bytes{' + s + '}') + '))');
   // physical vs virtual via DMI product_name (QEMU/KVM/VMware patterns).
   // Windows has no DMI metric — infer physical from a real CPU temp sensor
   // (OhmGraphite/LibreHardwareMonitor exposes none inside VMs); boxes without
   // sensors stay blank rather than guessing.
   local qKind =
     tq(c, '(label_replace(label_replace(sum by (' + cl + ', ' + nl + ', product_name) (' + lot('node_dmi_info{' + s + '}') + '), "kind", "physical", "", ""), "kind", "virtual", "product_name", "Standard PC.*|KVM.*|.*[Vv]irtual.*|VMware.*|Bochs.*")) or '
-        + '(label_replace(group by (' + cl + ', ' + nl + ') (' + lot('ohm_cpu_celsius{' + s + '}') + ' and on(' + cl + ', ' + nl + ') ' + lot('windows_os_info{' + s + '}') + '), "kind", "physical", "", ""))');
+          + '(label_replace(group by (' + cl + ', ' + nl + ') (' + lot('ohm_cpu_celsius{' + s + '}') + ' and on(' + cl + ', ' + nl + ') ' + lot('windows_os_info{' + s + '}') + '), "kind", "physical", "", ""))');
   // vendor + product from DMI ("LENOVO Legion 5 Pro 16ACH6H"); firmware
   // garbage values fall back from product_version to product_name. Windows
   // has no DMI metric — blank there.
   local dmiGarbage = 'Default string|System Version|System Product Name|To Be Filled.*|';
   local qDevice =
     tq(c, '(sum by (' + cl + ', ' + nl + ', device) (label_join((label_replace(' + lot('node_dmi_info{' + s + ', product_version!~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_version", "(.+)")) or (label_replace(' + lot('node_dmi_info{' + s + ', product_version=~"' + dmiGarbage + '"}') + ', "dev", "$1", "product_name", "(.+)")), "device", " ", "system_vendor", "dev"))) or '
-        + '(sum by (' + cl + ', ' + nl + ', device) (label_join(' + lot('windows_device_info{' + s + '}') + ', "device", " ", "vendor", "product")))');
+          + '(sum by (' + cl + ', ' + nl + ', device) (label_join(' + lot('windows_device_info{' + s + '}') + ', "device", " ", "vendor", "product")))');
   // range queries feeding the sparkline cells (timeSeriesTable turns each
   // series into a row with a Trend field, joined on the node column).
   local rq(expr) = query.prometheus.new(c.datasource, expr);
@@ -285,28 +288,29 @@ local serversTable(c, capacity=false) =
   )
   + panel.table.withTransformations(
     (if capacity then [{ id: 'timeSeriesTable', options: {} }] else []) + [
-    { id: 'labelsToFields' },
-    // the cluster label is deliberately NOT included: no Cluster column (in any
-    // join-suffixed variant) reaches the table — drill links carry the cluster
-    // via the dashboard variable instead.
-    { id: 'filterFieldsByName', options: { include: { names:
-      [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-      + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else [cl]) } } },
-    { id: 'seriesToColumns', options: { byField: nl } },
-    { id: 'organize', options:
-      if capacity then {
-        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true, 'Value #J': true },
-        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
-        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
-      } else {
-        excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-        // every field needs an explicit index — unindexed ones (the excluded
-        // join-suffixed cluster copies) otherwise take the low slots and push
-        // the real Cluster column out of first place
-        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7, 'Value #A': 8, 'Value #E': 9, [cl + ' 2']: 10, [cl + ' 3']: 11, [cl + ' 4']: 12, [cl + ' 5']: 13 },
-        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
-      } },
-  ])
+      { id: 'labelsToFields' },
+      // the cluster label is deliberately NOT included: no Cluster column (in any
+      // join-suffixed variant) reaches the table — drill links carry the cluster
+      // via the dashboard variable instead.
+      { id: 'filterFieldsByName', options: { include: { names:
+        [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
+        + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else [cl]) } } },
+      { id: 'seriesToColumns', options: { byField: nl } },
+      { id: 'organize', options:
+        if capacity then {
+          excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true, 'Value #J': true },
+          indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
+          renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
+        } else {
+          excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
+          // every field needs an explicit index — unindexed ones (the excluded
+          // join-suffixed cluster copies) otherwise take the low slots and push
+          // the real Cluster column out of first place
+          indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7, 'Value #A': 8, 'Value #E': 9, [cl + ' 2']: 10, [cl + ' 3']: 11, [cl + ' 4']: 12, [cl + ' 5']: 13 },
+          renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
+        } },
+    ]
+  )
   + panel.table.withOverrides(
     // drill link: cluster comes from the dashboard variable (single value on the
     // detail board; on the multi-cluster overview "All" still resolves the node
@@ -329,7 +333,9 @@ local serversTable(c, capacity=false) =
            { id: 'min', value: 0 },
            { id: 'color', value: { mode: 'thresholds' } },
            { id: 'thresholds', value: { mode: 'absolute', steps: [
-             { color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 },
+             { color: 'green', value: null },
+             { color: 'orange', value: 1 },
+             { color: 'red', value: 5 },
            ] } },
          ]),
          ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
@@ -371,10 +377,10 @@ local partitionsTable(c) =
   panel.table.new('Partitions')
   + panel.table.withTargets([
     tq(c, '(' + diskify('label_join(last_over_time(node_filesystem_size_bytes{' + fsSel + '}[$__range]), ' + joinKey + ')') + ') or '
-        + '(' + diskify('label_join(' + winRelabel('last_over_time(windows_logical_disk_size_bytes{' + winSel + '}[$__range])') + ', ' + joinKey + ')') + ')'),
+          + '(' + diskify('label_join(' + winRelabel('last_over_time(windows_logical_disk_size_bytes{' + winSel + '}[$__range])') + ', ' + joinKey + ')') + ')'),
     query.prometheus.new(c.datasource,
-      'max by (key) ((label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
-      + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + ')))'),
+                         'max by (key) ((label_join((1 - node_filesystem_avail_bytes{' + fsSel + '} / node_filesystem_size_bytes{' + fsSel + '}) * 100, ' + joinKey + ')) or '
+                         + '(label_join(' + winRelabel('(1 - windows_logical_disk_free_bytes{' + winSel + '} / windows_logical_disk_size_bytes{' + winSel + '}) * 100') + ', ' + joinKey + ')))'),
   ])
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
@@ -450,22 +456,22 @@ local cpusTable(c) =
   panel.table.new('CPUs')
   + panel.table.withTargets([
     tq(c, '(count by (' + nl + ') (last_over_time(node_cpu_seconds_total{mode="idle", ' + s + '}[$__range]))) or '
-        + '(count by (' + nl + ') (last_over_time(windows_cpu_time_total{mode="idle", ' + s + '}[$__range])))'),
+          + '(count by (' + nl + ') (last_over_time(windows_cpu_time_total{mode="idle", ' + s + '}[$__range])))'),
     tq(c, '(sum by (' + nl + ', model_name) (last_over_time(node_cpu_info{model_name!="", ' + s + '}[$__range]))) or '
-        + '(sum by (' + nl + ', model_name) (label_replace(last_over_time(ohm_cpu_hertz{' + s + '}[$__range]), "model_name", "$1", "hardware", "(.+)")))'),
+          + '(sum by (' + nl + ', model_name) (label_replace(last_over_time(ohm_cpu_hertz{' + s + '}[$__range]), "model_name", "$1", "hardware", "(.+)")))'),
     query.prometheus.new(c.datasource,
-      '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
-      + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
+                         '(max by (' + nl + ') (node_hwmon_temp_celsius{chip=~"' + cpuChips + '", ' + s + '})) or '
+                         + '(max by (' + nl + ') (ohm_cpu_celsius{' + s + '}))'),
     // windows_exporter has no arch label; the fleet's Windows boxes are all
     // x86_64, so stamp it.
     tq(c, '(sum by (' + nl + ', machine) (last_over_time(node_uname_info{' + s + '}[$__range]))) or '
-        + '(sum by (' + nl + ', machine) (label_replace(last_over_time(windows_os_info{' + s + '}[$__range]), "machine", "x86_64", "", "")))'),
+          + '(sum by (' + nl + ', machine) (label_replace(last_over_time(windows_os_info{' + s + '}[$__range]), "machine", "x86_64", "", "")))'),
     query.prometheus.new(c.datasource,
-      '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
-      + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
+                         '(max by (' + nl + ') (node_cpu_scaling_frequency_hertz{' + s + '})) or '
+                         + '(max by (' + nl + ') (ohm_cpu_hertz{' + s + '}))'),
     query.prometheus.new(c.datasource,
-      '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
-      + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
+                         '((1 - avg by (' + nl + ') (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100) or '
+                         + '((1 - avg by (' + nl + ') (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval]))) * 100)'),
     // G: active cpufreq scaling governor (linux only; windows rows stay blank)
     tq(c, 'count by (' + nl + ', governor) (last_over_time(node_cpu_scaling_governor{' + s + '}[$__range]) == 1)'),
   ])
@@ -508,8 +514,8 @@ local batteriesTable(c) =
     tq(c, '(' + lotr('node_power_supply_capacity', bat) + ') or (' + lotr('ohm_battery_level_percent', 'sensor="Charge Level"') + ')'),
     // B: health % (full vs design)
     tq(c, '(100 * (' + lotr('node_power_supply_energy_full', bat) + ') / (' + lotr('node_power_supply_energy_full_design', bat) + ')) or '
-        + '(100 * (' + lotr('node_power_supply_charge_full', bat) + ') / (' + lotr('node_power_supply_charge_full_design', bat) + ')) or '
-        + '(100 - (' + lotr('ohm_battery_level_percent', 'sensor="Degradation Level"') + '))'),
+          + '(100 * (' + lotr('node_power_supply_charge_full', bat) + ') / (' + lotr('node_power_supply_charge_full_design', bat) + ')) or '
+          + '(100 - (' + lotr('ohm_battery_level_percent', 'sensor="Degradation Level"') + '))'),
     // C: full-charge capacity (Wh; Ah-only linux batteries stay blank)
     tq(c, '(' + lotr('node_power_supply_energy_full', bat) + ') or (' + lotr('ohm_battery_watt_hours', 'sensor="Fully-Charged Capacity"') + ')'),
     // D: design capacity (Wh)
@@ -518,8 +524,8 @@ local batteriesTable(c) =
     tq(c, lotr('node_power_supply_cyclecount', bat)),
     // F: draw/charge rate sparkline
     query.prometheus.new(c.datasource,
-      '(max by (' + nl + ') (node_power_supply_power_watt{' + bat + ', ' + s + '})) or '
-      + '(max by (' + nl + ') (ohm_battery_watts{sensor="Charge/Discharge Rate", ' + s + '}))'),
+                         '(max by (' + nl + ') (node_power_supply_power_watt{' + bat + ', ' + s + '})) or '
+                         + '(max by (' + nl + ') (ohm_battery_watts{sensor="Charge/Discharge Rate", ' + s + '}))'),
     // G: on AC (linux only)
     tq(c, 'max by (' + nl + ') (last_over_time(node_power_supply_online{power_supply=~"AC.*|ADP.*", ' + s + '}[$__range]))'),
   ])
@@ -536,18 +542,27 @@ local batteriesTable(c) =
   ])
   + panel.table.withOverrides([
     ov('Charge', [
-      { id: 'unit', value: 'percent' }, { id: 'custom.width', value: 180 },
-      { id: 'min', value: 0 }, { id: 'max', value: 100 }, { id: 'decimals', value: 0 },
+      { id: 'unit', value: 'percent' },
+      { id: 'custom.width', value: 180 },
+      { id: 'min', value: 0 },
+      { id: 'max', value: 100 },
+      { id: 'decimals', value: 0 },
       { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
       { id: 'thresholds', value: { mode: 'absolute', steps: [
-        { color: 'red', value: null }, { color: 'yellow', value: 20 }, { color: 'green', value: 50 },
+        { color: 'red', value: null },
+        { color: 'yellow', value: 20 },
+        { color: 'green', value: 50 },
       ] } },
     ]),
     ov('Health', [
-      { id: 'unit', value: 'percent' }, { id: 'custom.width', value: 90 }, { id: 'decimals', value: 0 },
+      { id: 'unit', value: 'percent' },
+      { id: 'custom.width', value: 90 },
+      { id: 'decimals', value: 0 },
       { id: 'custom.cellOptions', value: { type: 'color-text' } },
       { id: 'thresholds', value: { mode: 'absolute', steps: [
-        { color: 'red', value: null }, { color: 'yellow', value: 70 }, { color: 'green', value: 85 },
+        { color: 'red', value: null },
+        { color: 'yellow', value: 70 },
+        { color: 'green', value: 85 },
       ] } },
     ]),
     ov('Capacity', [{ id: 'unit', value: 'watth' }, { id: 'custom.width', value: 100 }, { id: 'decimals', value: 1 }]),
@@ -561,7 +576,8 @@ local batteriesTable(c) =
     ov('AC', [
       { id: 'custom.width', value: 90 },
       { id: 'mappings', value: [{ type: 'value', options: {
-        '1': { text: 'AC', color: 'green' }, '0': { text: 'battery', color: 'orange' },
+        '1': { text: 'AC', color: 'green' },
+        '0': { text: 'battery', color: 'orange' },
       } }] },
       { id: 'custom.cellOptions', value: { type: 'color-text' } },
     ]),
@@ -578,8 +594,8 @@ local diskTempsTable(c) =
   panel.table.new('Disks')
   + panel.table.withTargets([
     query.prometheus.new(c.datasource,
-      '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
-      + '(label_replace(max by (' + nl + ', hardware) (ohm_hdd_celsius{sensor="Temperature", ' + s + '}), "disk", "$1", "hardware", "(.+)"))'),
+                         '(label_replace(label_replace(max by (' + nl + ', chip) (node_hwmon_temp_celsius{chip=~"nvme.*|drivetemp.*", sensor="temp1", ' + s + '}), "disk", "$1", "chip", "(.+)"), "disk", "$1", "chip", "nvme_(.+)")) or '
+                         + '(label_replace(max by (' + nl + ', hardware) (ohm_hdd_celsius{sensor="Temperature", ' + s + '}), "disk", "$1", "hardware", "(.+)"))'),
   ])
   + panel.table.withTransformations([
     { id: 'timeSeriesTable', options: {} },
@@ -685,7 +701,9 @@ local storagePie(c) =
       local pctStat(title, expr) =
         stat(title, expr, 'percent')
         + panel.stat.withThresholds([
-          { color: 'green', value: null }, { color: 'yellow', value: 70 }, { color: 'red', value: 90 },
+          { color: 'green', value: null },
+          { color: 'yellow', value: 70 },
+          { color: 'red', value: 90 },
         ]);
 
 
@@ -718,8 +736,13 @@ local storagePie(c) =
                  + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]),
         // env-wide tabs
         alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
+        // the list shows Grafana-managed rules; the table reads the ALERTS
+        // series, which is what a Mimir / Prometheus ruler produces
+        alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c)),
         apps: countTable(
-          c, 'Applications', c.appLabel,
+          c,
+          'Applications',
+          c.appLabel,
           'count(up{' + c.appLabel + '=~".+"' + selComma(c) + '}) by (' + c.appLabel + ')',
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+"' + selComma(c) + '}) by (' + c.appLabel + ')',
           ['App', 'Workloads', 'Alerts']
@@ -763,13 +786,16 @@ local storagePie(c) =
           layout.tabs.new() + layout.tabs.withTabs([
             layout.tabs.tab('Clusters', layout.rows.new() + layout.rows.withRows([clusterRow])),
             layout.tabs.tab('Nodes', layout.rows.new() + layout.rows.withRows([nodeRow])),
-            layout.tabs.tab('Alerts', layout.grid.new() + layout.grid.withItems([grid.item('alerts', 0, 0, 24, 24)])),
+            layout.tabs.tab('Alerts', layout.grid.new() + layout.grid.withItems([
+              grid.item('alerts', 0, 0, 24, 12),
+              grid.item('alertsFiring', 0, 12, 24, 12),
+            ])),
             layout.tabs.tab('Applications', layout.grid.new() + layout.grid.withItems([grid.item('apps', 0, 0, 24, 12)])),
           ])
         )
-      + dashboard.withLinks([
-        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-      ]);
+        + dashboard.withLinks([
+          { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+        ]);
       {
         config: c,
         // expose a dashboards map (uid-keyed) so render-lib can render base boards.
@@ -787,19 +813,21 @@ local storagePie(c) =
       local byNode = 'by (' + cl + ', ' + nl + ')';
       local workload =
         countTable(
-          c, 'Workload', c.appLabel,
+          c,
+          'Workload',
+          c.appLabel,
           'count(up{' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           ['App', 'Pods', 'Alerts']
         );
       local servers = serversTable(c);
       local dash = board(c.uidCluster, c.titleCluster, c.tags + ['env-level'], [dsVar, clusterVar(c)], [
-        { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
-        { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
-      ], asTabs=true)
-      + dashboard.withLinks([
-        { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-      ]);
+                     { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
+                     { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
+                   ], asTabs=true)
+                   + dashboard.withLinks([
+                     { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
+                   ]);
       {
         config: c,
         local fdash = dash + folderOf(c),
@@ -820,7 +848,9 @@ local storagePie(c) =
         signal.new(name, 'prometheus', c.datasource, expr, unit).filteringSelector(s + ', ' + nl + '=~"$instance"').withLegendFormat('{{' + nl + '}}');
       local workload =
         countTable(
-          c, 'Workload', c.appLabel,
+          c,
+          'Workload',
+          c.appLabel,
           'count(up{' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
           ['App', 'Pods', 'Alerts']
@@ -828,47 +858,56 @@ local storagePie(c) =
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
       local dash = board(c.uidClusterDetail, c.titleClusterDetail, c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
-        // servers/cpus/gpus share one height per selection-size bucket.
-        local computeStack(h) = [
-          grid.item('servers', 0, 0, 24, h),
-          grid.item('cpus', 0, h, 24, h),
-          grid.item('gpus', 0, 2 * h, 24, h),
-          grid.item('batteries', 0, 3 * h, 24, h),
-        ];
-        { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), batteries: batteriesTable(c) }, buckets: {
-          n1: computeStack(4), n23: computeStack(6), n46: computeStack(9), n79: computeStack(11), rest: computeStack(13),
-        } },
-        { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
-          grid.item('nics', 0, 0, 24, 10),
-          grid.item('netRx', 0, 10, 12, 8),
-          grid.item('netTx', 12, 10, 12, 8),
-        ], shortItems: [
-          grid.item('nics', 0, 0, 24, 6),
-          grid.item('netRx', 0, 6, 12, 8),
-          grid.item('netTx', 12, 6, 12, 8),
-        ] },
-        // explicit items: tall partitions table, physical disk temps, then
-        // per-node Used/Free pies (repeated over the hidden $instance
-        // variable, 6 per row).
-        // partitions/disks heights step with the node-count buckets like the
-        // Compute stack (partition rows scale ~4-5 per node).
-        local storageStack(ph, dh) = [
-          grid.item('partitions', 0, 0, 24, ph),
-          grid.item('disks', 0, ph, 24, dh),
-          grid.item('storagePie', 0, ph + dh, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
-        ];
-        { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, buckets: {
-          n1: storageStack(4, 4), n23: storageStack(6, 6), n46: storageStack(9, 9), n79: storageStack(11, 11), rest: storageStack(13, 13),
-        } },
-        { title: 'Alerts', width: 24, height: 10, elements: {
-          alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
-          alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"'),
-        } },
-        { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
-      ], asTabs=true)
-      + dashboard.withLinks(clusterTraversalLinks + [
-        { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
-      ]);
+                     // servers/cpus/gpus share one height per selection-size bucket.
+                     local computeStack(h) = [
+                       grid.item('servers', 0, 0, 24, h),
+                       grid.item('cpus', 0, h, 24, h),
+                       grid.item('gpus', 0, 2 * h, 24, h),
+                       grid.item('batteries', 0, 3 * h, 24, h),
+                     ];
+                     { title: 'Compute', elements: { servers: serversTable(c, capacity=true), cpus: cpusTable(c), gpus: gpusTable(c), batteries: batteriesTable(c) }, buckets: {
+                       n1: computeStack(4),
+                       n23: computeStack(6),
+                       n46: computeStack(9),
+                       n79: computeStack(11),
+                       rest: computeStack(13),
+                     } },
+                     { title: 'Network', elements: { nics: nicsTable(c), netRx: netRx, netTx: netTx }, items: [
+                       grid.item('nics', 0, 0, 24, 10),
+                       grid.item('netRx', 0, 10, 12, 8),
+                       grid.item('netTx', 12, 10, 12, 8),
+                     ], shortItems: [
+                       grid.item('nics', 0, 0, 24, 6),
+                       grid.item('netRx', 0, 6, 12, 8),
+                       grid.item('netTx', 12, 6, 12, 8),
+                     ] },
+                     // explicit items: tall partitions table, physical disk temps, then
+                     // per-node Used/Free pies (repeated over the hidden $instance
+                     // variable, 6 per row).
+                     // partitions/disks heights step with the node-count buckets like the
+                     // Compute stack (partition rows scale ~4-5 per node).
+                     local storageStack(ph, dh) = [
+                       grid.item('partitions', 0, 0, 24, ph),
+                       grid.item('disks', 0, ph, 24, dh),
+                       grid.item('storagePie', 0, ph + dh, 4, 5) + { spec+: { repeat: { mode: 'variable', value: 'instance', direction: 'h', maxPerRow: 6 } } },
+                     ];
+                     { title: 'Storage', elements: { partitions: partitionsTable(c), disks: diskTempsTable(c), storagePie: storagePie(c) }, buckets: {
+                       n1: storageStack(4, 4),
+                       n23: storageStack(6, 6),
+                       n46: storageStack(9, 9),
+                       n79: storageStack(11, 11),
+                       rest: storageStack(13, 13),
+                     } },
+                     { title: 'Alerts', width: 24, height: 10, elements: {
+                       alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
+                       alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c)),
+                       alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"'),
+                     } },
+                     { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
+                   ], asTabs=true)
+                   + dashboard.withLinks(clusterTraversalLinks + [
+                     { title: 'Kubernetes cluster board', type: 'link', icon: 'dashboard', url: '/d/kube-cluster?var-cluster=${cluster}', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'kube-state-metrics view of the selected cluster', tags: [] },
+                   ]);
       {
         config: c,
         local fdash = dash + folderOf(c),
