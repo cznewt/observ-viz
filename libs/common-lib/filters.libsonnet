@@ -10,10 +10,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
 local get(cfg, key, default) = if std.objectHas(cfg, key) then cfg[key] else default;
 
 {
-  // 'job=~"$job", namespace=~"$namespace", pod=~"$pod"'
+  // 'job=~"$job", namespace=~"$namespace", pod=~"$pod"'. An empty base selector
+  // drops out rather than leaving a leading comma inside the braces.
   selector(cfg)::
-    std.join(', ', [get(cfg, 'selector', 'job=~"$job"')]
-                   + [l + '=~"$' + l + '"' for l in get(cfg, 'varLabels', [])]),
+    std.join(', ', std.filter(function(p) p != '',
+                              [get(cfg, 'selector', 'job=~"$job"')]
+                              + [l + '=~"$' + l + '"' for l in get(cfg, 'varLabels', [])])),
 
   // '{{namespace}} / {{pod}}', or null for Grafana's default legend.
   legendFormat(cfg)::

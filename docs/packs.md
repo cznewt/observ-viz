@@ -99,6 +99,17 @@ instrumentation with the right shape:
 | `analysis.red` | request counter, how failures are marked, latency histogram, the dimension to group by | OpenTelemetry HTTP, Prometheus client, ingress-nginx, Django, Grafana, API server, Tempo service graph |
 | `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
 | `analysis.anomaly` | the series to watch | process, requests |
+| `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, container |
+| `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (kubernetes-mixin rules), Pyrra |
+| `analysis.capacity` | one quantity that shrinks | filesystems, node memory, certificates |
+
+Golden signals is RED plus the one RED leaves out: saturation, the leading
+signal that latency and errors follow. Burn rate answers whether an SLO is
+worth waking someone for, with the Google SRE workbook's four
+multi-window pairs (14.4 / 6 / 3 / 1, each long window confirmed by a short
+one). Capacity answers when something runs out: its "time left" carries a
+trailing `> 0`, which is a filter rather than a comparison, so a quantity that
+is flat or growing drops out of the board instead of reading as infinite.
 
 The same idea appears inside a pack where one thing reports two ways:
 `networking.kong` takes `implementation: 'prometheus' | 'prometheus2' |

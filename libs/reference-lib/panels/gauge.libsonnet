@@ -25,15 +25,52 @@ function(config) {
     + g.panel.gauge.withThresholds(thrSteps)
     + g.panel.gauge.withOptions(options),
 
+  // a gauge with a different value calculation / text mode
+  local valueGauge(label, reduceOptions, options={}) =
+    g.panel.gauge.new(label)
+    + g.panel.gauge.withTargets([td(), td(), td()])
+    + g.panel.gauge.withMin(0) + g.panel.gauge.withMax(100)
+    + g.panel.gauge.withThresholds(thrSteps)
+    + g.panel.gauge.withOptions({ reduceOptions: reduceOptions } + options),
+
   local groups = [
+    // the standard options: where the scale starts and ends, and what the
+    // colours mean along it
     { title: 'Thresholds', panels: {
-      base: gauge('Green / Yellow / Red'),
-      wide: gauge('Min 0 / Max 100', {}, 0, 100),
+      base: gauge('Green / yellow / red'),
+      percentage: gauge('Thresholds by percentage')
+                  + g.panel.gauge.withThresholds([
+                    { color: 'green', value: null },
+                    { color: 'yellow', value: 50 },
+                    { color: 'red', value: 80 },
+                  ], 'percentage'),
+      unit: gauge('Unit and decimals')
+            + g.panel.gauge.withUnit('percent')
+            + g.panel.gauge.withDecimals(1),
     } },
-    { title: 'Markers', panels: {
+    // what the panel draws around the value
+    { title: 'Markers and labels', panels: {
       markers: gauge('Markers on', { showThresholdMarkers: true, showThresholdLabels: false }),
       'no-markers': gauge('Markers off', { showThresholdMarkers: false, showThresholdLabels: false }),
-      labels: gauge('Labels on', { showThresholdMarkers: true, showThresholdLabels: true }),
+      labels: gauge('Marker labels on', { showThresholdMarkers: true, showThresholdLabels: true }),
+    } },
+    // the neutral point the bar grows from: 0 by default, useful at the middle
+    // of a range that can go both ways
+    { title: 'Neutral value', panels: {
+      'neutral-zero': gauge('From zero', {}, -100, 100),
+      'neutral-mid': gauge('From the middle', { neutral: 0 }, -100, 100),
+    } },
+    // one panel, many series: reduce them to one number or show them all
+    { title: 'Value options', panels: {
+      last: valueGauge('Last value', { calcs: ['lastNotNull'], values: false }),
+      mean: valueGauge('Mean', { calcs: ['mean'], values: false }),
+      all: valueGauge('All values', { calcs: ['lastNotNull'], values: true, limit: 6 }),
+    } },
+    // how big the gauges are allowed to get, and which text they carry
+    { title: 'Sizing and text', panels: {
+      auto: valueGauge('Auto sizing', { calcs: ['lastNotNull'], values: false }, { sizing: 'auto' }),
+      manual: valueGauge('Manual sizing', { calcs: ['lastNotNull'], values: false }, { sizing: 'manual', minVizWidth: 120, minVizHeight: 120 }),
+      textsize: valueGauge('Bigger value text', { calcs: ['lastNotNull'], values: false }, { text: { valueSize: 40, titleSize: 16 } }),
     } },
   ],
 

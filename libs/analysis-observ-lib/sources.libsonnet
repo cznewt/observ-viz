@@ -101,6 +101,111 @@
     },
   },
 
+  // A burn-rate source is either windows of recorded burn rate, or an
+  // availability and the objective it is measured against.
+  burnRate: {
+    apiserver: {
+      title: 'Kubernetes API server',
+      kind: 'windows',
+      prefix: 'apiserver_request:burnrate',
+      windows: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
+      groupBy: ['verb'],
+      description: 'The kubernetes-mixin records these seven windows for the API server\'s own SLO, split by read and write.',
+    },
+    pyrra: {
+      title: 'Pyrra SLOs',
+      kind: 'budget',
+      availability: 'pyrra_availability',
+      objective: 'pyrra_objective',
+      groupBy: ['slo'],
+      description: 'Pyrra publishes the availability and the objective per SLO; the burn and the budget left follow from the two.',
+    },
+  },
+
+  // A golden-signals source names the four: latency, traffic, errors and - the
+  // one RED leaves out - saturation.
+  golden: {
+    apiserver: {
+      title: 'Kubernetes API server',
+      groupBy: ['verb'],
+      overviewSignals: ['latency', 'traffic', 'errors'],
+      description: 'Saturation here is the flowcontrol queue: requests waiting for a seat, which is what the API server does instead of failing when it is full.',
+      signals: {
+        latency: { title: 'Latency p99', unit: 's', expr: 'histogram_quantile(0.99, sum by (le, verb) (rate(apiserver_request_duration_seconds_bucket{%(queriesSelector)s, verb!~"WATCH|CONNECT"}[$__rate_interval])))' },
+        traffic: { title: 'Requests', unit: 'reqps', expr: 'sum by (verb) (rate(apiserver_request_total{%(queriesSelector)s}[$__rate_interval]))' },
+        errors: { title: 'Error ratio', unit: 'percentunit', expr: 'sum by (verb) (rate(apiserver_request_total{%(queriesSelector)s, code=~"5.."}[$__rate_interval])) / clamp_min(sum by (verb) (rate(apiserver_request_total{%(queriesSelector)s}[$__rate_interval])), 1e-9)' },
+        // flowcontrol, not the old concurrency limit: a request that cannot get
+        // a seat waits in a queue, and that queue is the saturation signal.
+        // It carries no verb label, so it is not a column of the table.
+        saturation: { title: 'Requests queued for a seat', unit: 'short', expr: 'sum (apiserver_flowcontrol_current_inqueue_requests)', description: 'Anything above zero means the API server is shedding concurrency: requests are waiting for a seat in their priority level. It carries neither verb nor the board\'s filters - flowcontrol queues by priority level, not by verb.' },
+      },
+    },
+    node: {
+      title: 'Linux node',
+      groupBy: ['instance'],
+      description: 'Traffic and errors come from the network, saturation from load against the CPUs it has - the number that leads the rest.',
+      signals: {
+        latency: { title: 'Disk IO latency', unit: 's', expr: 'sum by (instance) (rate(node_disk_io_time_weighted_seconds_total{%(queriesSelector)s}[$__rate_interval]))' },
+        traffic: { title: 'Network throughput', unit: 'Bps', expr: 'sum by (instance) (rate(node_network_receive_bytes_total{%(queriesSelector)s, device!~"lo|veth.*"}[$__rate_interval]) + rate(node_network_transmit_bytes_total{%(queriesSelector)s, device!~"lo|veth.*"}[$__rate_interval]))' },
+        errors: { title: 'Network errors and drops', unit: 'pps', expr: 'sum by (instance) (rate(node_network_receive_errs_total{%(queriesSelector)s}[$__rate_interval]) + rate(node_network_receive_drop_total{%(queriesSelector)s}[$__rate_interval]))' },
+        saturation: { title: 'Load per CPU', unit: 'percentunit', expr: 'sum by (instance) (node_load1{%(queriesSelector)s}) / clamp_min(count by (instance) (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"}), 1)' },
+      },
+    },
+    ingressNginx: {
+      title: 'Ingress NGINX',
+      groupBy: ['ingress'],
+      description: 'Saturation is the share of configured upstream connections in use, so it rises before the latency does.',
+      signals: {
+        latency: { title: 'Latency p99', unit: 's', expr: 'histogram_quantile(0.99, sum by (le, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))' },
+        traffic: { title: 'Requests', unit: 'reqps', expr: 'sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))' },
+        errors: { title: 'Error ratio', unit: 'percentunit', expr: 'sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s, status=~"5.."}[$__rate_interval])) / clamp_min(sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval])), 1e-9)' },
+        saturation: { title: 'Active connections', unit: 'short', expr: 'sum (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s, state="active"})' },
+      },
+    },
+    container: {
+      title: 'Container',
+      groupBy: ['namespace', 'pod'],
+      description: 'Saturation is memory against the limit the container was given: the number that decides whether it is about to be killed.',
+      signals: {
+        latency: { title: 'CPU throttled', unit: 'percentunit', expr: 'sum by (namespace, pod) (rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s, container!=""}[$__rate_interval])) / clamp_min(sum by (namespace, pod) (rate(container_cpu_cfs_periods_total{%(queriesSelector)s, container!=""}[$__rate_interval])), 1e-9)' },
+        traffic: { title: 'CPU used', unit: 'short', expr: 'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{%(queriesSelector)s, container!=""}[$__rate_interval]))' },
+        errors: { title: 'Container restarts', unit: 'short', expr: 'sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total{%(queriesSelector)s}[$__rate_interval]))' },
+        saturation: { title: 'Memory against limit', unit: 'percentunit', expr: 'sum by (namespace, pod) (container_memory_working_set_bytes{%(queriesSelector)s, container!=""}) / clamp_min(sum by (namespace, pod) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"}), 1)' },
+      },
+    },
+  },
+
+  // A capacity source names one quantity that shrinks and what it is called.
+  capacity: {
+    filesystem: {
+      title: 'Filesystems',
+      // nsfs is the big one on a Kubernetes node: every container namespace
+      // shows up as a zero-byte "filesystem" and would otherwise fill the
+      // board with mounts that cannot run out of anything
+      remaining: 'node_filesystem_avail_bytes{%(queriesSelector)s, fstype!~"tmpfs|ramfs|overlay|squashfs|nsfs|autofs|iso9660|fuse.*"}',
+      remainingTitle: 'Free space',
+      unit: 'bytes',
+      groupBy: ['instance', 'mountpoint'],
+      description: 'Free bytes per mounted filesystem, minus the ones that live in memory and cannot fill up the way a disk does.',
+    },
+    memory: {
+      title: 'Node memory',
+      remaining: 'node_memory_MemAvailable_bytes{%(queriesSelector)s}',
+      remainingTitle: 'Available memory',
+      unit: 'bytes',
+      groupBy: ['instance'],
+      description: 'Memory the kernel says is available - which is not free memory, it counts what the cache would give back.',
+    },
+    certificates: {
+      title: 'Certificates',
+      remaining: 'certmanager_certificate_expiration_timestamp_seconds{%(queriesSelector)s} - time()',
+      remainingTitle: 'Certificate life left',
+      unit: 's',
+      groupBy: ['namespace', 'name'],
+      description: 'Seconds until each cert-manager certificate expires. This one shrinks by a second per second, so the prediction is exact rather than a trend.',
+    },
+  },
+
   // A USE source names the four resources and how each one is measured. The
   // node profile is the node_exporter one the node mixin uses; the container
   // profile reads the same four from cAdvisor.

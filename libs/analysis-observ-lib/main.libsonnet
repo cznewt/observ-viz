@@ -10,6 +10,12 @@
   sources: import 'libs/analysis-observ-lib/sources.libsonnet',
   // anomaly: any series against its own past, as a board, a fragment or a rule group
   anomaly: import 'libs/analysis-observ-lib/anomaly.libsonnet',
+  // the four golden signals, RED's three plus saturation
+  golden: import 'libs/analysis-observ-lib/golden.libsonnet',
+  // how fast an SLO spends its error budget
+  burnRate: import 'libs/analysis-observ-lib/burnrate.libsonnet',
+  // when a shrinking quantity runs out
+  capacity: import 'libs/analysis-observ-lib/capacity.libsonnet',
   red: import 'libs/analysis-observ-lib/red.libsonnet',
   use: import 'libs/analysis-observ-lib/use.libsonnet',
 }
