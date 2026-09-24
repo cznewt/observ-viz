@@ -4,20 +4,21 @@
 local g = import 'g.libsonnet';
 local util = import 'libs/reference-lib/_util.libsonnet';
 
-// [ pack, uid-suffix, title, overview table config ]
+// [ pack, uid-suffix, title, overview table config, folder key (default
+// 'deployments' - see reference-lib/config.libsonnet) ]
 // `overviewSignals` are the columns of the Overview tab's instances table and
 // `instanceLabel` the label its rows are keyed by (a pod, not a scrape target,
 // for the Kubernetes packs).
 local boards = [
   [g.libs.system.linux, 'linux', 'Linux', {
     overviewSignals: ['cpuBusy', 'memUsedRatio', 'load1', 'fsUsed', 'uptime'],
-  }],
+  }, 'operatingSystems'],
   [g.libs.system.docker, 'docker', 'Docker', {
     overviewSignals: ['cpu', 'memUsage', 'netRx', 'netTx'],
   }],
   [g.libs.system.windows, 'windows', 'Windows', {
     overviewSignals: ['cpuBusy', 'memUsedRatio', 'diskUsedRatio', 'processes', 'uptime'],
-  }],
+  }, 'operatingSystems'],
   [g.libs.kubernetes.pod, 'kube-pod', 'Kubernetes pod', {
     // the pack aggregates by (pod), so that is what a row can be keyed by
     overviewSignals: ['cpuUsage', 'memWorkingSet', 'restarts', 'containersReady', 'cpuLimits'],
@@ -46,7 +47,7 @@ local boards = [
           datasource: $._config.datasource,
           tabbed: true,
         } + b[3]).grafana.dashboard,
-        $._config.folders.deployments,
+        $._config.folders[if std.length(b) > 4 then b[4] else 'deployments'],
         $._config.tags,
       )
     for b in boards
