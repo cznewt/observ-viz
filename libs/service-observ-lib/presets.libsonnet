@@ -59,7 +59,7 @@ local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length
 local entry(c) = preset({
   app: c.app,
   whitebox: c.whitebox,
-  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app) + ' service',
+  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app),
   dashboardTags: ['service', c.app, 'app-level'] + c.tags,
   kubernetes: { workload: c.workload },
   ingress: { service: c.service },

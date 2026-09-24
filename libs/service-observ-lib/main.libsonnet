@@ -139,7 +139,8 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local plat(k, v) = v + def(k, {});
     local cfg = base {
       uid: def('uid', 'observ-viz-svc-' + app),
-      dashboardTitle: def('dashboardTitle', cap(app) + ' service'),
+      // the folder says these are services; the board is named for the app
+      dashboardTitle: def('dashboardTitle', cap(app)),
       primaryTabTitle: def('primaryTabTitle', cap(app)),
       dashboardTags: def('dashboardTags', ['service', app, 'app-level']),
       description: def('description', cap(app) + ' as a service, wherever it runs: its own metrics first, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.'),
