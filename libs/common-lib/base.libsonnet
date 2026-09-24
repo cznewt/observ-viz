@@ -37,12 +37,24 @@ local defaults = {
   uidHome: 'base-home',
   uidCluster: 'base-cluster',
   uidClusterDetail: 'cluster-detail',
+  // board titles — the base layer of a site, named after its level
+  titleHome: 'Base / Home',
+  titleCluster: 'Base / Clusters',
+  titleClusterDetail: 'Base / Cluster',
+  // Grafana folder the base boards name themselves (null leaves the folder to
+  // the consumer, e.g. a monitor-tools config's grafanaDashboardFolder)
+  folder: { uid: 'base', title: 'Base' },
   nodeUid: 'compute-linux-overview',  // per-node board for Linux node drill-through
   windowsNodeUid: 'compute-windows-overview',  // per-node board for Windows node drill-through
   tags: ['base'],
 };
 
 // ---- helpers ----
+// the folder a base board carries in its own metadata (config.folder)
+local folderOf(c) =
+  if std.objectHas(c, 'folder') && c.folder != null
+  then dashboard.withFolder(c.folder.uid, if std.objectHas(c.folder, 'title') then c.folder.title else c.folder.uid)
+  else {};
 local selBrace(c) = '{' + c.selector + '}';
 local selComma(c) = if c.selector != '' then ', ' + c.selector else '';
 local clComma(c) = c.selector + (if c.selector != '' then ', ' else '') + c.clusterLabel + '=~"$cluster"';
@@ -742,7 +754,7 @@ local storagePie(c) =
         + { spec+: { repeat: { mode: 'variable', value: 'instance' } } };
 
       local dash =
-        dashboard.new('Home Dashboard')
+        dashboard.new(c.titleHome)
         + dashboard.withUid(c.uidHome)
         + dashboard.withTags(c.tags + ['env-level'])
         + dashboard.withVariables([dsVar, clusterVar(c, true), instanceVar(c)])
@@ -761,7 +773,8 @@ local storagePie(c) =
       {
         config: c,
         // expose a dashboards map (uid-keyed) so render-lib can render base boards.
-        grafana: { dashboard: dash, dashboards: { [c.uidHome + '.json']: dash } },
+        local fdash = dash + folderOf(c),
+        grafana: { dashboard: fdash, dashboards: { [c.uidHome + '.json']: fdash } },
       },
   },
 
@@ -780,7 +793,7 @@ local storagePie(c) =
           ['App', 'Pods', 'Alerts']
         );
       local servers = serversTable(c);
-      local dash = board(c.uidCluster, 'Clusters Overview', c.tags + ['env-level'], [dsVar, clusterVar(c)], [
+      local dash = board(c.uidCluster, c.titleCluster, c.tags + ['env-level'], [dsVar, clusterVar(c)], [
         { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
         { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
       ], asTabs=true)
@@ -789,7 +802,8 @@ local storagePie(c) =
       ]);
       {
         config: c,
-        grafana: { dashboard: dash, dashboards: { [c.uidCluster + '.json']: dash } },
+        local fdash = dash + folderOf(c),
+        grafana: { dashboard: fdash, dashboards: { [c.uidCluster + '.json']: fdash } },
       },
   },
 
@@ -813,7 +827,7 @@ local storagePie(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local dash = board(c.uidClusterDetail, 'Cluster Detail', c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
+      local dash = board(c.uidClusterDetail, c.titleClusterDetail, c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
         // servers/cpus/gpus share one height per selection-size bucket.
         local computeStack(h) = [
           grid.item('servers', 0, 0, 24, h),
@@ -857,7 +871,8 @@ local storagePie(c) =
       ]);
       {
         config: c,
-        grafana: { dashboard: dash, dashboards: { [c.uidClusterDetail + '.json']: dash } },
+        local fdash = dash + folderOf(c),
+        grafana: { dashboard: fdash, dashboards: { [c.uidClusterDetail + '.json']: fdash } },
         prometheus: {
           alerts: [],
           // materializes the per-cluster node count (6h retention window, same
