@@ -11,6 +11,7 @@ local redBoards = [
   ['otel-http', 'otelHttpServer'],
   ['prometheus-client', 'prometheusClient'],
   ['ingress-nginx', 'ingressNginx'],
+  ['kong', 'kong'],
   ['django', 'django'],
   ['grafana', 'grafana'],
   ['apiserver', 'apiserver'],

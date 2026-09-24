@@ -80,6 +80,8 @@
     wireguard: import 'libs/wg-easy-observ-lib/main.libsonnet',
     unifi: import 'libs/unifi-observ-lib/main.libsonnet',
     ingressNginx: import 'libs/ingress-nginx-observ-lib/main.libsonnet',
+    // the Kong gateway, from the Prometheus plugin or OpenTelemetry
+    kong: import 'libs/kong-observ-lib/main.libsonnet',
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',

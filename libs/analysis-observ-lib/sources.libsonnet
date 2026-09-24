@@ -32,6 +32,14 @@
       groupBy: ['ingress'],
       description: 'Every request the cluster ingress terminates, as the controller counts them.',
     },
+    kong: {
+      title: 'Kong',
+      counter: 'kong_http_requests_total',
+      bucket: 'kong_request_latency_ms_bucket',
+      errorSelector: 'code=~"5.."',
+      groupBy: ['service', 'route'],
+      description: 'Every request the Kong gateway proxied, as its Prometheus plugin counts them. Point it at http_server_request_duration_seconds_* instead for a Kong exporting OpenTelemetry.',
+    },
     django: {
       title: 'Django',
       counter: 'django_http_responses_total_by_status_total',
@@ -46,7 +54,7 @@
       bucket: 'grafana_http_request_duration_seconds_bucket',
       errorSelector: 'status_code=~"5.."',
       groupBy: ['handler'],
-      description: 'Grafana\'s own HTTP handlers.',
+      description: "Grafana's own HTTP handlers.",
     },
     apiserver: {
       title: 'Kubernetes API server',
@@ -64,7 +72,7 @@
       errorCounter: 'traces_service_graph_request_failed_total',
       bucket: 'traces_service_graph_request_server_seconds_bucket',
       groupBy: ['client', 'server'],
-      description: 'Tempo\'s metrics-generator, counting every edge between two traced services.',
+      description: "Tempo's metrics-generator, counting every edge between two traced services.",
     },
   },
 
@@ -100,7 +108,7 @@
     node: {
       title: 'Nodes (node_exporter)',
       groupBy: ['instance'],
-      description: 'Brendan Gregg\'s USE method over node_exporter: for every resource, how busy it is, how much work is queued, and what is failing.',
+      description: "Brendan Gregg's USE method over node_exporter: for every resource, how busy it is, how much work is queued, and what is failing.",
       resources: {
         CPU: {
           utilisation: { expr: '1 - avg by (%(by)s) (rate(node_cpu_seconds_total{mode="idle", %(sel)s}[$__rate_interval]))', unit: 'percentunit' },

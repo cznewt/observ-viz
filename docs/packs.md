@@ -100,6 +100,12 @@ instrumentation with the right shape:
 | `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
 | `analysis.anomaly` | the series to watch | process, requests |
 
+The same idea appears inside a pack where one thing reports two ways:
+`networking.kong` takes `implementation: 'prometheus' | 'prometheus2' |
+'opentelemetry'`. The signals are the same either way; the ones an
+implementation cannot answer (Kong's own shared dictionaries, its datastore,
+the gateway-versus-upstream latency split) are left out rather than left blank.
+
 RED and anomaly each have three entry points, because a service usually wants a
 fragment rather than a board of its own:
 
