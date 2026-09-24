@@ -38,6 +38,10 @@ panels:
 schema:
     python3 tests/test_schema.py
 
+# every $variable a board's queries read must be declared on that board
+vars:
+    python3 tests/test_vars.py
+
 # regenerate docs/panels.md from the chart definitions
 docs-panels:
     python3 scripts/gen-panel-docs.py
@@ -51,7 +55,7 @@ docs-collectors:
     python3 scripts/gen-collector-docs.py
 
 # full local test suite
-test: compile packs panels schema gen-check
+test: compile packs panels schema vars gen-check
 
 # format all jsonnet (docker)
 fmt:

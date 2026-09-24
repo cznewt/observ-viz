@@ -170,14 +170,22 @@ local variable =
         local varMetric = if std.objectHas(config, 'varMetric') then config.varMetric else 'up';
         // optional cascading filter variables (e.g. ['cluster', 'instance']):
         // each is a label_values() query scoped by job and the variables before it.
-        // a cascading variable exists only while the pack's selector references it:
-        // a scenario that overrides the selector (job=~"alloy|integrations/alloy",
-        // say) then does not grow a dropdown that filters nothing.
+        // a cascading variable exists only while the board actually reads it - the
+        // selector or any signal's own query. A scenario that overrides the
+        // selector (job=~"alloy|integrations/alloy", say) then does not grow a
+        // dropdown that filters nothing, while a pack whose panels filter on a
+        // label the pack-level selector leaves out keeps its variable.
         local declaredVarLabels = if std.objectHas(config, 'varLabels') then config.varLabels else [];
-        local usedInSelector(label) =
-          local sel = if std.objectHas(config, 'selector') then config.selector else '';
-          std.length(std.findSubstr('$' + label, sel)) > 0;
-        local varLabels = std.filter(usedInSelector, declaredVarLabels);
+        local sigExprs = [
+          signals[k].asTarget().spec.query.spec.expr
+          for k in std.objectFields(signals)
+          if std.objectHasAll(signals[k], 'asTarget')
+        ];
+        local varHaystack =
+          (if std.objectHas(config, 'selector') then config.selector else '')
+          + std.join(' ', sigExprs);
+        local readsLabel(label) = std.length(std.findSubstr('$' + label, varHaystack)) > 0;
+        local varLabels = std.filter(readsLabel, declaredVarLabels);
         local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
         // default multi/includeAll vars to "All" so the initial view isn't pinned
         // to the first (often sparse) value.
