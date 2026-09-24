@@ -72,10 +72,8 @@ local groupElements(signals, prefix='') = {
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['procs', 'cpu', 'rss', 'fds', 'threads'],
-      folderUid: 'components-system',
-      folderTitle: 'System',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // filed under Reference / Deployments (reference-lib/deployments): what a
+      // host runs, not a component of the platform
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

@@ -20,6 +20,10 @@ local useBoards = [
   ['node', 'node'],
   ['container', 'container'],
 ];
+local anomalyBoards = [
+  ['process', 'process'],
+  ['requests', 'requests'],
+];
 
 {
   _config+:: {},
@@ -50,5 +54,17 @@ local useBoards = [
           $._config.tags,
         )
       for b in useBoards
+    } + {
+      ['analysis-anomaly-' + b[0] + '.json']:
+        util.place(
+          g.libs.analysis.anomaly.new(sources.anomaly[b[1]] {
+            uid: 'observ-viz-anomaly-' + b[0],
+            dashboardTitle: 'Anomaly / ' + sources.anomaly[b[1]].title,
+            datasource: $._config.datasource,
+          }).grafana.dashboard,
+          $._config.folders.analysis,
+          $._config.tags,
+        )
+      for b in anomalyBoards
     },
 }

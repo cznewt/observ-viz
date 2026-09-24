@@ -88,6 +88,43 @@ Kubernetes / Containers / Docker / systemd / Host process / Go runtime /
 Windows / Logs tabs, each gated this way, so the same pack covers a service in
 Kubernetes and the same service on a host.
 
+## Analysis methods
+
+`libs/analysis-observ-lib` holds the methods that own no metrics and read
+someone else's. Each takes a *source profile*, so one board covers any
+instrumentation with the right shape:
+
+| Method | Profile says | Boards |
+| --- | --- | --- |
+| `analysis.red` | request counter, how failures are marked, latency histogram, the dimension to group by | OpenTelemetry HTTP, Prometheus client, ingress-nginx, Django, Grafana, API server, Tempo service graph |
+| `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
+| `analysis.anomaly` | the series to watch | process, requests |
+
+The anomaly method has three entry points, because a service usually wants a
+fragment rather than a board of its own:
+
+```jsonnet
+local anomaly = g.libs.analysis.anomaly;
+local cfg = {
+  service: 'redis',
+  selector: 'namespace="global-monitor-redis"',
+  ruleSelector: 'namespace="global-monitor-redis"',   // rules cannot use $vars
+  baseline: '1d', z: 3, 'for': '15m',
+  series: [{ key: 'clients', title: 'Connected clients', unit: 'short',
+             expr: 'sum by (pod) (redis_connected_clients{%(queriesSelector)s})' }],
+};
+
+anomaly.new(cfg)                 // a board: a tab per series
+anomaly.elements(cfg, 'anom_')   // a fragment: the element map for someone else's board
+anomaly.alerts(cfg)              // the rule group: one alert per series
+```
+
+Each series is compared with its own past: the baseline is the rolling mean
+over `baseline`, the band is that mean plus or minus `z` standard deviations,
+and the alert fires when the z-score stays outside it for `for`. Nothing is
+compared with a fixed threshold, so the same config works for a service doing
+five requests a second and one doing five thousand.
+
 ## Catalog
 
 | Group | Packs |

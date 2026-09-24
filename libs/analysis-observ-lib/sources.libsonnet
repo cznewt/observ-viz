@@ -68,6 +68,31 @@
     },
   },
 
+  // An anomaly source is just a set of series to watch; the method compares
+  // each with its own past, so anything with a number works.
+  anomaly: {
+    process: {
+      title: 'Process',
+      service: 'process',
+      description: 'The three numbers every Prometheus client exposes, whatever the service is written in.',
+      series: [
+        { key: 'cpu', title: 'CPU', unit: 'short', expr: 'sum by (instance) (rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval]))' },
+        { key: 'rss', title: 'Resident memory', unit: 'bytes', expr: 'sum by (instance) (process_resident_memory_bytes{%(queriesSelector)s})' },
+        { key: 'fds', title: 'Open file descriptors', unit: 'short', expr: 'sum by (instance) (process_open_fds{%(queriesSelector)s})' },
+      ],
+    },
+    requests: {
+      title: 'Requests',
+      service: 'requests',
+      description: 'Rate, failures and latency of a request-driven service, each against its own past - the RED numbers, watched for a change of shape rather than a threshold.',
+      series: [
+        { key: 'rate', title: 'Request rate', unit: 'reqps', expr: 'sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval]))' },
+        { key: 'errors', title: 'Error ratio', unit: 'percentunit', expr: 'sum(rate(http_requests_total{%(queriesSelector)s, status=~"5.."}[$__rate_interval])) / clamp_min(sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval])), 1e-9)' },
+        { key: 'latency', title: 'Duration p99', unit: 's', expr: 'histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))' },
+      ],
+    },
+  },
+
   // A USE source names the four resources and how each one is measured. The
   // node profile is the node_exporter one the node mixin uses; the container
   // profile reads the same four from cAdvisor.

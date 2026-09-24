@@ -29,6 +29,10 @@ local boards = [
     varLabels: ['namespace', 'pod'],
     rowLabels: ['pod'],
   }],
+  // what a host runs, rather than a component of the platform: these two keep
+  // the uids they had under Components so existing links still resolve
+  [g.libs.system.systemd, 'systemd', 'systemd units', { uid: 'observ-viz-systemd' }],
+  [g.libs.system.processExporter, 'process', 'Process groups', { uid: 'observ-viz-process-exporter' }],
 ];
 
 {
@@ -36,15 +40,12 @@ local boards = [
   grafanaDashboards+:: {
     ['deploy-' + b[1] + '.json']:
       util.place(
-        util.tabbedBoard(
-          b[0].new({
-            uid: 'observ-viz-deploy-' + b[1],
-            dashboardTitle: b[2],
-            datasource: $._config.datasource,
-          } + b[3]),
-          b[2],
-          'observ-viz-deploy-' + b[1],
-        ),
+        b[0].new({
+          uid: 'observ-viz-deploy-' + b[1],
+          dashboardTitle: b[2],
+          datasource: $._config.datasource,
+          tabbed: true,
+        } + b[3]).grafana.dashboard,
         $._config.folders.deployments,
         $._config.tags,
       )
