@@ -31,8 +31,18 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       clusterBoardUid: 'kube-cluster',  // per-row drill target
       ruleSelector: '',
       docTabs: true,
-      // the shared tabbed board: Overview + a tab per signal group
+      // the shared tabbed board: Overview + a tab per signal group. One row
+      // per cluster, with the four numbers that say whether a cluster is
+      // busy, not the scrape-target table the default would build.
       tabbed: true,
+      rowLabels: ['cluster'],
+      overviewSignals: ['podsByCluster', 'cpuByCluster', 'memByCluster', 'restartsByCluster'],
+      description: 'Every Kubernetes cluster that reports kube-state-metrics, side by side: how many nodes and pods each runs, what they are using, and what is restarting. A hand-port of the kubernetes-mixin multi-cluster board onto signals, so the numbers match what the mixin computes.',
+      references: [
+        { title: 'kubernetes-mixin', url: 'https://github.com/kubernetes-monitoring/kubernetes-mixin', description: 'the upstream boards and rules these expressions follow' },
+        { title: 'kube-state-metrics', url: 'https://github.com/kubernetes/kube-state-metrics', description: 'where kube_node_info, kube_pod_status_phase and the restart counter come from' },
+        { title: 'cAdvisor metrics', url: 'https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md', description: 'the container_* series behind the usage columns' },
+      ],
       // the base layer: what everything else runs on
       folderUid: 'base',
       folderTitle: 'Base',
