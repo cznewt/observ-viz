@@ -22,6 +22,7 @@
     windows: import 'libs/windows-observ-lib/main.libsonnet',
     // node_exporter systemd collector + process-exporter, by host
     systemd: import 'libs/systemd-observ-lib/main.libsonnet',
+    windowsService: import 'libs/windows-service-observ-lib/main.libsonnet',
     processExporter: import 'libs/process-exporter-observ-lib/main.libsonnet',
   },
   kubernetes: {

@@ -31,6 +31,7 @@ local boards = [
   // the uids they had under Components so existing links still resolve
   [g.libs.system.systemd, 'systemd', 'Systemd unit', { uid: 'observ-viz-systemd' }],
   [g.libs.system.processExporter, 'process', 'Process group', { uid: 'observ-viz-process-exporter' }],
+  [g.libs.system.windowsService, 'windows-service', 'Windows service', { uid: 'observ-viz-windows-service' }],
 ];
 
 {

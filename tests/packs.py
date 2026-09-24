@@ -14,7 +14,7 @@ PACKS = [
     "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.grafana",
     "monitoring.tempo", "monitoring.pyroscope", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter",
     "collector.alloy",
-    "system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter",
+    "system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter", "system.windowsService",
     "networking.ingressNginx",
     "kubernetes.pod", "kubernetes.cadvisor",
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs", "runtimes.process", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam",
