@@ -20,6 +20,11 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       domain: 'observability',
       includeAlerts: true,
       includeLogs: true,
+      // A profile is a deployment unit first: the collector config and the
+      // merged rules of its members. `boards: false` keeps those and renders
+      // no dashboards, for a profile whose members are all filed in the
+      // library's own folders already.
+      boards: true,
       members: [],
     } + config;
     // every profile also gets an alerts-overview + logs board (toggleable).
@@ -61,7 +66,7 @@ local logsLib = import 'libs/logs-lib/main.libsonnet';
       folder: folder,
 
       // boards: each member's pack dashboard, placed in the scenario folder.
-      grafanaDashboards: {
+      grafanaDashboards: if !cfg.boards then {} else {
         ['scn-' + cfg.uid + '-' + inst.key + '.json']:
           inst.instance.grafana.dashboard
           + (if std.objectHas(folder, 'parent')

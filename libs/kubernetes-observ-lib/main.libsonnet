@@ -5,6 +5,7 @@
 //   g.libs.kubernetes.pod.new({...}).grafana.elements   // reuse in a board
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
+local tabs = import 'libs/common-lib/tabs.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
@@ -18,6 +19,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       selector: 'namespace=~"$namespace"',
       varMetric: 'kube_pod_info',
       varLabels: ['namespace'],  // $namespace dropdown (label_values scoped by $job)
+      lokiDatasource: true,  // the Logs tab reads whichever Loki is selected
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
@@ -183,5 +185,10 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         alert.rule.record('namespace_pod:container_cpu_usage:rate5m', 'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m]))'),
         alert.rule.record('namespace_pod:container_memory_working_set_bytes:sum', 'sum by (namespace, pod) (container_memory_working_set_bytes{container!=""' + rsComma + '})'),
       ]),
+    ], [
+      // what is firing about these pods, and what they are saying - each shown
+      // only where its own queries return something
+      tabs.alerts(cfg.datasource, 'namespace=~"$namespace"'),
+      tabs.logs('${loki_datasource}', tabs.kubernetesStreams('$namespace', '.+', '.+')),
     ]),
 }

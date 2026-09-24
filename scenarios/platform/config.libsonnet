@@ -12,6 +12,10 @@ local libs = import 'libs/observ-libs.libsonnet';
   folder: { uid: 'lab-platform', title: 'Lab platform', parent: { uid: 'scenarios', title: 'Scenarios' } },
   includeAlerts: false,
   includeLogs: false,
+  // the members all have a home in the library's folders now (Base, Reference /
+  // Deployments, Components), so this profile contributes its collector config
+  // and its merged rules rather than a second copy of every board
+  boards: false,
   members: [
     { key: 'multicluster', pack: libs.kubernetes.multicluster, title: 'Kubernetes / Clusters' },
     { key: 'cluster', pack: libs.kubernetes.cluster, title: 'Kubernetes / Cluster' },

@@ -11,6 +11,7 @@ local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
+local tabs = import 'libs/common-lib/tabs.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
@@ -27,6 +28,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster"',
       varMetric: 'kube_node_info',
+      lokiDatasource: true,  // the Logs tab reads whichever Loki is selected
       tracesDatasource: 'newt-tempo',  // site Tempo (kspan + salt job spans)
       varLabels: ['cluster'],
       varMulti: false,
@@ -345,5 +347,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           b_kspanAll: tracesPanel('All recent traces (kspan + salt jobs)', '{ resource.cluster =~ "$cluster" }'),
         },
       },
+      // what is firing in this cluster, and what it is saying
+      tabs.alerts(cfg.datasource, 'cluster=~"$cluster"'),
+      tabs.logs('${loki_datasource}', tabs.kubernetesStreams('.+', '.+', '$cluster')),
     ]),
 }
