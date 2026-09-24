@@ -27,8 +27,10 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['clusterMonthly', 'cpuAllocated', 'ramAllocated', 'nodes', 'pvTotal'],
-      folderUid: 'components-kubernetes',
-      folderTitle: 'Kubernetes',
+      // what it costs to run the cluster is a monitoring concern, not a
+      // property of Kubernetes itself
+      folderUid: 'components-monitoring',
+      folderTitle: 'Monitoring',
       folderParentUid: 'components',
       folderParentTitle: 'Components',
     } + config;

@@ -8,11 +8,11 @@
 // both in the cAdvisor scrape allowlist, plus kube_node_status_allocatable).
 // Usage:
 //   g.libs.kubernetes.multicluster.new({}).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
@@ -33,10 +33,9 @@ local query = import 'custom/query.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-kubernetes',
-      folderTitle: 'Kubernetes',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // the base layer: what everything else runs on
+      folderUid: 'base',
+      folderTitle: 'Base',
     } + config;
     local s = cfg.selector;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -77,9 +76,13 @@ local query = import 'custom/query.libsonnet';
     local pctCell = [
       { id: 'unit', value: 'percent' },
       { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
-      { id: 'min', value: 0 }, { id: 'max', value: 100 }, { id: 'decimals', value: 0 },
+      { id: 'min', value: 0 },
+      { id: 'max', value: 100 },
+      { id: 'decimals', value: 0 },
       { id: 'thresholds', value: { mode: 'absolute', steps: [
-        { color: 'green', value: null }, { color: 'yellow', value: 75 }, { color: 'red', value: 90 },
+        { color: 'green', value: null },
+        { color: 'yellow', value: 75 },
+        { color: 'red', value: 90 },
       ] } },
     ];
     local clustersTable =
@@ -99,21 +102,47 @@ local query = import 'custom/query.libsonnet';
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
         { id: 'filterFieldsByName', options: { include: { names: [
-          'cluster', 'Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E',
-          'Value #F', 'Value #G', 'Value #H', 'Value #I', 'Value #J',
+          'cluster',
+          'Value #A',
+          'Value #B',
+          'Value #C',
+          'Value #D',
+          'Value #E',
+          'Value #F',
+          'Value #G',
+          'Value #H',
+          'Value #I',
+          'Value #J',
         ] } } },
         { id: 'seriesToColumns', options: { byField: 'cluster' } },
         { id: 'organize', options: {
           // every field indexed: unindexed ones take the low slots and push
           // the Cluster column out of first place
           indexByName: {
-            cluster: 0, 'Value #A': 1, 'Value #B': 2, 'Value #C': 3, 'Value #D': 4,
-            'Value #E': 5, 'Value #F': 6, 'Value #G': 7, 'Value #H': 8, 'Value #I': 9, 'Value #J': 10,
+            cluster: 0,
+            'Value #A': 1,
+            'Value #B': 2,
+            'Value #C': 3,
+            'Value #D': 4,
+            'Value #E': 5,
+            'Value #F': 6,
+            'Value #G': 7,
+            'Value #H': 8,
+            'Value #I': 9,
+            'Value #J': 10,
           },
           renameByName: {
-            cluster: 'Cluster', 'Value #A': 'Nodes', 'Value #B': 'Pods', 'Value #C': 'CPUs',
-            'Value #D': 'CPU %', 'Value #E': 'CPU req %', 'Value #F': 'CPU lim %',
-            'Value #G': 'Memory', 'Value #H': 'Mem %', 'Value #I': 'Mem req %', 'Value #J': 'Mem lim %',
+            cluster: 'Cluster',
+            'Value #A': 'Nodes',
+            'Value #B': 'Pods',
+            'Value #C': 'CPUs',
+            'Value #D': 'CPU %',
+            'Value #E': 'CPU req %',
+            'Value #F': 'CPU lim %',
+            'Value #G': 'Memory',
+            'Value #H': 'Mem %',
+            'Value #I': 'Mem req %',
+            'Value #J': 'Mem lim %',
           },
         } },
         { id: 'sortBy', options: { sort: [{ field: 'Cluster', desc: false }] } },
@@ -127,10 +156,14 @@ local query = import 'custom/query.libsonnet';
         ov('^Memory$', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 110 }]),
         ov('CPU %|Mem %', pctCell),
         ov('req %|lim %', [
-          { id: 'unit', value: 'percent' }, { id: 'decimals', value: 0 }, { id: 'custom.width', value: 110 },
+          { id: 'unit', value: 'percent' },
+          { id: 'decimals', value: 0 },
+          { id: 'custom.width', value: 110 },
           { id: 'custom.cellOptions', value: { type: 'color-text' } },
           { id: 'thresholds', value: { mode: 'absolute', steps: [
-            { color: 'text', value: null }, { color: 'yellow', value: 90 }, { color: 'red', value: 100 },
+            { color: 'text', value: null },
+            { color: 'yellow', value: 90 },
+            { color: 'red', value: 100 },
           ] } },
         ]),
       ]);

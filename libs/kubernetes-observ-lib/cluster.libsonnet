@@ -7,11 +7,11 @@
 // essentials are ported too (deploy them to the ruler with the dashboards).
 // Usage:
 //   g.libs.kubernetes.cluster.new({}).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
@@ -35,10 +35,9 @@ local query = import 'custom/query.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-kubernetes',
-      folderTitle: 'Kubernetes',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // the base layer: what everything else runs on
+      folderUid: 'base',
+      folderTitle: 'Base',
     } + config;
     local s = cfg.selector;
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -62,7 +61,8 @@ local query = import 'custom/query.libsonnet';
       { id: 'max', value: 100 },
       { id: 'color', value: { mode: 'thresholds' } },
       { id: 'thresholds', value: { mode: 'absolute', steps: [
-        { color: 'green', value: null }, { color: 'red', value: 80 },
+        { color: 'green', value: null },
+        { color: 'red', value: 80 },
       ] } },
     ];
 
@@ -85,13 +85,17 @@ local query = import 'custom/query.libsonnet';
           {},
         ),
         alert.rule.record('namespace_cpu:kube_pod_container_resource_requests:sum',
-                          'sum by (cluster, namespace) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})', {}),
+                          'sum by (cluster, namespace) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})',
+                          {}),
         alert.rule.record('namespace_cpu:kube_pod_container_resource_limits:sum',
-                          'sum by (cluster, namespace) (kube_pod_container_resource_limits{resource="cpu"' + rsComma + '})', {}),
+                          'sum by (cluster, namespace) (kube_pod_container_resource_limits{resource="cpu"' + rsComma + '})',
+                          {}),
         alert.rule.record('namespace_memory:kube_pod_container_resource_requests:sum',
-                          'sum by (cluster, namespace) (kube_pod_container_resource_requests{resource="memory"' + rsComma + '})', {}),
+                          'sum by (cluster, namespace) (kube_pod_container_resource_requests{resource="memory"' + rsComma + '})',
+                          {}),
         alert.rule.record('namespace_memory:kube_pod_container_resource_limits:sum',
-                          'sum by (cluster, namespace) (kube_pod_container_resource_limits{resource="memory"' + rsComma + '})', {}),
+                          'sum by (cluster, namespace) (kube_pod_container_resource_limits{resource="memory"' + rsComma + '})',
+                          {}),
         ownerRule('ReplicaSet', 'deployment'),
         ownerRule('StatefulSet', 'statefulset'),
         ownerRule('DaemonSet', 'daemonset'),
@@ -104,35 +108,51 @@ local query = import 'custom/query.libsonnet';
       alert.rule.group('kubernetes-apps', [
         alert.rule.new('KubePodCrashLooping',
                        'max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"' + rsComma + '}[5m]) >= 1',
-                       '15m', 'warning', {},
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Pod is crash looping.', description: '{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state CrashLoopBackOff.' }),
         alert.rule.new('KubePodNotReady',
                        'sum by (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"' + rsComma + '}) * on (cluster, namespace, pod) group_left (owner_kind) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))) > 0',
-                       '15m', 'warning', {},
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Pod has been in a non-ready state for more than 15 minutes.', description: '{{ $labels.namespace }}/{{ $labels.pod }} is not ready.' }),
         alert.rule.new('KubeDeploymentReplicasMismatch',
                        '(kube_deployment_spec_replicas' + rsBrace + ' > kube_deployment_status_replicas_available' + rsBrace + ') and (changes(kube_deployment_status_replicas_updated' + rsBrace + '[10m]) == 0)',
-                       '15m', 'warning', {},
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Deployment has not matched the expected number of replicas.', description: '{{ $labels.namespace }}/{{ $labels.deployment }} replica mismatch.' }),
         alert.rule.new('KubeStatefulSetReplicasMismatch',
                        '(kube_statefulset_status_replicas_ready' + rsBrace + ' != kube_statefulset_status_replicas' + rsBrace + ') and (changes(kube_statefulset_status_replicas_updated' + rsBrace + '[10m]) == 0)',
-                       '15m', 'warning', {},
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'StatefulSet has not matched the expected number of replicas.', description: '{{ $labels.namespace }}/{{ $labels.statefulset }} replica mismatch.' }),
         alert.rule.new('KubeContainerWaiting',
                        'sum by (cluster, namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff"' + rsComma + '}) > 0',
-                       '1h', 'warning', {},
+                       '1h',
+                       'warning',
+                       {},
                        { summary: 'Pod container waiting longer than 1 hour.', description: '{{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} waiting ({{ $labels.reason }}).' }),
         alert.rule.new('KubeCPUOvercommit',
                        'sum by (cluster) (namespace_cpu:kube_pod_container_resource_requests:sum' + rsBrace + ') - (sum by (cluster) (kube_node_status_allocatable{resource="cpu"' + rsComma + '}) - max by (cluster) (kube_node_status_allocatable{resource="cpu"' + rsComma + '})) > 0 and (sum by (cluster) (kube_node_status_allocatable{resource="cpu"' + rsComma + '}) - max by (cluster) (kube_node_status_allocatable{resource="cpu"' + rsComma + '})) > 0',
-                       '10m', 'warning', {},
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Cluster has overcommitted CPU resource requests.', description: 'CPU requests exceed what remains if the largest node fails.' }),
         alert.rule.new('KubeMemoryOvercommit',
                        'sum by (cluster) (namespace_memory:kube_pod_container_resource_requests:sum' + rsBrace + ') - (sum by (cluster) (kube_node_status_allocatable{resource="memory"' + rsComma + '}) - max by (cluster) (kube_node_status_allocatable{resource="memory"' + rsComma + '})) > 0 and (sum by (cluster) (kube_node_status_allocatable{resource="memory"' + rsComma + '}) - max by (cluster) (kube_node_status_allocatable{resource="memory"' + rsComma + '})) > 0',
-                       '10m', 'warning', {},
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Cluster has overcommitted memory resource requests.', description: 'Memory requests exceed what remains if the largest node fails.' }),
         alert.rule.new('KubePersistentVolumeFillingUp',
                        '(kubelet_volume_stats_available_bytes' + rsBrace + ' / kubelet_volume_stats_capacity_bytes' + rsBrace + ') < 0.15 and kubelet_volume_stats_used_bytes' + rsBrace + ' > 0 and predict_linear(kubelet_volume_stats_available_bytes' + rsBrace + '[6h], 4 * 24 * 3600) < 0',
-                       '1h', 'warning', {},
+                       '1h',
+                       'warning',
+                       {},
                        { summary: 'PersistentVolume is filling up.', description: 'PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is expected to fill up within four days.' }),
       ]),
     ];

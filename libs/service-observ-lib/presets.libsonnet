@@ -69,9 +69,11 @@ local folderOf(c) =
 local entry(c) = preset(folderOf(c) {
   app: c.app,
   whitebox: c.whitebox,
-  // one convention for the whole catalog: "<Name> service", which also keeps a
-  // service board apart from the component board of the same app in one folder
-  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app) + ' service',
+  // named for the app alone. A service board embeds the app's component pack
+  // and adds the platform tabs around it, so where both exist only the service
+  // board is deployed - two boards called "Grafana" in one folder is the bug
+  // the suffix used to paper over.
+  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app),
   dashboardTags: ['service', c.app, 'app-level'] + c.tags,
   kubernetes: { workload: c.workload },
   ingress: { service: c.service },

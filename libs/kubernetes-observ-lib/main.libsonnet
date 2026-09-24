@@ -3,9 +3,9 @@
 // native v2 elements. Usage:
 //   g.libs.kubernetes.pod.new({ selector: 'namespace="prod"' }).grafana.dashboard
 //   g.libs.kubernetes.pod.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -146,25 +146,33 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         alert.rule.new(
           'KubePodNotReady',
           'sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"' + rsComma + '}) > 0',
-          '15m', 'critical', {},
+          '15m',
+          'critical',
+          {},
           { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for more than 15 minutes.' }
         ),
         alert.rule.new(
           'KubePodCrashLooping',
           'rate(kube_pod_container_status_restarts_total' + rsBrace + '[10m]) * 60 * 5 > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} is restarting frequently.' }
         ),
         alert.rule.new(
           'KubePodCpuOverRequest',
           'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m])) > sum by (namespace, pod) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} is using more CPU than requested.' }
         ),
         alert.rule.new(
           'KubePodMemoryNearLimit',
           'sum by (namespace, pod) (container_memory_working_set_bytes{container!=""' + rsComma + '}) / sum by (namespace, pod) (kube_pod_container_resource_limits{resource="memory"' + rsComma + '}) > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} memory working set is above 90% of its limit.' }
         ),
       ]),
