@@ -88,9 +88,9 @@ utilisation) — rendered, validated and deployed by the commands above.
 ## The base boards
 
 `base.home`, `base.cluster` and `base.clusterDetail` are a site's base layer
-rather than one service's pack: the fleet overview (`Base / Home`), the
-env-wide server and workload tables (`Base / Clusters`) and the per-cluster
-compute / network / storage / alerts view (`Base / Cluster`). They render like
+rather than one service's pack: the fleet overview (`Home dashboard`), the
+env-wide server and workload tables (`Base clusters`) and the per-cluster
+compute / network / storage / alerts view (`Base cluster`). They render like
 any lib and name the `Base` folder themselves:
 
 ```bash

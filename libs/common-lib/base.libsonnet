@@ -1,7 +1,7 @@
 // observ-viz base/cluster fleet boards (hand-written; ported from the base-mixin).
 // A two-tier overview, emitted as native v2:
-//   base.home.new()    Base / Home    — clusters + applications count tables (env-level)
-//   base.cluster.new() Base / Cluster — workload + linux-servers tables (per cluster)
+//   base.home.new()    Home dashboard — clusters + applications count tables (env-level)
+//   base.cluster.new() Base clusters  — workload + linux-servers tables (per cluster)
 // Tables use instant table queries + seriesToColumns transforms (counts/stats joined
 // into columns), with drill-through links (cluster -> Base/Cluster, node -> Linux node).
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
@@ -38,9 +38,9 @@ local defaults = {
   uidCluster: 'base-cluster',
   uidClusterDetail: 'cluster-detail',
   // board titles — the base layer of a site, named after its level
-  titleHome: 'Base / Home',
-  titleCluster: 'Base / Clusters',
-  titleClusterDetail: 'Base / Cluster',
+  titleHome: 'Home dashboard',
+  titleCluster: 'Base clusters',
+  titleClusterDetail: 'Base cluster',
   // Grafana folder the base boards name themselves (null leaves the folder to
   // the consumer, e.g. a monitor-tools config's grafanaDashboardFolder)
   folder: { uid: 'base', title: 'Base' },

@@ -18,7 +18,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'kube-multicluster',
-      dashboardTitle: 'Kubernetes Clusters',
+      dashboardTitle: 'Kubernetes clusters',
       dashboardTags: ['kubernetes', 'multi-cluster', 'env-level'],
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
