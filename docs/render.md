@@ -84,3 +84,24 @@ docker run --rm --network host -v "$PWD":/work \
 disk/filesystem, network), a `node` alerting group (down / high CPU / high memory
 / filesystem almost full) and a `node.rules` recording group (CPU + memory
 utilisation) — rendered, validated and deployed by the commands above.
+
+## The base boards
+
+`base.home`, `base.cluster` and `base.clusterDetail` are a site's base layer
+rather than one service's pack: the fleet overview (`Base / Home`), the
+env-wide server and workload tables (`Base / Clusters`) and the per-cluster
+compute / network / storage / alerts view (`Base / Cluster`). They render like
+any lib and name the `Base` folder themselves:
+
+```bash
+python3 scripts/render-lib.py base.home --config '{"appLabel": "namespace", "selector": ""}' --deploy
+python3 scripts/render-lib.py base.clusterDetail --deploy   # + the base-node-count recording rule
+```
+
+Config worth setting per site: `clusterLabel` / `nodeLabel` / `appLabel` (the
+workload grouping label — `app_part_of` by default, `namespace` where that is
+unset), `selector` (a baseline matcher added to every query), the three titles
+and `folder`. `base.clusterDetail` needs its `base:cluster_nodes:n` recording
+rule in the ruler, which is what its `$nodecount` variable reads to stretch the
+tables. In monitor-tools the whole set comes from one mixin entry with
+`config.scenario: base`.
