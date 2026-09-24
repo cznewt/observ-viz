@@ -46,6 +46,15 @@ local runtimes = [
     ],
   },
   {
+    key: 'rust',
+    title: 'Rust',
+    description: 'The Tokio runtime as exposed by the `tokio-metrics` crate: the worker threads, what they are busy with, and the queues behind them. Rust has no runtime of its own to measure, so this is the async executor most services run on.',
+    references: [
+      { title: 'tokio-metrics', url: 'https://docs.rs/tokio-metrics/', description: 'the crate behind every tokio_* series here' },
+      { title: 'Tokio scheduler', url: 'https://tokio.rs/blog/2019-10-scheduler', description: 'what the local queues, steals and overflows mean' },
+    ],
+  },
+  {
     key: 'nodejs',
     title: 'Node.js',
     description: 'The Node.js event loop, V8 heap and handle/request counts, as exposed by `prom-client` default metrics.',
@@ -71,7 +80,7 @@ local frameworks = [
         util.tabbedBoard(
           g.libs.runtimes[r.key].new({
             uid: 'observ-viz-lang-' + r.key,
-            dashboardTitle: r.title + ' runtime',
+            dashboardTitle: r.title,
             datasource: $._config.datasource,
             description: r.description,
             references: r.references,
@@ -81,7 +90,7 @@ local frameworks = [
             // the Overview table is keyed by namespace/pod
             rowLabels: ['namespace', 'pod'],
           }),
-          r.title + ' runtime',
+          r.title,
           'observ-viz-lang-' + r.key,
         ),
         $._config.folders.languages,
