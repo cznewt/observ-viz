@@ -29,14 +29,14 @@ local packs = {
 // workload = pod-name regex for the Kubernetes workload panels and the rule
 // scopes, service = ingress-nginx backend Service regex.
 local catalog = [
-  { key: 'alloy', app: 'alloy', whitebox: packs.alloy, tags: ['collector'], workload: 'alloy.*', service: 'alloy.*', windows: '(?i)alloy', unit: 'alloy.service' },
-  { key: 'k8sMonitoring', app: 'k8s-monitoring', title: 'k8s-monitoring (Alloy) service', whitebox: packs.alloy, tags: ['collector', 'kubernetes'], workload: 'k8s-monitoring-alloy.*', service: 'k8s-monitoring-alloy.*' },
-  { key: 'grafana', app: 'grafana', whitebox: packs.grafana, tags: ['monitoring'], workload: 'grafana.*', service: 'grafana.*', unit: 'grafana(-server)?.service', process: 'grafana(-server)?', windows: '(?i)grafana(-server)?' },
-  { key: 'grafanaTest', app: 'grafana-test', title: 'Grafana (test) service', whitebox: packs.grafana, tags: ['monitoring', 'lab'], workload: 'grafana.*', service: 'grafana.*' },
-  { key: 'mimir', app: 'mimir', whitebox: packs.mimir, tags: ['lgtm'], workload: 'mimir.*', service: 'mimir.*' },
-  { key: 'loki', app: 'loki', whitebox: packs.loki, tags: ['lgtm'], workload: 'loki.*', service: 'loki.*' },
-  { key: 'tempo', app: 'tempo', whitebox: packs.tempo, tags: ['lgtm'], workload: 'tempo.*', service: 'tempo.*' },
-  { key: 'pyroscope', app: 'pyroscope', whitebox: packs.pyroscope, tags: ['lgtm'], workload: 'pyroscope.*', service: 'pyroscope.*' },
+  { key: 'alloy', app: 'alloy', whitebox: packs.alloy, tags: ['collector'], workload: 'alloy.*', service: 'alloy.*', windows: '(?i)alloy', unit: 'alloy.service', folder: 'monitoring' },
+  { key: 'k8sMonitoring', app: 'k8s-monitoring', title: 'k8s-monitoring (Alloy) service', whitebox: packs.alloy, tags: ['collector', 'kubernetes'], workload: 'k8s-monitoring-alloy.*', service: 'k8s-monitoring-alloy.*', folder: 'monitoring' },
+  { key: 'grafana', app: 'grafana', whitebox: packs.grafana, tags: ['monitoring'], workload: 'grafana.*', service: 'grafana.*', unit: 'grafana(-server)?.service', process: 'grafana(-server)?', windows: '(?i)grafana(-server)?', folder: 'monitoring' },
+  { key: 'grafanaTest', app: 'grafana-test', title: 'Grafana (test) service', whitebox: packs.grafana, tags: ['monitoring', 'lab'], workload: 'grafana.*', service: 'grafana.*', folder: 'monitoring' },
+  { key: 'mimir', app: 'mimir', whitebox: packs.mimir, tags: ['lgtm'], workload: 'mimir.*', service: 'mimir.*', folder: 'monitoring' },
+  { key: 'loki', app: 'loki', whitebox: packs.loki, tags: ['lgtm'], workload: 'loki.*', service: 'loki.*', folder: 'monitoring' },
+  { key: 'tempo', app: 'tempo', whitebox: packs.tempo, tags: ['lgtm'], workload: 'tempo.*', service: 'tempo.*', folder: 'monitoring' },
+  { key: 'pyroscope', app: 'pyroscope', whitebox: packs.pyroscope, tags: ['lgtm'], workload: 'pyroscope.*', service: 'pyroscope.*', folder: 'monitoring' },
   { key: 'redisTest', app: 'redis-test', title: 'Redis (test) service', whitebox: packs.redis, tags: ['database', 'lab'], workload: 'redis-test.*', service: 'redis-test.*' },
   { key: 'demoGoDev', app: 'demo-go-dev', title: 'Demo Go (dev) service', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*' },
   { key: 'demoGoProd', app: 'demo-go-prod', title: 'Demo Go (prod) service', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*' },
@@ -48,18 +48,30 @@ local catalog = [
   { key: 'sreFront', app: 'sre-front', title: 'SRE sample: front (JVM) service', whitebox: packs.jvm, tags: ['sample', 'jvm'], workload: 'sre-front.*', service: 'sre-front.*' },
   { key: 'sreReader', app: 'sre-reader', title: 'SRE sample: reader (JVM) service', whitebox: packs.jvm, tags: ['sample', 'jvm'], workload: 'sre-reader.*', service: 'sre-reader.*' },
   { key: 'backstage', app: 'backstage', title: 'Backstage service (Postgres)', whitebox: packs.postgres, tags: ['cicd'], workload: 'backstage.*', service: 'backstage.*' },
-  { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*' },
-  { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*' },
-  { key: 'opencost', app: 'opencost', whitebox: packs.opencost, tags: ['cost', 'kubernetes'], workload: '.*opencost.*', service: '.*opencost.*' },
+  { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*', folder: 'monitoring' },
+  { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*', folder: 'monitoring' },
+  { key: 'opencost', app: 'opencost', title: 'OpenCost service', whitebox: packs.opencost, tags: ['cost', 'kubernetes'], workload: '.*opencost.*', service: '.*opencost.*' },
   { key: 'argocd', app: 'argo-cd', title: 'Argo CD service', whitebox: packs.argocd, tags: ['cicd', 'gitops'], workload: 'argo-cd-argocd.*', service: 'argo-cd.*' },
-  { key: 'anomalyExporter', app: 'anomaly-exporter', whitebox: packs.anomalyExporter, tags: ['monitoring'], workload: 'anomaly-exporter.*', service: 'anomaly-exporter.*' },
+  { key: 'anomalyExporter', app: 'anomaly-exporter', whitebox: packs.anomalyExporter, tags: ['monitoring'], workload: 'anomaly-exporter.*', service: 'anomaly-exporter.*', folder: 'monitoring' },
 ];
 
 local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
-local entry(c) = preset({
+// Where a service board lands. Services default to Components / Services; a
+// monitoring-stack service sits with its component boards in Components /
+// Monitoring instead (catalog entry: folder: 'monitoring').
+local folders = {
+  services: { uid: 'components-services', title: 'Services' },
+  monitoring: { uid: 'components-monitoring', title: 'Monitoring' },
+};
+local folderOf(c) =
+  local f = folders[if std.objectHas(c, 'folder') then c.folder else 'services'];
+  { folderUid: f.uid, folderTitle: f.title };
+local entry(c) = preset(folderOf(c) {
   app: c.app,
   whitebox: c.whitebox,
-  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app),
+  // one convention for the whole catalog: "<Name> service", which also keeps a
+  // service board apart from the component board of the same app in one folder
+  dashboardTitle: if std.objectHas(c, 'title') then c.title else cap(c.app) + ' service',
   dashboardTags: ['service', c.app, 'app-level'] + c.tags,
   kubernetes: { workload: c.workload },
   ingress: { service: c.service },
