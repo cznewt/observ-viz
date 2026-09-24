@@ -12,6 +12,10 @@ local grid = import 'custom/util/grid.libsonnet';
     item(name, x, y, width, height): grid.item(name, x, y, width, height),
     withItems(items): { spec+: { items: items } },
     withItemsMixin(items): { spec+: { items+: items } },
+    // repeat one placed panel per value of a variable.
+    withItemRepeat(variable, direction='h', maxPerRow=null):
+      { spec+: { repeat: { mode: 'variable', value: variable, direction: direction }
+                          + (if maxPerRow != null then { maxPerRow: maxPerRow } else {}) } },
     // auto-place a list of element names left-to-right, wrapping at 24 columns.
     fromElements(names, width=12, height=8, startY=0):
       { kind: 'GridLayout', spec: { items: grid.wrapItems(names, width, height, startY) } },
@@ -21,6 +25,9 @@ local grid = import 'custom/util/grid.libsonnet';
     new(): { kind: 'RowsLayout', spec: { rows: [] } },
     row(title, layout, collapse=false):
       { kind: 'RowsLayoutRow', spec: { title: title, collapse: collapse, layout: layout } },
+    // repeat this row once per value of a (multi-value) variable: Grafana binds
+    // the variable inside each copy, so the panels scope themselves.
+    withRepeat(variable): { spec+: { repeat: { mode: 'variable', value: variable } } },
     withRows(rows): { spec+: { rows: rows } },
     withRowsMixin(rows): { spec+: { rows+: rows } },
   },

@@ -140,8 +140,26 @@ local panel = import 'custom/panel.libsonnet';
           layout.grid.item('__instances', 0, 7, 24, 10),
         ] + (if std.length(ownOverview) > 0 then groupItems(ownOverview[0], overviewHeight) else []))
       );
+    // a group may repeat itself per value of a variable (`grp.repeat`): the
+    // signal table stays put and the panels come back once per value.
+    local repeatedTab(grp) =
+      layout.rows.new() + layout.rows.withRows([
+        layout.rows.row(
+          'Signals',
+          layout.grid.new() + layout.grid.withItems([layout.grid.item('__sig_' + slug(grp.title), 0, 0, 24, sigHeight(grp))]),
+          true
+        ),
+        layout.rows.row(
+          '$' + grp.repeat,
+          layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height))
+        ) + layout.rows.withRepeat(grp.repeat),
+      ]);
     local groupTabs = [
-      layout.tabs.tab(grp.title, layout.grid.new() + layout.grid.withItems(groupItems(grp)))
+      layout.tabs.tab(
+        grp.title,
+        if std.objectHas(grp, 'repeat') then repeatedTab(grp)
+        else layout.grid.new() + layout.grid.withItems(groupItems(grp))
+      )
       for grp in groups
       if !isOverview(grp)
     ];

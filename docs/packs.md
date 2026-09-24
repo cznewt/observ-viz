@@ -100,8 +100,24 @@ instrumentation with the right shape:
 | `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
 | `analysis.anomaly` | the series to watch | process, requests |
 
-The anomaly method has three entry points, because a service usually wants a
+RED and anomaly each have three entry points, because a service usually wants a
 fragment rather than a board of its own:
+
+```jsonnet
+local red = g.libs.analysis.red;
+local cfg = { source: g.libs.analysis.sources.red.ingressNginx, service: 'ingress',
+              ruleSelector: 'job=~".*ingress.*"', errorRatio: 0.02, latency: 0.5 };
+
+red.new(cfg)                  // a board: the three numbers, then a row per route
+red.elements(cfg, 'red_')     // a fragment: rate, errors, duration
+red.alerts(cfg)               // the rule group: failures, latency, traffic gone
+```
+
+The board's per-route tab is one row repeated over the source's first dimension
+(`http_route`, `ingress`, `view`, ...), so selecting three routes in the
+variable gives three rows of the same three panels. `perRoute: false` drops it.
+
+The anomaly method takes the same shape:
 
 ```jsonnet
 local anomaly = g.libs.analysis.anomaly;
