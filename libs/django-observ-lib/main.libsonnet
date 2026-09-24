@@ -22,10 +22,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['django', 'python', 'framework'],
       description: 'A Django application as django-prometheus reports it: requests by view and method, responses by status, latency measured inside and around the middleware stack, and exceptions by view and type.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
       // same knobs as the runtime packs: cascading filters, a legend built from
       // labels, and the columns of the Overview instances table
-      varLabels: [],
+      varLabels: ['instance'],
       legendLabels: [],
       overviewSignals: ['requests', 'errorRate', 'p95', 'exceptionsByType'],
       references: [

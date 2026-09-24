@@ -18,7 +18,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['argo-cd', 'cicd', 'gitops', 'app-level'],
       description: 'Argo CD from its own metrics: application health and sync status, sync operations and failures, reconcile latency, cluster and repository connectivity, Kubernetes API and git request traffic, controller workqueues.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'argocd_app_info',
       ruleSelector: '',
       legend: '{{pod}}',

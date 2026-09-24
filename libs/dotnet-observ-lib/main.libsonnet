@@ -14,9 +14,12 @@ local pack = import 'libs/common-lib/pack.libsonnet';
       dashboardTitle: '.NET runtime',
       dashboardTags: ['dotnet', 'runtime'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
       // cascading filter variables + series legend, e.g. ['namespace', 'pod'].
-      varLabels: [],
+      varLabels: ['instance'],
       legendLabels: [],
       // signals shown as columns of the Overview instances table.
       overviewSignals: ['cpu', 'rss', 'gcHeap', 'threadpool', 'exceptions'],

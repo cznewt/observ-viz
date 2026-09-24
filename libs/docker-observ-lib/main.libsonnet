@@ -16,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['docker', 'containers', 'app-level', 'node-level'],
       description: 'Container resource usage from cAdvisor on a Docker host: CPU, memory, network and disk IO per container.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'cadvisor_version_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',

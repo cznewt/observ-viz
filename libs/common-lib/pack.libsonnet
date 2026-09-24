@@ -170,7 +170,14 @@ local variable =
         local varMetric = if std.objectHas(config, 'varMetric') then config.varMetric else 'up';
         // optional cascading filter variables (e.g. ['cluster', 'instance']):
         // each is a label_values() query scoped by job and the variables before it.
-        local varLabels = if std.objectHas(config, 'varLabels') then config.varLabels else [];
+        // a cascading variable exists only while the pack's selector references it:
+        // a scenario that overrides the selector (job=~"alloy|integrations/alloy",
+        // say) then does not grow a dropdown that filters nothing.
+        local declaredVarLabels = if std.objectHas(config, 'varLabels') then config.varLabels else [];
+        local usedInSelector(label) =
+          local sel = if std.objectHas(config, 'selector') then config.selector else '';
+          std.length(std.findSubstr('$' + label, sel)) > 0;
+        local varLabels = std.filter(usedInSelector, declaredVarLabels);
         local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
         // default multi/includeAll vars to "All" so the initial view isn't pinned
         // to the first (often sparse) value.

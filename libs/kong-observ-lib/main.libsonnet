@@ -24,8 +24,11 @@ local sources = import 'libs/kong-observ-lib/sources.libsonnet';
       dashboardTitle: 'Kong',
       dashboardTags: ['kong', 'gateway', 'api-gateway'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
-      varLabels: [],
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       legendLabels: [],
       tabbed: true,
       docTabs: true,

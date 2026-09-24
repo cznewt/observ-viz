@@ -17,7 +17,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['php', 'php-fpm', 'runtime'],
       description: 'PHP-FPM as the php-fpm exporter reports it: active, idle and total workers, the listen queue, slow requests and how often the pool hit max_children.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'phpfpm_up',
       ruleSelector: '',
       legend: '{{instance}}',

@@ -23,7 +23,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['http', 'red', 'instrumentation'],
       description: 'What a service serves: requests per second, the share that fail, and how long they take, read from OpenTelemetry semantic conventions or from the older Prometheus client-library metrics, whichever the application emits.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'http_server_request_duration_seconds_count',
       ruleSelector: '',
       legend: '{{instance}}',

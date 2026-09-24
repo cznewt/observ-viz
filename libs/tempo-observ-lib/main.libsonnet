@@ -11,7 +11,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTitle: 'Tempo',
       dashboardTags: ['tempo', 'lgtm', 'grafana', 'app-level'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'tempo_build_info',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',

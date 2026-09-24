@@ -16,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['anomaly', 'monitoring', 'app-level'],
       description: 'The anomaly exporter itself: probes per module, success and failure rates, probe duration and version. Anomaly scores live on the Anomaly scorer board.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'anomaly_exporter_build_info',
       ruleSelector: '',
       legend: '{{pod}}',

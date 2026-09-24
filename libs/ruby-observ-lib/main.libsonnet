@@ -17,7 +17,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['ruby', 'rails', 'puma', 'sidekiq', 'runtime'],
       description: 'A Ruby service: the Puma thread pool and its request backlog, Sidekiq queues, job throughput and failures, over the process base.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'process_start_time_seconds',
       ruleSelector: '',
       legend: '{{instance}}',

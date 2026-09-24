@@ -20,7 +20,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['nginx', 'webserver'],
       description: 'NGINX from its stub status: requests handled, connections accepted, handled and active, and the reading, writing and waiting breakdown. A gap between accepted and handled connections means NGINX is dropping them.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'nginx_up',
       ruleSelector: '',
       legend: '{{instance}}',

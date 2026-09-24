@@ -20,7 +20,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['messaging', 'queue', 'celery', 'kafka', 'instrumentation'],
       description: 'Work a service does off a queue: Celery task throughput, failures, runtime and queue wait, and Kafka consumer group lag. Lag and wait time are what tell you the workers are behind.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'celery_worker_up',
       ruleSelector: '',
       legend: '{{queue_name}}{{consumergroup}}',

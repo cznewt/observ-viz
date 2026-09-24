@@ -14,7 +14,11 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       dashboardTitle: 'MySQL',
       dashboardTags: ['mysql', 'database', 'app-level'],
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'mysql_up',
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',

@@ -16,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['alert-handler', 'monitoring', 'app-level'],
       description: 'The alert-handler webhook receiver: webhooks and alerts received, rule matches, actions by rule, type and result with their duration, and the loaded configuration.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'alert_handler_config_valid',
       ruleSelector: '',
       legend: '{{pod}}',

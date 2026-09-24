@@ -18,7 +18,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['rust', 'tokio', 'runtime'],
       description: 'A Rust service: the Tokio runtime (workers, how busy they are, queue depths, parks, polls and steals) over the process base that every Prometheus client exposes.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'process_start_time_seconds',
       ruleSelector: '',
       legend: '{{instance}}',

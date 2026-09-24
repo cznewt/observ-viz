@@ -25,7 +25,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['process', 'runtime', 'base'],
       description: 'The base instrumentation every Prometheus client library exposes about its own process: CPU, memory, file descriptors, threads, uptime and restarts, next to the health of the scrape itself. Any language is covered here, whether or not it also has a runtime pack.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'process_start_time_seconds',
       ruleSelector: '',
       legend: '{{instance}}',

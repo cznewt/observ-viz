@@ -20,7 +20,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['http', 'client', 'instrumentation'],
       description: 'The calls a service makes to others: request rate and status by peer, duration percentiles, open connections and how long they live. Outbound trouble shows here first.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'http_client_request_duration_seconds_count',
       ruleSelector: '',
       legend: '{{server_address}}',

@@ -20,7 +20,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['rails', 'ruby', 'framework'],
       description: 'A Rails application as yabeda-rails reports it: requests by controller action and status, request duration percentiles, and the split of that time between the database, view rendering and outbound service calls.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'rails_requests_total',
       ruleSelector: '',
       legend: '{{controller}}#{{action}}',

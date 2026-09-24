@@ -16,7 +16,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['alertmanager', 'monitoring', 'app-level'],
       description: 'Prometheus Alertmanager self-monitoring: alerts received and active, notifications per integration with failures and latency, silences, the gossip cluster and configuration reloads.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'alertmanager_build_info',
       ruleSelector: '',
       legend: '{{pod}}',

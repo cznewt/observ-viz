@@ -21,7 +21,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['opentelemetry', 'otel', 'instrumentation'],
       description: 'The telemetry pipeline inside an instrumented application: spans and logs produced, exported and dropped, exporter latency, and how full the batch processor queues are. Telemetry lost here never reaches any backend.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'otel_sdk_span_live',
       ruleSelector: '',
       legend: '{{instance}}',

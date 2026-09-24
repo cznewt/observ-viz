@@ -17,7 +17,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['beam', 'erlang', 'elixir', 'runtime'],
       description: 'The BEAM virtual machine behind an Erlang or Elixir service: memory by kind, processes, ports and atoms against their limits, run queues, reductions, context switches, garbage collection and VM network traffic.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'erlang_vm_processes',
       ruleSelector: '',
       legend: '{{instance}}',

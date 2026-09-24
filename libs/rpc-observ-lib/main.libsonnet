@@ -19,7 +19,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['grpc', 'rpc', 'instrumentation'],
       description: 'gRPC traffic on both sides: calls per method, the status codes they finish with, handling time percentiles, calls still in flight and streaming message rates.',
       datasource: '${datasource}',
-      selector: 'job=~"$job"',
+      // the identity metric (varMetric) scopes the $instance dropdown, so a
+      // generic signal (process_*, go_*) cannot reach another component's
+      // instances where the job label does not discriminate them
+      selector: 'job=~"$job", instance=~"$instance"',
+      varLabels: ['instance'],
       varMetric: 'grpc_server_started_total',
       ruleSelector: '',
       legend: '{{grpc_service}}/{{grpc_method}}',
