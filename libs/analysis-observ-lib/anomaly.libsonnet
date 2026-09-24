@@ -15,6 +15,7 @@
 //   { key: 'rate', title: 'Request rate', unit: 'reqps',
 //     expr: 'sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval]))' }
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local anomalySources = import 'libs/analysis-observ-lib/sources.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local panel = import 'custom/panel.libsonnet';
@@ -41,7 +42,8 @@ local defaults = {
   service: 'service',
   // static label filter for the rules (they cannot use dashboard variables)
   ruleSelector: '',
-  series: [],
+  // the three numbers every Prometheus client exposes, so `new({})` renders
+  series: anomalySources.anomaly.process.series,
 };
 
 // the four expressions each series turns into. `sel` is what goes inside the

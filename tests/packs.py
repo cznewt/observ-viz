@@ -23,7 +23,7 @@ PACKS = [
     "backstage", "instrumentation.httpServer", "instrumentation.httpClient", "instrumentation.rpc", "instrumentation.messaging", "instrumentation.otelSdk",
     "webservers.nginx", "webservers.caddy", "frameworks.django", "frameworks.rails",
     "cicd.argocd", "cicd.backstage",
-    "analysis.red", "analysis.use",
+    "analysis.red", "analysis.use", "analysis.anomaly",
     "logs",
 ]
 
