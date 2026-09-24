@@ -13,9 +13,6 @@ local boards = [
   [g.libs.system.linux, 'linux', 'Linux', {
     overviewSignals: ['cpuBusy', 'memUsedRatio', 'load1', 'fsUsed', 'uptime'],
   }, 'operatingSystems'],
-  [g.libs.system.docker, 'docker', 'Docker', {
-    overviewSignals: ['cpu', 'memUsage', 'netRx', 'netTx'],
-  }],
   [g.libs.system.windows, 'windows', 'Windows', {
     overviewSignals: ['cpuBusy', 'memUsedRatio', 'diskUsedRatio', 'processes', 'uptime'],
   }, 'operatingSystems'],
@@ -25,15 +22,15 @@ local boards = [
     varLabels: ['namespace', 'pod'],
     rowLabels: ['pod'],
   }],
-  [g.libs.kubernetes.cadvisor, 'cadvisor', 'Container resources', {
+  [g.libs.kubernetes.cadvisor, 'cadvisor', 'Container runtime', {
     overviewSignals: ['cpuUsage', 'memWorkingSet', 'cpuThrottleRatio', 'netRx', 'netTx'],
     varLabels: ['namespace', 'pod'],
     rowLabels: ['pod'],
   }],
   // what a host runs, rather than a component of the platform: these two keep
   // the uids they had under Components so existing links still resolve
-  [g.libs.system.systemd, 'systemd', 'systemd units', { uid: 'observ-viz-systemd' }],
-  [g.libs.system.processExporter, 'process', 'Process groups', { uid: 'observ-viz-process-exporter' }],
+  [g.libs.system.systemd, 'systemd', 'Systemd unit', { uid: 'observ-viz-systemd' }],
+  [g.libs.system.processExporter, 'process', 'Process group', { uid: 'observ-viz-process-exporter' }],
 ];
 
 {
