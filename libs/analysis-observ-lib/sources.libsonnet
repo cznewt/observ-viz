@@ -175,10 +175,69 @@
     },
   },
 
-  // A capacity source names one quantity that shrinks and what it is called.
+  // A capacity source is one of two questions.
+  //   kind: 'exhaustion'   one quantity that shrinks - when does it hit zero
+  //   kind: 'utilisation'  used against total - how full is it, how full was
+  //                        it, how full will it be (ported from the service
+  //                        catalog's capacity-mixin, whose "future" column
+  //                        repeated the present rather than predicting it)
   capacity: {
+    // ---- utilisation: capacity planning rather than exhaustion -------------
+    clusterCpu: {
+      title: 'Cluster CPU',
+      kind: 'utilisation',
+      used: 'sum by (cluster) (rate(node_cpu_seconds_total{%(queriesSelector)s, mode!="idle"}[$interval]))',
+      total: 'count by (cluster) (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"})',
+      totalTitle: 'Cores',
+      totalUnit: 'short',
+      groupBy: ['cluster'],
+      description: 'Cores in use against cores available, per cluster. Under 30 percent says the cluster is paid for and idle; over 70 says the next node is already late.',
+    },
+    clusterMemory: {
+      title: 'Cluster memory',
+      kind: 'utilisation',
+      used: 'sum by (cluster) (node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s})',
+      total: 'sum by (cluster) (node_memory_MemTotal_bytes{%(queriesSelector)s})',
+      totalTitle: 'Memory',
+      totalUnit: 'bytes',
+      groupBy: ['cluster'],
+      description: 'Memory in use against memory installed, per cluster.',
+    },
+    nodeCpu: {
+      title: 'Node CPU',
+      kind: 'utilisation',
+      used: 'sum by (instance) (rate(node_cpu_seconds_total{%(queriesSelector)s, mode!="idle"}[$interval]))',
+      total: 'count by (instance) (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"})',
+      totalTitle: 'Cores',
+      totalUnit: 'short',
+      groupBy: ['instance'],
+      description: 'The same question per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.',
+    },
+    nodeMemory: {
+      title: 'Node memory',
+      kind: 'utilisation',
+      used: 'sum by (instance) (node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s})',
+      total: 'sum by (instance) (node_memory_MemTotal_bytes{%(queriesSelector)s})',
+      totalTitle: 'Memory',
+      totalUnit: 'bytes',
+      groupBy: ['instance'],
+      description: 'Memory in use against memory installed, per node.',
+    },
+    workloadMemory: {
+      title: 'Workload memory',
+      kind: 'utilisation',
+      used: 'sum by (namespace) (container_memory_working_set_bytes{%(queriesSelector)s, container!=""})',
+      total: 'sum by (namespace) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})',
+      totalTitle: 'Memory limit',
+      totalUnit: 'bytes',
+      groupBy: ['namespace'],
+      description: 'What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.',
+    },
+
+    // ---- exhaustion: when does this run out --------------------------------
     filesystem: {
       title: 'Filesystems',
+      kind: 'exhaustion',
       // nsfs is the big one on a Kubernetes node: every container namespace
       // shows up as a zero-byte "filesystem" and would otherwise fill the
       // board with mounts that cannot run out of anything
@@ -189,7 +248,8 @@
       description: 'Free bytes per mounted filesystem, minus the ones that live in memory and cannot fill up the way a disk does.',
     },
     memory: {
-      title: 'Node memory',
+      title: 'Free node memory',
+      kind: 'exhaustion',
       remaining: 'node_memory_MemAvailable_bytes{%(queriesSelector)s}',
       remainingTitle: 'Available memory',
       unit: 'bytes',
@@ -198,6 +258,7 @@
     },
     certificates: {
       title: 'Certificates',
+      kind: 'exhaustion',
       remaining: 'certmanager_certificate_expiration_timestamp_seconds{%(queriesSelector)s} - time()',
       remainingTitle: 'Certificate life left',
       unit: 's',

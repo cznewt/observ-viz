@@ -101,15 +101,21 @@ instrumentation with the right shape:
 | `analysis.anomaly` | the series to watch | process, requests |
 | `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, container |
 | `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (kubernetes-mixin rules), Pyrra |
-| `analysis.capacity` | one quantity that shrinks | filesystems, node memory, certificates |
+| `analysis.capacity` | one quantity that shrinks, or used against total | filesystems, free node memory, certificates; cluster and node CPU and memory, workload memory |
 
 Golden signals is RED plus the one RED leaves out: saturation, the leading
 signal that latency and errors follow. Burn rate answers whether an SLO is
 worth waking someone for, with the Google SRE workbook's four
 multi-window pairs (14.4 / 6 / 3 / 1, each long window confirmed by a short
-one). Capacity answers when something runs out: its "time left" carries a
-trailing `> 0`, which is a filter rather than a comparison, so a quantity that
-is flat or growing drops out of the board instead of reading as infinite.
+one). Capacity answers two questions, chosen by the source's `kind`. An
+`exhaustion` source is one quantity that shrinks, and its "time left" carries a
+trailing `> 0`, a filter rather than a comparison, so a quantity that is flat or
+growing drops out instead of reading as infinite. A `utilisation` source is used
+against total, and the board says how full it is, how full it was `past` ago and
+where the trend puts it in `ahead` - the capacity planning question, ported from
+the service catalog's capacity-mixin. That mixin's future column repeated the
+present rather than predicting it; here it is a `predict_linear` over the same
+window the alert uses.
 
 The same idea appears inside a pack where one thing reports two ways:
 `networking.kong` takes `implementation: 'prometheus' | 'prometheus2' |

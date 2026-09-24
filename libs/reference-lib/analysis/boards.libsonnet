@@ -36,9 +36,16 @@ local burnRateBoards = [
   ['pyrra', 'pyrra'],
 ];
 local capacityBoards = [
+  // exhaustion: when does it hit zero
   ['filesystem', 'filesystem'],
   ['memory', 'memory'],
   ['certificates', 'certificates'],
+  // utilisation: how full is it, and where is it heading
+  ['cluster-cpu', 'clusterCpu'],
+  ['cluster-memory', 'clusterMemory'],
+  ['node-cpu', 'nodeCpu'],
+  ['node-memory', 'nodeMemory'],
+  ['workload-memory', 'workloadMemory'],
 ];
 
 {

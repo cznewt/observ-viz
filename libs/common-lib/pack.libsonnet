@@ -211,7 +211,8 @@ local variable =
           )
           + multiMods
           for i in std.range(0, std.length(varLabels) - 1)
-        ] + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
+        ] + (if std.objectHas(config, 'extraVariables') then config.extraVariables else [])
+        + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
                variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
              ] else []) + presenceVars)
         + dashboard.withElements(this.grafana.elements)
