@@ -52,7 +52,9 @@ local resolve(config) =
     local sel = filters.selector(cfg);
     // a signal may ask for the base scope (job/cluster only): its metric has none
     // of the groupBy labels, so the per-dimension matchers would match nothing.
-    local baseSel = if std.objectHas(cfg, 'selector') then cfg.selector else 'job=~"$job"';
+    local baseSel =
+      local own = if std.objectHas(cfg, 'selector') then cfg.selector else '';
+      if own != '' then own else 'job=~"$job"';
     local selFor(sig) = if std.objectHas(sig, 'scope') && sig.scope == 'base' then baseSel else sel;
     local legend = std.join(' / ', ['{{' + l + '}}' for l in src.groupBy]);
     {
