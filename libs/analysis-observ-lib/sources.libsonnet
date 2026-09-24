@@ -58,7 +58,10 @@
     },
     apiserver: {
       title: 'Kubernetes API server',
-      counter: 'apiserver_request_duration_seconds_count',
+      // apiserver_request_duration_seconds_count carries no `code` label, so the
+      // request counter (which does) answers traffic and errors; latency still
+      // comes from the histogram.
+      counter: 'apiserver_request_total',
       bucket: 'apiserver_request_duration_seconds_bucket',
       errorSelector: 'code=~"5.."',
       groupBy: ['resource'],
@@ -159,7 +162,10 @@
         latency: { title: 'Latency p99', unit: 's', expr: 'histogram_quantile(0.99, sum by (le, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))' },
         traffic: { title: 'Requests', unit: 'reqps', expr: 'sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval]))' },
         errors: { title: 'Error ratio', unit: 'percentunit', expr: 'sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s, status=~"5.."}[$__rate_interval])) / clamp_min(sum by (ingress) (rate(nginx_ingress_controller_requests{%(queriesSelector)s}[$__rate_interval])), 1e-9)' },
-        saturation: { title: 'Active connections', unit: 'short', expr: 'sum (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s, state="active"})' },
+        // per controller process, with no ingress label of its own: scope: 'base'
+        // keeps the job/cluster filter and drops the per-ingress matchers, which
+        // would otherwise match nothing.
+        saturation: { title: 'Active connections', unit: 'short', scope: 'base', expr: 'sum (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s, state="active"})' },
       },
     },
     container: {
@@ -302,7 +308,9 @@
       resources: {
         CPU: {
           utilisation: { expr: 'sum by (%(by)s) (rate(container_cpu_usage_seconds_total{%(sel)s, container!=""}[$__rate_interval]))', unit: 'short' },
-          saturation: { expr: 'sum by (%(by)s) (rate(container_cpu_cfs_throttled_seconds_total{%(sel)s, container!=""}[$__rate_interval]))', unit: 'short' },
+          // cAdvisor under Kubernetes exposes the throttled *periods*, not a
+          // seconds counter: the share of CFS periods that hit the limit.
+          saturation: { expr: 'sum by (%(by)s) (rate(container_cpu_cfs_throttled_periods_total{%(sel)s, container!=""}[$__rate_interval])) / clamp_min(sum by (%(by)s) (rate(container_cpu_cfs_periods_total{%(sel)s, container!=""}[$__rate_interval])), 1e-9)', unit: 'percentunit' },
         },
         Memory: {
           utilisation: { expr: 'sum by (%(by)s) (container_memory_working_set_bytes{%(sel)s, container!=""})', unit: 'bytes' },

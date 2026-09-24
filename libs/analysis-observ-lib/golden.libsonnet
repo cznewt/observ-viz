@@ -50,11 +50,15 @@ local resolve(config) =
     local cfg = resolve(config);
     local src = cfg.source;
     local sel = filters.selector(cfg);
+    // a signal may ask for the base scope (job/cluster only): its metric has none
+    // of the groupBy labels, so the per-dimension matchers would match nothing.
+    local baseSel = if std.objectHas(cfg, 'selector') then cfg.selector else 'job=~"$job"';
+    local selFor(sig) = if std.objectHas(sig, 'scope') && sig.scope == 'base' then baseSel else sel;
     local legend = std.join(' / ', ['{{' + l + '}}' for l in src.groupBy]);
     {
       [k]:
         signal.new(src.signals[k].title, 'prometheus', cfg.datasource, src.signals[k].expr, src.signals[k].unit)
-        .filteringSelector(sel).withLegendFormat(legend).withDescription(about[k] + ' ' + (if std.objectHas(src.signals[k], 'description') then src.signals[k].description else ''))
+        .filteringSelector(selFor(src.signals[k])).withLegendFormat(legend).withDescription(about[k] + ' ' + (if std.objectHas(src.signals[k], 'description') then src.signals[k].description else ''))
       for k in order
       if std.objectHas(src.signals, k)
     },
