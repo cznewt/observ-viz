@@ -10,6 +10,7 @@ local query = import 'custom/query.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
+local tabs = import 'libs/common-lib/tabs.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local dockerLib = import 'libs/docker-observ-lib/main.libsonnet';
 local kubeletLib = import 'libs/kubernetes-observ-lib/kubelet.libsonnet';
@@ -958,6 +959,9 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
         elements: {
           nodeAlertList: alertPanels.list('Alerts', instanceFilter='{instance=~"$instance"}', groupMode='custom', groupBy=['alertname'])
                          + panel.withDescription('Alert instances for this host as Grafana sees them, grouped by rule.'),
+          // the list only knows Grafana-managed rules; this reads the ALERTS
+          // series, which is what a Mimir or Prometheus ruler writes
+          nodeAlertFiring: alertPanels.firingTable('Firing alerts', cfg.datasource, 'instance=~"$instance"'),
           nodeAlertTimeline: alertPanels.timeline('Alert state', cfg.datasource, 'instance=~"$instance"')
                              + panel.withDescription('Every alert rule touching this host over time: pending, then firing coloured by severity.'),
         },

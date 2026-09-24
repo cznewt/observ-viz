@@ -72,6 +72,8 @@
     alertmanager: import 'libs/alertmanager-observ-lib/main.libsonnet',
     alertHandler: import 'libs/alert-handler-observ-lib/main.libsonnet',
     opencost: import 'libs/opencost-observ-lib/main.libsonnet',
+    // the exporter itself, not the machine: collectors, scrape cost, textfiles
+    nodeExporter: import 'libs/node-exporter-observ-lib/main.libsonnet',
   },
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',

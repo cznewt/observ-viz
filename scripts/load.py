@@ -90,9 +90,20 @@ def push_doc(doc, label):
             ensure_folder(parent_uid, parent_title)
         ensure_folder(folder, title, parent_uid)
     status, _ = req("POST", API, doc)
-    if status == 409:  # exists -> replace
-        req("DELETE", f"{API}/{name}", None)
-        status, _ = req("POST", API, doc)
+    if status == 409:  # exists -> update in place with the live resourceVersion
+        live_status, live = req("GET", f"{API}/{name}", None)
+        if live_status == 200:
+            try:
+                rv = json.loads(live)["metadata"].get("resourceVersion")
+            except Exception:  # noqa: BLE001
+                rv = None
+            if rv:
+                doc["metadata"]["resourceVersion"] = rv
+                status, _ = req("PUT", f"{API}/{name}", doc)
+        if status == 409:  # last resort: replace (needs delete permission)
+            req("DELETE", f"{API}/{name}", None)
+            doc["metadata"].pop("resourceVersion", None)
+            status, _ = req("POST", API, doc)
     fld = f" [folder: {folder}]" if folder else ""
     if 200 <= status < 300:
         print(f"  OK   {label}:{name}{fld} -> {URL}/d/{name}")
