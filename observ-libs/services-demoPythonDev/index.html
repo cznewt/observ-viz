@@ -1,0 +1,1512 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A standalone Jsonnet library for generating Grafana dashboard schema v2 resources — slim core, lots of mixins.">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Demo Python (dev) service (g.libs.services.demoPythonDev) - observ-viz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#demo-python-dev-service-glibsservicesdemopythondev" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="observ-viz" class="md-header__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            observ-viz
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Demo Python (dev) service (g.libs.services.demoPythonDev)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="observ-viz" class="md-nav__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    observ-viz
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & justfiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packs (mixins)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../libs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chart types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference & scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backstage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backstage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples & local Grafana
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../render/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-lib container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runbooks/node/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks (node)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alerts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recording-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="demo-python-dev-service-glibsservicesdemopythondev">Demo Python (dev) service  (<code>g.libs.services.demoPythonDev</code>)<a class="headerlink" href="#demo-python-dev-service-glibsservicesdemopythondev" title="Permanent link">&para;</a></h1>
+<p>Dashboard uid <code>observ-viz-svc-demo-python-dev</code> · 85 signals · 27 alerts · 15 recording rules.</p>
+<h2 id="signals">Signals<a class="headerlink" href="#signals" title="Permanent link">&para;</a></h2>
+<p>Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Unit</th>
+<th>Query</th>
+<th>Recorded as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cpu</code></td>
+<td>short</td>
+<td><code>rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])</code></td>
+<td><code>instance:python_cpu_usage:rate5m</code></td>
+</tr>
+<tr>
+<td><code>gcCollections</code></td>
+<td>ops</td>
+<td><code>sum without(generation)(rate(python_gc_collections_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>gcObjects</code></td>
+<td>short</td>
+<td><code>rate(python_gc_objects_collected_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_cpu</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_ctxSwitches</code></td>
+<td>ops</td>
+<td><code>sum by (instance, groupname, ctxswitchtype) (rate(namedprocess_namegroup_context_switches_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_fdRatio</code></td>
+<td>percentunit</td>
+<td><code>max by (instance, groupname) (namedprocess_namegroup_worst_fd_ratio{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_fds</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname) (namedprocess_namegroup_open_filedesc{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_ioRead</code></td>
+<td>Bps</td>
+<td><code>sum by (instance, groupname) (rate(namedprocess_namegroup_read_bytes_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_ioWrite</code></td>
+<td>Bps</td>
+<td><code>sum by (instance, groupname) (rate(namedprocess_namegroup_write_bytes_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_majFaults</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname) (rate(namedprocess_namegroup_major_page_faults_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_procs</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname) (namedprocess_namegroup_num_procs{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_rss</code></td>
+<td>bytes</td>
+<td><code>sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{groupname=~"demo-python-dev", memtype="resident", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_states</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname, state) (namedprocess_namegroup_states{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_threads</code></td>
+<td>short</td>
+<td><code>sum by (instance, groupname) (namedprocess_namegroup_num_threads{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>hproc_uptime</code></td>
+<td>dtdurations</td>
+<td><code>time() - min by (instance, groupname) (namedprocess_namegroup_oldest_start_time_seconds{groupname=~"demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_byHost</code></td>
+<td>reqps</td>
+<td><code>sum by (host) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_byIngress</code></td>
+<td>reqps</td>
+<td><code>sum by (namespace, ingress) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_byMethod</code></td>
+<td>reqps</td>
+<td><code>sum by (method) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_byPath</code></td>
+<td>reqps</td>
+<td><code>topk(10, sum by (host, path) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval])))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_byStatus</code></td>
+<td>reqps</td>
+<td><code>sum by (status) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_bytesIn</code></td>
+<td>Bps</td>
+<td><code>sum(rate(nginx_ingress_controller_request_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_bytesOut</code></td>
+<td>Bps</td>
+<td><code>sum(rate(nginx_ingress_controller_response_size_sum{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_err4xx</code></td>
+<td>percentunit</td>
+<td><code>sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*", status=~"4.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_err5xx</code></td>
+<td>percentunit</td>
+<td><code>sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*", status=~"5.."}[$__rate_interval])) / sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_hosts</code></td>
+<td>short</td>
+<td><code>count(count by (host) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_ingresses</code></td>
+<td>short</td>
+<td><code>count(count by (namespace, ingress) (nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_p50</code></td>
+<td>s</td>
+<td><code>histogram_quantile(0.50, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval])))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_p95</code></td>
+<td>s</td>
+<td><code>histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval])))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_p99</code></td>
+<td>s</td>
+<td><code>histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval])))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_rate</code></td>
+<td>reqps</td>
+<td><code>sum(rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_upstreamErrors</code></td>
+<td>reqps</td>
+<td><code>sum by (status) (rate(nginx_ingress_controller_requests{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*", status=~"502\|503\|504"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ing_upstreamP99</code></td>
+<td>s</td>
+<td><code>histogram_quantile(0.99, sum by (le) (rate(nginx_ingress_controller_response_duration_seconds_bucket{cluster=~"$cluster", namespace=~"$namespace", service=~"demo-.*python.*"}[$__rate_interval])))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_age</code></td>
+<td>s</td>
+<td><code>time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_cpu</code></td>
+<td>short</td>
+<td><code>sum by (pod) (rate(container_cpu_usage_seconds_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_cpuLimits</code></td>
+<td>short</td>
+<td><code>sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_cpuRequests</code></td>
+<td>short</td>
+<td><code>sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_deployAvailable</code></td>
+<td>short</td>
+<td><code>kube_deployment_status_replicas_available{cluster=~"$cluster", namespace=~"$namespace", deployment=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_deployDesired</code></td>
+<td>short</td>
+<td><code>kube_deployment_spec_replicas{cluster=~"$cluster", namespace=~"$namespace", deployment=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_dsDesired</code></td>
+<td>short</td>
+<td><code>kube_daemonset_status_desired_number_scheduled{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_dsReady</code></td>
+<td>short</td>
+<td><code>kube_daemonset_status_number_ready{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_mem</code></td>
+<td>bytes</td>
+<td><code>sum by (pod) (container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_memLimits</code></td>
+<td>bytes</td>
+<td><code>sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_memRequests</code></td>
+<td>bytes</td>
+<td><code>sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_notRunning</code></td>
+<td>short</td>
+<td><code>sum(kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", phase!="Running"} == 1) or vector(0)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_phase</code></td>
+<td>short</td>
+<td><code>sum by (phase) (kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_pods</code></td>
+<td>short</td>
+<td><code>count(kube_pod_info{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_pvcUsage</code></td>
+<td>percentunit</td>
+<td><code>kubelet_volume_stats_used_bytes{cluster=~"$cluster", namespace=~"$namespace"} / kubelet_volume_stats_capacity_bytes{cluster=~"$cluster", namespace=~"$namespace"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_ready</code></td>
+<td>short</td>
+<td><code>sum by (pod) (kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_readyTotal</code></td>
+<td>short</td>
+<td><code>sum(kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_restarts</code></td>
+<td>short</td>
+<td><code>sum by (pod) (kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_restarts1h</code></td>
+<td>short</td>
+<td><code>sum(increase(kube_pod_container_status_restarts_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[1h]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_stsDesired</code></td>
+<td>short</td>
+<td><code>kube_statefulset_replicas{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_stsReady</code></td>
+<td>short</td>
+<td><code>kube_statefulset_status_replicas_ready{cluster=~"$cluster", namespace=~"$namespace", statefulset=~"demo-.*python.*"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_waiting</code></td>
+<td>short</td>
+<td><code>sum by (pod, reason) (kube_pod_container_status_waiting_reason{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_waitingTotal</code></td>
+<td>short</td>
+<td><code>sum(kube_pod_container_status_waiting{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>kube_youngest</code></td>
+<td>dtdurations</td>
+<td><code>min(time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>logs_journal</code></td>
+<td>short</td>
+<td><code>{instance=~"$host", unit=~"demo-python-dev.service"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>logs_pod</code></td>
+<td>short</td>
+<td><code>{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>maxFds</code></td>
+<td>short</td>
+<td><code>process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>openFds</code></td>
+<td>short</td>
+<td><code>process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>proc_cpu</code></td>
+<td>short</td>
+<td><code>rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])</code></td>
+<td><code>instance:python_cpu_usage:rate5m</code></td>
+</tr>
+<tr>
+<td><code>proc_fdRatio</code></td>
+<td>percentunit</td>
+<td><code>process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>proc_fds</code></td>
+<td>short</td>
+<td><code>process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>proc_rss</code></td>
+<td>bytes</td>
+<td><code>process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>proc_uptime</code></td>
+<td>s</td>
+<td><code>time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>proc_virt</code></td>
+<td>bytes</td>
+<td><code>process_virtual_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>rss</code></td>
+<td>bytes</td>
+<td><code>process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_active</code></td>
+<td>short</td>
+<td><code>count(node_systemd_unit_state{name=~"demo-python-dev.service", state="active", instance=~"$host"} == 1) or vector(0)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_failed</code></td>
+<td>short</td>
+<td><code>count(node_systemd_unit_state{name=~"demo-python-dev.service", state="failed", instance=~"$host"} == 1) or vector(0)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_failedTable</code></td>
+<td>short</td>
+<td><code>node_systemd_unit_state{name=~"demo-python-dev.service", state="failed", instance=~"$host"} == 1</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_hosts</code></td>
+<td>short</td>
+<td><code>count(count by (instance) (node_systemd_unit_state{name=~"demo-python-dev.service", instance=~"$host"}))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_inactive</code></td>
+<td>short</td>
+<td><code>count(node_systemd_unit_state{name=~"demo-python-dev.service", state="inactive", instance=~"$host"} == 1) or vector(0)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_restarts</code></td>
+<td>short</td>
+<td><code>sum by (instance, name) (increase(node_systemd_service_restart_total{name=~"demo-python-dev.service", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_state</code></td>
+<td>short</td>
+<td><code>max by (instance, name) ((node_systemd_unit_state{name=~"demo-python-dev.service", state="active", instance=~"$host"} == 1) * 1 or (node_systemd_unit_state{name=~"demo-python-dev.service", state=~"activating\|deactivating", instance=~"$host"} == 1) * 2 or (node_systemd_unit_state{name=~"demo-python-dev.service", state="inactive", instance=~"$host"} == 1) * 3 or (node_systemd_unit_state{name=~"demo-python-dev.service", state="failed", instance=~"$host"} == 1) * 4)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_tasks</code></td>
+<td>short</td>
+<td><code>node_systemd_unit_tasks_current{name=~"demo-python-dev.service", instance=~"$host"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_tasksMax</code></td>
+<td>short</td>
+<td><code>node_systemd_unit_tasks_max{name=~"demo-python-dev.service", instance=~"$host"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_tasksUtil</code></td>
+<td>percent</td>
+<td><code>100 * node_systemd_unit_tasks_current{name=~"demo-python-dev.service", instance=~"$host"} / clamp_min(node_systemd_unit_tasks_max{name=~"demo-python-dev.service", instance=~"$host"}, 1)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>systemd_uptime</code></td>
+<td>s</td>
+<td><code>time() - node_systemd_unit_start_time_seconds{name=~"demo-python-dev.service", instance=~"$host"}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_cpu</code></td>
+<td>short</td>
+<td><code>sum by (instance) (rate(windows_process_cpu_time_total{process=~"(?i)demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_handles</code></td>
+<td>short</td>
+<td><code>sum by (instance) (windows_process_handles{process=~"(?i)demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_io</code></td>
+<td>Bps</td>
+<td><code>sum by (instance, mode) (rate(windows_process_io_bytes_total{process=~"(?i)demo-python-dev", instance=~"$host"}[$__rate_interval]))</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_state</code></td>
+<td>short</td>
+<td><code>max by (instance, name) ((windows_service_state{name=~"(?i)demo-python-dev", state="running", instance=~"$host"} == 1) * 1 or (windows_service_state{name=~"(?i)demo-python-dev", state=~"start pending\|continue pending", instance=~"$host"} == 1) * 2 or (windows_service_state{name=~"(?i)demo-python-dev", state=~"paused\|pause pending\|stop pending", instance=~"$host"} == 1) * 3 or (windows_service_state{name=~"(?i)demo-python-dev", state="stopped", instance=~"$host"} == 1) * 4)</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_threads</code></td>
+<td>short</td>
+<td><code>sum by (instance) (windows_process_threads{process=~"(?i)demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_uptime</code></td>
+<td>s</td>
+<td><code>time() - min by (instance) (windows_process_start_time{process=~"(?i)demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>win_workingSet</code></td>
+<td>bytes</td>
+<td><code>sum by (instance) (windows_process_working_set_private_bytes{process=~"(?i)demo-python-dev", instance=~"$host"} or windows_process_working_set_bytes{process=~"(?i)demo-python-dev", instance=~"$host"})</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dashboard">Dashboard<a class="headerlink" href="#dashboard" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Garbage collection</strong> — <code>gcCollections</code>, <code>gcObjects</code></li>
+<li><strong>Process</strong> — <code>cpu</code>, <code>rss</code></li>
+<li><strong>File descriptors</strong> — <code>maxFds</code>, <code>openFds</code></li>
+</ul>
+<h2 id="alerts">Alerts<a class="headerlink" href="#alerts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Alert</th>
+<th>Severity</th>
+<th>For</th>
+<th>Runbook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PythonProcessDown</code></td>
+<td>critical</td>
+<td>5m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>PythonHighCpu</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>PythonHighMemory</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>PythonFileDescriptorsExhausted</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>KubePodNotReady</code></td>
+<td>critical</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>KubePodCrashLooping</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>KubePodCpuOverRequest</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>KubePodMemoryNearLimit</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ContainerCpuThrottlingHigh</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ContainerHighMemory</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ContainerHighCpu</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ContainerNetworkUnavailable</code></td>
+<td>critical</td>
+<td>5m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>CadvisorDown</code></td>
+<td>critical</td>
+<td>5m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ContainerHighDiskWrite</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SystemdUnitFailed</code></td>
+<td>critical</td>
+<td>5m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SystemdUnitRestarting</code></td>
+<td>warning</td>
+<td>0m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SystemdSystemDegraded</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ProcessGroupFdRatioHigh</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ProcessGroupGone</code></td>
+<td>warning</td>
+<td>10m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>ProcessExporterScrapeErrors</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>IngressNginxHigh5xxRatio</code></td>
+<td>warning</td>
+<td>10m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>IngressNginxHighLatency</code></td>
+<td>warning</td>
+<td>15m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>IngressNginxUpstreamErrors</code></td>
+<td>warning</td>
+<td>10m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>IngressNginxConfigReloadFailed</code></td>
+<td>critical</td>
+<td>5m</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>IngressNginxCertificateExpiringSoon</code></td>
+<td>warning</td>
+<td>1h</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="recording-rules">Recording rules<a class="headerlink" href="#recording-rules" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Record</th>
+<th>Expression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instance:python_cpu_usage:rate5m</code></td>
+<td><code>rate(process_cpu_seconds_total[5m])</code></td>
+</tr>
+<tr>
+<td><code>instance:python_gc_collections:rate5m</code></td>
+<td><code>sum without (generation) (rate(python_gc_collections_total[5m]))</code></td>
+</tr>
+<tr>
+<td><code>namespace_pod:container_cpu_usage:rate5m</code></td>
+<td><code>sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod=~"demo-.*python.*"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>namespace_pod:container_memory_working_set_bytes:sum</code></td>
+<td><code>sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~"demo-.*python.*"})</code></td>
+</tr>
+<tr>
+<td><code>pod:container_cpu_usage:rate5m</code></td>
+<td><code>sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~"demo-.*python.*"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>pod:container_memory_working_set:sum</code></td>
+<td><code>sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~"demo-.*python.*"})</code></td>
+</tr>
+<tr>
+<td><code>instance_name:container_cpu_usage:rate5m</code></td>
+<td><code>sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*demo-python-dev.*"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>instance_name:container_memory_working_set_bytes:sum</code></td>
+<td><code>sum by (name) (container_memory_working_set_bytes{name!="", name=~".*demo-python-dev.*"})</code></td>
+</tr>
+<tr>
+<td><code>instance:node_systemd_units_failed:count</code></td>
+<td><code>count by (instance) (node_systemd_unit_state{state="failed", name=~"demo-python-dev.service"} == 1)</code></td>
+</tr>
+<tr>
+<td><code>instance:node_systemd_units_active:count</code></td>
+<td><code>count by (instance) (node_systemd_unit_state{state="active", name=~"demo-python-dev.service"} == 1)</code></td>
+</tr>
+<tr>
+<td><code>instance_groupname:namedprocess_cpu:rate5m</code></td>
+<td><code>sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"demo-python-dev"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>instance_groupname:namedprocess_rss:sum</code></td>
+<td><code>sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"demo-python-dev"})</code></td>
+</tr>
+<tr>
+<td><code>ingress:nginx_ingress_controller_requests:rate5m</code></td>
+<td><code>sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"demo-.*python.*"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>ingress:nginx_ingress_controller_5xx:ratio_rate5m</code></td>
+<td><code>sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~"demo-.*python.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"demo-.*python.*"}[5m]))</code></td>
+</tr>
+<tr>
+<td><code>ingress:nginx_ingress_controller_request_duration_seconds:p99_5m</code></td>
+<td><code>histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~"demo-.*python.*"}[5m])))</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
