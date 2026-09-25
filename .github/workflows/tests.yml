@@ -24,5 +24,7 @@ jobs:
         run: python3 tests/panels.py
       - name: schema-validate boards (foundation-sdk v2beta1)
         run: python3 tests/test_schema.py
+      - name: every variable a board reads is declared on it
+        run: python3 tests/test_vars.py
       - name: generator parity + schema cross-check
         run: PYTHONPATH=generator python3 -m observ_viz_gen --check

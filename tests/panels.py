@@ -53,10 +53,19 @@ def main():
     for name in sorted(panels):
         b = panels[name]
         lay = b["spec"]["layout"]
-        tabs = [t["spec"]["title"] for t in lay["spec"]["tabs"]] if lay["kind"] == "TabsLayout" else []
-        if not tabs or tabs[0] != "Overview":
+        kind = lay["kind"]
+        # Rows, not tabs: a panel reference board keeps every example on one
+        # scrollable page (libs/reference-lib/panels/_tab.libsonnet), and its first
+        # section is the Overview - the description plus the Grafana docs link.
+        if kind == "RowsLayout":
+            sections = [r["spec"]["title"] for r in lay["spec"]["rows"]]
+        elif kind == "TabsLayout":
+            sections = [t["spec"]["title"] for t in lay["spec"]["tabs"]]
+        else:
+            sections = []
+        if not sections or sections[0] != "Overview":
             fail += 1
-            print(f"  FAIL {name}: not a tabbed board with Overview")
+            print(f"  FAIL {name}: first section is not Overview ({kind}: {sections[:3]})")
 
     print(f"\n{n} presets + {len(panels)} chart boards checked, {fail} failure(s)")
     if fail:
