@@ -49,6 +49,15 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       durationP99: sig('Probe duration p99', 'histogram_quantile(0.99, sum by (le, module) (rate(anomaly_exporter_probe_duration_seconds_bucket{%(queriesSelector)s}[$__rate_interval])))', 's', '{{module}} p99', desc='Slowest 1 percent of probes by module. A probe runs the module query against the datasource, so this is mostly query latency.'),
       durationAvg: sig('Probe duration avg', 'sum by (module) (rate(anomaly_exporter_probe_duration_seconds_sum{%(queriesSelector)s}[$__rate_interval])) / sum by (module) (rate(anomaly_exporter_probe_duration_seconds_count{%(queriesSelector)s}[$__rate_interval]))', 's', '{{module}}', desc='Average probe duration by module.'),
       version: sig('Version', 'max by (version) (anomaly_exporter_build_info{%(queriesSelector)s})', 'short', '{{version}}', desc='Running exporter version.'),
+      // --- what the probes produce. These arrive on the /probe scrape, so they
+      // carry the scrape job's labels (probe, module), not the exporter's.
+      score: sig('Anomaly score', 'max by (probe, module) (anomaly_score{%(queriesSelector)s})', 'short', '{{probe}} ({{module}})', desc='Worst score of the series a probe scored, 0 to 1. Every detector emits the same scale, so one alert threshold covers all of them.'),
+      scoreBySeries: sig('Anomaly score by series', 'anomaly_score{%(queriesSelector)s}', 'short', '{{probe}} {{pod}}{{instance}}', desc='Every scored series separately - which one moved, not just that something did.'),
+      scoreHigh: sig('Series above 0.8', 'count(anomaly_score{%(queriesSelector)s} > 0.8) or vector(0)', 'short', 'series', desc='Series a detector currently calls anomalous. Read it with the detector in mind: a seasonality-naive one flags normal peaks.'),
+      probeSuccess: sig('Probe success', 'min by (probe, module) (anomaly_probe_success{%(queriesSelector)s})', 'short', '{{probe}} ({{module}})', desc='1 when the probe ran and scored, 0 when it failed. A failing probe is a silent gap in detection.'),
+      probeLatency: sig('Probe latency', 'max by (probe, module) (anomaly_probe_duration_seconds{%(queriesSelector)s})', 's', '{{probe}} ({{module}})', desc='How long the module took. Prophet and Holt-Winters are the slow ones; past the module timeout the probe returns nothing.'),
+      seriesScored: sig('Series scored', 'sum by (probe) (anomaly_series_scored{%(queriesSelector)s})', 'short', '{{probe}}', desc='Series the detector actually scored.'),
+      seriesSkipped: sig('Series skipped', 'sum by (probe) (anomaly_series_total{%(queriesSelector)s} - anomaly_series_scored{%(queriesSelector)s})', 'short', '{{probe}}', desc='Returned by the query but not scored - usually too few training points in the lookback.'),
       cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the exporter process.'),
       rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', desc='Resident memory of the exporter process.'),
     };
@@ -65,6 +74,26 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           ov03_modules: signals.modules.asStat('Modules'),
         },
       } + stats,
+      {
+        title: 'Scores',
+        elements: {
+          sc01_score: signals.score.asTimeSeries('Anomaly score by probe')
+                      + panel.timeSeries.standardOptions.withMin(0)
+                      + panel.timeSeries.standardOptions.withMax(1)
+                      + panel.timeSeries.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 0.8 }, { color: 'red', value: 0.95 }])
+                      + panel.timeSeries.withFieldConfigDefaults({ custom: { thresholdsStyle: { mode: 'dashed' } } }),
+          sc02_scoreBySeries: signals.scoreBySeries.asTimeSeries('Anomaly score by series')
+                              + panel.timeSeries.standardOptions.withMin(0)
+                              + panel.timeSeries.standardOptions.withMax(1),
+          sc03_probeSuccess: signals.probeSuccess.asTimeSeries('Probe success (0 = detection gap)')
+                             + panel.timeSeries.standardOptions.withMin(0)
+                             + panel.timeSeries.standardOptions.withMax(1),
+          sc04_probeLatency: signals.probeLatency.asTimeSeries('Probe latency by module'),
+          sc05_seriesScored: signals.seriesScored.asTimeSeries('Series scored')
+                             + panel.withTargetsMixin([signals.seriesSkipped.asTarget()]),
+          sc06_scoreHigh: signals.scoreHigh.asTimeSeries('Series above 0.8'),
+        },
+      } + charts,
       {
         title: 'Probes',
         elements: {

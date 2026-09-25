@@ -60,7 +60,7 @@ local capacityBoards = [
             datasource: $._config.datasource,
             source: sources.red[b[1]],
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisRed,
           $._config.tags,
         )
       for b in redBoards
@@ -73,7 +73,7 @@ local capacityBoards = [
             datasource: $._config.datasource,
             source: sources.use[b[1]],
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisUse,
           $._config.tags,
         )
       for b in useBoards
@@ -85,10 +85,26 @@ local capacityBoards = [
             dashboardTitle: 'Anomaly / ' + sources.anomaly[b[1]].title,
             datasource: $._config.datasource,
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisAnomaly,
           $._config.tags,
         )
       for b in anomalyBoards
+    } + {
+      // the exporter's own output next to the PromQL method boards: six
+      // detectors, one score scale, scored outside Prometheus
+      'analysis-anomaly-scores.json':
+        util.place(
+          g.libs.monitoring.anomalyExporter.new({
+            uid: 'observ-viz-anomaly-scores',
+            dashboardTitle: 'Anomaly / Detector scores',
+            datasource: $._config.datasource,
+            tabbed: true,
+            overviewSignals: ['score', 'probeSuccess', 'probeLatency', 'seriesScored', 'seriesSkipped'],
+            rowLabels: ['probe', 'module'],
+          }).grafana.dashboard,
+          $._config.folders.analysisAnomaly,
+          $._config.tags,
+        ),
     } + {
       ['analysis-golden-' + b[0] + '.json']:
         util.place(
@@ -98,7 +114,7 @@ local capacityBoards = [
             datasource: $._config.datasource,
             source: sources.golden[b[1]],
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisGolden,
           $._config.tags,
         )
       for b in goldenBoards
@@ -112,7 +128,7 @@ local capacityBoards = [
             source: sources.burnRate[b[1]],
             service: b[0],
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisBurnRate,
           $._config.tags,
         )
       for b in burnRateBoards
@@ -126,7 +142,7 @@ local capacityBoards = [
             source: sources.capacity[b[1]],
             service: b[0],
           }).grafana.dashboard,
-          $._config.folders.analysis,
+          $._config.folders.analysisCapacity,
           $._config.tags,
         )
       for b in capacityBoards
