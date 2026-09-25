@@ -75,6 +75,9 @@
       errorCounter: 'traces_service_graph_request_failed_total',
       bucket: 'traces_service_graph_request_server_seconds_bucket',
       groupBy: ['client', 'server'],
+      // the generator's series carry no job label; `source` is what they do carry
+      selector: 'source=~"$source"',
+      groupVar: 'source',
       description: "Tempo's metrics-generator, counting every edge between two traced services.",
     },
   },

@@ -10,12 +10,12 @@
 //   .elements(cfg, pfx)  a fragment - the three panels as an element map, to
 //                        drop into someone else's board
 //   .alerts(cfg)         the rule group: failures, latency, traffic gone
+local panel = import 'custom/panel.libsonnet';
+local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 
 local defaults = {
   uid: 'observ-viz-red',
@@ -46,7 +46,19 @@ local resolve(config) =
   local cfg = defaults + config;
   local dim = cfg.source.groupBy[0];
   cfg {
+    // a source may carry the selector its own series can be filtered by: the
+    // metrics-generator series have no job label, so job=~"$job" would match
+    // nothing. An explicit config.selector still wins.
+    selector:
+      if std.objectHas(config, 'selector') then config.selector
+      else if std.objectHas(cfg.source, 'selector') then cfg.source.selector
+      else cfg.selector,
     varMetric: cfg.source.counter,
+    // and the variable that selector filters on
+    groupVar:
+      if std.objectHas(config, 'groupVar') then config.groupVar
+      else if std.objectHas(cfg.source, 'groupVar') then cfg.source.groupVar
+      else 'job',
     varLabels: cfg.varLabels + (if cfg.perRoute && !std.member(cfg.varLabels, dim) then [dim] else []),
   };
 
@@ -180,30 +192,32 @@ local exprs(cfg, sel, rate) = {
     local dim = src.groupBy[0];
     local sigs = this.signals(config);
     local els = this.elements(config);
-    pack.build(cfg + {
-      description: 'The RED method over ' + std.asciiLower(src.title) + '. ' + src.description,
-      references: [
-        { title: 'The RED method', url: 'https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/', description: 'rate, errors, duration - what to measure for a request-driven service' },
-        { title: 'Histograms and summaries', url: 'https://prometheus.io/docs/practices/histograms/', description: 'how the quantiles here are computed' },
-      ],
-      rowLabels: src.groupBy,
-      overviewSignals: ['requests', 'errors', 'errorRatio', 'p95', 'p99'],
-    }, sigs, [
-      {
-        title: 'RED',
-        width: 12,
-        height: 9,
-        elements: { requests: els.rate, errorRatio: els.errors, duration: els.duration },
-      },
-    ] + (if cfg.perRoute then [
-           {
-             // the same three panels, once per selected value of the dimension
-             title: 'Per ' + dim,
-             repeat: dim,
-             width: 8,
-             height: 8,
-             elements: { r_requests: els.rate, r_errorRatio: els.errors, r_duration: els.duration },
-           },
-         ] else []),
-        this.alerts(config)),
+    pack.build(cfg {
+                 description: 'The RED method over ' + std.asciiLower(src.title) + '. ' + src.description,
+                 references: [
+                   { title: 'The RED method', url: 'https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/', description: 'rate, errors, duration - what to measure for a request-driven service' },
+                   { title: 'Histograms and summaries', url: 'https://prometheus.io/docs/practices/histograms/', description: 'how the quantiles here are computed' },
+                 ],
+                 rowLabels: src.groupBy,
+                 overviewSignals: ['requests', 'errors', 'errorRatio', 'p95', 'p99'],
+               },
+               sigs,
+               [
+                 {
+                   title: 'RED',
+                   width: 12,
+                   height: 9,
+                   elements: { requests: els.rate, errorRatio: els.errors, duration: els.duration },
+                 },
+               ] + (if cfg.perRoute then [
+                      {
+                        // the same three panels, once per selected value of the dimension
+                        title: 'Per ' + dim,
+                        repeat: dim,
+                        width: 8,
+                        height: 8,
+                        elements: { r_requests: els.rate, r_errorRatio: els.errors, r_duration: els.duration },
+                      },
+                    ] else []),
+               this.alerts(config)),
 }

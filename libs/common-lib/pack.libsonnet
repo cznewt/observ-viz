@@ -168,6 +168,10 @@ local variable =
 
       dashboard:
         local varMetric = if std.objectHas(config, 'varMetric') then config.varMetric else 'up';
+        // the board's primary grouping variable. `job` for a scrape target, but a
+        // series that carries no job label needs its own: Tempo's
+        // metrics-generator labels its output `source`, say.
+        local groupVar = if std.objectHas(config, 'groupVar') then config.groupVar else 'job';
         // optional cascading filter variables (e.g. ['cluster', 'instance']):
         // each is a label_values() query scoped by job and the variables before it.
         // a cascading variable exists only while the board actually reads it - the
@@ -212,9 +216,9 @@ local variable =
         + dashboard.withVariables([
           variable.datasource.new('datasource', 'prometheus')
           + variable.datasource.withLabel('Data source'),
-          variable.query.new('job')
-          + variable.query.withLabel('Job')
-          + variable.query.withLabelValues('job', varMetric)
+          variable.query.new(groupVar)
+          + variable.query.withLabel(cap(groupVar))
+          + variable.query.withLabelValues(groupVar, varMetric)
           + variable.query.withMulti()
           + variable.query.withIncludeAll()
           + allCurrent,
@@ -223,7 +227,7 @@ local variable =
           + variable.query.withLabel(cap(varLabels[i]))
           + variable.query.withLabelValues(
             varLabels[i],
-            varMetric + '{' + std.join(', ', ['job=~"$job"'] + [varLabels[j] + '=~"$' + varLabels[j] + '"' for j in std.range(0, i - 1)]) + '}'
+            varMetric + '{' + std.join(', ', [groupVar + '=~"$' + groupVar + '"'] + [varLabels[j] + '=~"$' + varLabels[j] + '"' for j in std.range(0, i - 1)]) + '}'
           )
           + multiMods
           for i in std.range(0, std.length(varLabels) - 1)
