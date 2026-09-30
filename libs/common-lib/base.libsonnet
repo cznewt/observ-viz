@@ -859,20 +859,37 @@ local appsTable(c) =
         ]);
 
 
-      // explicit drill line at the top of each repeated cluster row: the stat
-      // data links only surface when you click the value itself
+      // explicit drill line at the top of each repeated cluster row (the stat
+      // data links only surface when you click the value itself): four link
+      // buttons - the cluster detail board, its Applications and Alerts tabs
+      // (dtab = the tab title's slug), and the nodes board. Grafana's text
+      // sanitizer keeps inline styles on <a>; no flexbox, which it may strip.
+      local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all';
+      local button(label, url) =
+        '<a href="' + url + '" style="display:inline-block; margin-left:8px; padding:2px 14px; '
+        + 'border:1px solid rgba(128,128,140,0.45); border-radius:4px; background:rgba(128,128,140,0.12); '
+        + 'font-size:13px; font-weight:500; line-height:22px; text-decoration:none; vertical-align:middle">' + label + '</a>';
       local clusterDrill =
         panel.text.new('')
         + panel.text.withOptions({ mode: 'markdown', content:
-          '#### $cluster &nbsp; [Cluster detail →](/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all)'
-          + ' &nbsp;·&nbsp; [Nodes →](/d/' + c.uidCluster + '?var-cluster=$cluster)' });
+          '<h4 style="margin:0">$cluster '
+          + button('Details', detail)
+          + button('Workload', detail + '&dtab=applications')
+          + button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster')
+          + button('Alerts', detail + '&dtab=alerts')
+          + '</h4>' });
+      // capacity stats are plain values: no threshold colour on value or sparkline
+      local plain(p) =
+        p
+        + panel.stat.withOptions({ colorMode: 'none' })
+        + panel.stat.withFieldConfigDefaults({ color: { mode: 'fixed', fixedColor: 'text' } });
       local elements = {
         clusterDrill: clusterDrill,
         // cluster summary band
-        nodes: stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))') + clusterLink,
-        cpus: stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))') + clusterLink,
+        nodes: plain(stat('Nodes', 'count((' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '}))')) + clusterLink,
+        cpus: plain(stat('CPUs', 'count((node_cpu_seconds_total{mode="idle", ' + s + '}) or (windows_cpu_time_total{mode="idle", ' + s + '}))')) + clusterLink,
         cpuPct: pctStat('CPU %', '(1 - avg((rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])) or (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval])))) * 100') + clusterLink,
-        mem: stat('Memory', 'sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))', 'bytes') + clusterLink,
+        mem: plain(stat('Memory', 'sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))', 'bytes')) + clusterLink,
         memPct: pctStat('Mem %', '(1 - sum((node_memory_MemAvailable_bytes{' + s + '}) or (windows_memory_available_bytes{' + s + '})) / sum((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))) * 100') + clusterLink,
         alertsStat: stat('Alerts', 'count(ALERTS{alertstate="firing", ' + s + '}) or vector(0)')
                     + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }]) + clusterLink,
