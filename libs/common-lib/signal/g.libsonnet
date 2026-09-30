@@ -17,7 +17,7 @@ local vvar = import 'custom/variable.libsonnet';
 // datasource query spec (expr/legendFormat/format/instant/range...).
 local qspec(o) = { spec+: { query+: { spec+: o } } };
 
-local promQuery = vquery.prometheus + {
+local promQuery = vquery.prometheus {
   new(datasource, expr):: vquery.prometheus.new(datasource, expr),
   withRefId(value):: { spec+: { refId: value } },
   withLegendFormat(value):: qspec({ legendFormat: value }),
@@ -27,7 +27,7 @@ local promQuery = vquery.prometheus + {
   withDatasource(uid):: vquery.withDatasource(uid),
 };
 
-local lokiQuery = vquery.loki + {
+local lokiQuery = vquery.loki {
   new(datasource, expr):: vquery.loki.new(datasource, expr),
   withRefId(value):: { spec+: { refId: value } },
   withLegendFormat(value):: qspec({ legendFormat: value }),

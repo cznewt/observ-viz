@@ -8,21 +8,21 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `exporterDuration` | s | `histogram_quantile(0.95, sum by (le) (rate(otel_sdk_exporter_operation_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `logQueueSize` | short | `sum(otel_sdk_processor_log_queue_size{job=~"$job"})` | — |
-| `logsCreated` | ops | `sum(rate(otel_sdk_log_created_total{job=~"$job"}[$__rate_interval]))` | — |
-| `logsExported` | ops | `sum(rate(otel_sdk_exporter_log_exported_total{job=~"$job"}[$__rate_interval]))` | — |
-| `metricCollection` | s | `histogram_quantile(0.95, sum by (le) (rate(otel_sdk_metric_reader_collection_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `metricsExported` | ops | `sum(rate(otel_sdk_exporter_metric_data_point_exported_total{job=~"$job"}[$__rate_interval]))` | — |
-| `spanQueueCapacity` | short | `sum(otel_sdk_processor_span_queue_capacity{job=~"$job"})` | — |
-| `spanQueueSize` | short | `sum(otel_sdk_processor_span_queue_size{job=~"$job"})` | — |
-| `spanQueueUtil` | percent | `100 * sum(otel_sdk_processor_span_queue_size{job=~"$job"}) / clamp_min(sum(otel_sdk_processor_span_queue_capacity{job=~"$job"}), 1)` | — |
-| `spansEnded` | ops | `sum(rate(otel_sdk_span_ended_total{job=~"$job"}[$__rate_interval]))` | — |
-| `spansExported` | ops | `sum(rate(otel_sdk_exporter_span_exported_total{job=~"$job"}[$__rate_interval]))` | — |
-| `spansFailed` | ops | `sum(rate(otel_sdk_exporter_span_exported_total{job=~"$job", error_type!=""}[$__rate_interval]))` | — |
-| `spansInflight` | short | `sum(otel_sdk_exporter_span_inflight{job=~"$job"})` | — |
-| `spansLive` | short | `sum(otel_sdk_span_live{job=~"$job"})` | — |
-| `spansProcessed` | ops | `sum by (error_type) (rate(otel_sdk_processor_span_processed_total{job=~"$job"}[$__rate_interval]))` | — |
+| `exporterDuration` | s | `histogram_quantile(0.95, sum by (le) (rate(otel_sdk_exporter_operation_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `logQueueSize` | short | `sum(otel_sdk_processor_log_queue_size{job=~"$job", instance=~"$instance"})` | — |
+| `logsCreated` | ops | `sum(rate(otel_sdk_log_created_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `logsExported` | ops | `sum(rate(otel_sdk_exporter_log_exported_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `metricCollection` | s | `histogram_quantile(0.95, sum by (le) (rate(otel_sdk_metric_reader_collection_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `metricsExported` | ops | `sum(rate(otel_sdk_exporter_metric_data_point_exported_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `spanQueueCapacity` | short | `sum(otel_sdk_processor_span_queue_capacity{job=~"$job", instance=~"$instance"})` | — |
+| `spanQueueSize` | short | `sum(otel_sdk_processor_span_queue_size{job=~"$job", instance=~"$instance"})` | — |
+| `spanQueueUtil` | percent | `100 * sum(otel_sdk_processor_span_queue_size{job=~"$job", instance=~"$instance"}) / clamp_min(sum(otel_sdk_processor_span_queue_capacity{job=~"$job", instance=~"$instance"}), 1)` | — |
+| `spansEnded` | ops | `sum(rate(otel_sdk_span_ended_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `spansExported` | ops | `sum(rate(otel_sdk_exporter_span_exported_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `spansFailed` | ops | `sum(rate(otel_sdk_exporter_span_exported_total{job=~"$job", instance=~"$instance", error_type!=""}[$__rate_interval]))` | — |
+| `spansInflight` | short | `sum(otel_sdk_exporter_span_inflight{job=~"$job", instance=~"$instance"})` | — |
+| `spansLive` | short | `sum(otel_sdk_span_live{job=~"$job", instance=~"$instance"})` | — |
+| `spansProcessed` | ops | `sum by (error_type) (rate(otel_sdk_processor_span_processed_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
 
 ## Dashboard
 

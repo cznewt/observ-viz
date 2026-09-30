@@ -3,9 +3,9 @@
 // Usage:
 //   g.libs.databases.mysql.new({ selector: 'job="mysql"' }).grafana.dashboard
 //   g.libs.databases.mysql.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -28,11 +28,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['connected', 'qps', 'running', 'slow', 'bufferPool'],
-      folderPath: [
-        { uid: 'components', title: 'Components' },
-        { uid: 'components-database', title: 'Database' },
-        { uid: 'components-database-sql', title: 'SQL' },
-      ],
+      folderPath: (import 'libs/common-lib/folders.libsonnet').databases,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -90,25 +86,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('mysql', [
         alert.rule.new(
-          'MysqlDown', 'mysql_up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'MysqlDown',
+          'mysql_up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'MySQL instance {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'MysqlHighThreadsRunning',
           'mysql_global_status_threads_running' + rsBrace + ' > 50',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'MySQL on {{ $labels.instance }} has more than 50 running threads.' }
         ),
         alert.rule.new(
           'MysqlHighSlowQueries',
           'rate(mysql_global_status_slow_queries' + rsBrace + '[5m]) > 1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'MySQL on {{ $labels.instance }} has more than 1 slow query per second.' }
         ),
         alert.rule.new(
           'MysqlHighConnections',
           'mysql_global_status_threads_connected' + rsBrace + ' > 200',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'MySQL on {{ $labels.instance }} has more than 200 connected threads.' }
         ),
       ]),

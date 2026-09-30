@@ -3,11 +3,11 @@
 // queue and the slow requests, over the process base. The pool is the thing
 // that saturates in PHP, so max_children_reached and the listen queue are the
 // signals that matter.
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local processLib = import 'libs/process-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local processLib = import 'libs/process-observ-lib/main.libsonnet';
 
 {
   new(config={}):
@@ -87,13 +87,29 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       } + charts,
     ], [
       alert.rule.group('php', [
-        alert.rule.new('PhpFpmDown', 'phpfpm_up' + rsBrace + ' == 0', '5m', 'critical', {},
+        alert.rule.new('PhpFpmDown',
+                       'phpfpm_up' + rsBrace + ' == 0',
+                       '5m',
+                       'critical',
+                       {},
                        { summary: 'PHP-FPM pool on {{ $labels.instance }} is unreachable.' }),
-        alert.rule.new('PhpFpmMaxChildrenReached', 'increase(phpfpm_max_children_reached' + rsBrace + '[10m]) > 0', '5m', 'warning', {},
+        alert.rule.new('PhpFpmMaxChildrenReached',
+                       'increase(phpfpm_max_children_reached' + rsBrace + '[10m]) > 0',
+                       '5m',
+                       'warning',
+                       {},
                        { summary: 'PHP-FPM pool on {{ $labels.instance }} hit max_children; requests are waiting for a worker.' }),
-        alert.rule.new('PhpFpmListenQueueBacklog', 'phpfpm_listen_queue' + rsBrace + ' > 0', '10m', 'warning', {},
+        alert.rule.new('PhpFpmListenQueueBacklog',
+                       'phpfpm_listen_queue' + rsBrace + ' > 0',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'PHP-FPM pool on {{ $labels.instance }} has kept requests in its listen queue for 10 minutes.' }),
-        alert.rule.new('PhpFpmSlowRequests', 'increase(phpfpm_slow_requests' + rsBrace + '[10m]) > 0', '10m', 'info', {},
+        alert.rule.new('PhpFpmSlowRequests',
+                       'increase(phpfpm_slow_requests' + rsBrace + '[10m]) > 0',
+                       '10m',
+                       'info',
+                       {},
                        { summary: 'PHP-FPM pool on {{ $labels.instance }} is logging slow requests.' }),
       ]),
     ], [

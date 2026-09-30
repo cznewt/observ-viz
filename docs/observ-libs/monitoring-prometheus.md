@@ -8,13 +8,13 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `headSeries` | short | `prometheus_tsdb_head_series{job=~"$job"}` | — |
-| `queryRate` | reqps | `rate(prometheus_http_requests_total{job=~"$job",handler=~"/api/v1/query.*"}[$__rate_interval])` | — |
-| `residentMemory` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
-| `ruleEvalDuration` | s | `rate(prometheus_rule_evaluation_duration_seconds_sum{job=~"$job"}[$__rate_interval]) / rate(prometheus_rule_evaluation_duration_seconds_count{job=~"$job"}[$__rate_interval])` | — |
-| `samplesAppended` | short | `rate(prometheus_tsdb_head_samples_appended_total{job=~"$job"}[$__rate_interval])` | `instance:prometheus_samples_appended:rate5m` |
-| `scrapeDuration` | s | `prometheus_target_interval_length_seconds{quantile="0.99",job=~"$job"}` | — |
-| `targetsUp` | short | `sum(up{job=~"$job"})` | — |
+| `headSeries` | short | `prometheus_tsdb_head_series{job=~"$job", instance=~"$instance"}` | — |
+| `queryRate` | reqps | `rate(prometheus_http_requests_total{job=~"$job", instance=~"$instance",handler=~"/api/v1/query.*"}[$__rate_interval])` | — |
+| `residentMemory` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `ruleEvalDuration` | s | `rate(prometheus_rule_evaluation_duration_seconds_sum{job=~"$job", instance=~"$instance"}[$__rate_interval]) / rate(prometheus_rule_evaluation_duration_seconds_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `samplesAppended` | short | `rate(prometheus_tsdb_head_samples_appended_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `instance:prometheus_samples_appended:rate5m` |
+| `scrapeDuration` | s | `prometheus_target_interval_length_seconds{quantile="0.99",job=~"$job", instance=~"$instance"}` | — |
+| `targetsUp` | short | `sum(up{job=~"$job", instance=~"$instance"})` | — |
 
 ## Dashboard
 

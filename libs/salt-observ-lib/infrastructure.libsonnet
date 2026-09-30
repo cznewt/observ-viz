@@ -7,18 +7,20 @@
 //   Conformity  per-minion highstate conformity (reused from the conformity pack)
 // Usage:
 //   g.libs.automation.infrastructure.new({}).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
-local jobsPack = import 'libs/salt-observ-lib/main.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
+local jobsPack = import 'libs/salt-observ-lib/main.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'salt-infrastructure',
+      // Platform / Configuration
+      folderPath: (import 'libs/common-lib/folders.libsonnet').configuration,
       dashboardTitle: 'Salt Infrastructure',
       dashboardTags: ['salt', 'salt-observ-lib', 'cluster-level'],
       datasource: '${datasource}',
@@ -32,7 +34,7 @@ local confPack = import 'libs/salt-observ-lib/conformity.libsonnet';
       links: [
         { title: 'Job view (states / return / trace)', type: 'link', icon: 'doc', url: '/d/salt-job-view', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-job drill-down: states, full return, Tempo trace', tags: [] },
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';

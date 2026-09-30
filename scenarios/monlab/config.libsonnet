@@ -17,19 +17,15 @@ local scoped(key, pack, namespace, pod='', title=null) =
   folder: { uid: 'lab', title: 'Lab' },
   includeAlerts: false,
   includeLogs: false,
-  // the lab's own workloads: three instrumented demos per environment, the
-  // SRE sample's three services, and the two test instances
+  // the lab's own workloads: the instrumented demos (one board per runtime,
+  // environment / service as a variable) and the two test instances
   members: [
     scoped('grafanaTest', s.grafanaTest, 'global-monitor-grafana-test', '', 'Grafana (test)'),
     scoped('redisTest', s.redisTest, 'global-monitor-redis', 'redis-test.*', 'Redis (test)'),
-    scoped('demoGoDev', s.demoGoDev, 'demo-dev', 'demo-.*go.*', 'Demo Go (dev)'),
-    scoped('demoGoProd', s.demoGoProd, 'demo-prod|onlinestore-prod', 'demo-.*go.*', 'Demo Go (prod)'),
-    scoped('demoGoWorkshop', s.demoGoWorkshop, 'demo-workshop|onlinestore-workshop', 'demo-.*go.*', 'Demo Go (workshop)'),
-    scoped('demoPythonDev', s.demoPythonDev, 'demo-dev', 'demo-.*python.*', 'Demo Python (dev)'),
-    scoped('demoPythonProd', s.demoPythonProd, 'demo-prod|onlinestore-prod', 'demo-.*python.*', 'Demo Python (prod)'),
-    scoped('demoPythonWorkshop', s.demoPythonWorkshop, 'demo-workshop|onlinestore-workshop', 'demo-.*python.*', 'Demo Python (workshop)'),
-    scoped('sreBack', s.sreBack, 'sample-java-app|sre.*', 'sre-back.*', 'SRE sample: back'),
-    scoped('sreFront', s.sreFront, 'sample-java-app|sre.*', 'sre-front.*', 'SRE sample: front'),
-    scoped('sreReader', s.sreReader, 'sample-java-app|sre.*', 'sre-reader.*', 'SRE sample: reader'),
+    // one board per demo runtime; the environment (Go / Python) or the
+    // service (JVM) is a variable on the board, scoped by the preset
+    scoped('demoGo', s.demoGo, '$env', 'demo-.*go.*', 'Demo Go'),
+    scoped('demoPython', s.demoPython, '$env', 'demo-.*python.*', 'Demo Python'),
+    scoped('demoJvm', s.demoJvm, 'sample-java-app|sre.*', '${service}.*', 'Demo JVM'),
   ],
 }

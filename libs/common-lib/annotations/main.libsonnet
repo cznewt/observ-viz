@@ -12,4 +12,5 @@
   restart: import 'libs/common-lib/annotations/restart.libsonnet',
   deploy: import 'libs/common-lib/annotations/deploy.libsonnet',
   serviceFailed: import 'libs/common-lib/annotations/service_failed.libsonnet',
+  alert: import 'libs/common-lib/annotations/alert.libsonnet',
 }

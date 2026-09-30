@@ -1,4 +1,4 @@
-# Backstage catalog  (`g.libs.cicd.backstage`)
+# Backstage  (`g.libs.cicd.backstage`)
 
 Dashboard uid `observ-viz-backstage` · 0 signals · 0 alerts · 0 recording rules.
 

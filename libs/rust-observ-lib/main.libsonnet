@@ -4,11 +4,11 @@
 // tokio-metrics-collector (tokio_*, which needs RUSTFLAGS="--cfg
 // tokio_unstable"). A Rust service without Tokio is fully covered by
 // runtimes.process alone.
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local processLib = import 'libs/process-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local processLib = import 'libs/process-observ-lib/main.libsonnet';
 
 {
   new(config={}):
@@ -79,11 +79,21 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       alert.rule.group('rust', [
         alert.rule.new('TokioRuntimeSaturated',
                        '100 * sum by (instance, job) (rate(tokio_total_busy_duration' + rsBrace + '[5m])) / sum by (instance, job) (tokio_workers_count' + rsBrace + ') > 90',
-                       '15m', 'warning', {},
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Tokio workers on {{ $labels.instance }} are busy more than 90 percent of the time.' }),
-        alert.rule.new('TokioQueueBacklog', 'tokio_global_queue_depth' + rsBrace + ' > 100', '10m', 'warning', {},
+        alert.rule.new('TokioQueueBacklog',
+                       'tokio_global_queue_depth' + rsBrace + ' > 100',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Tokio on {{ $labels.instance }} keeps more than 100 tasks waiting in the global queue.' }),
-        alert.rule.new('TokioForcedYields', 'rate(tokio_budget_forced_yield_count' + rsBrace + '[5m]) > 1', '15m', 'info', {},
+        alert.rule.new('TokioForcedYields',
+                       'rate(tokio_budget_forced_yield_count' + rsBrace + '[5m]) > 1',
+                       '15m',
+                       'info',
+                       {},
                        { summary: 'Tasks on {{ $labels.instance }} are being forced to yield; something blocking is running on the async runtime.' }),
       ]),
     ], [

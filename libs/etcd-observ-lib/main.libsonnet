@@ -3,9 +3,9 @@
 // Usage:
 //   g.libs.databases.etcd.new({ selector: 'job="etcd"' }).grafana.dashboard
 //   g.libs.databases.etcd.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -28,11 +28,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['dbSize', 'hasLeader', 'leaderChanges', 'proposalsFailed', 'walFsyncP99'],
-      folderPath: [
-        { uid: 'components', title: 'Components' },
-        { uid: 'components-database', title: 'Database' },
-        { uid: 'components-database-kv', title: 'Key-value' },
-      ],
+      folderPath: (import 'libs/common-lib/folders.libsonnet').databases,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -81,25 +77,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('etcd', [
         alert.rule.new(
-          'EtcdNoLeader', 'etcd_server_has_leader' + rsBrace + ' == 0', '5m', 'critical', {},
+          'EtcdNoLeader',
+          'etcd_server_has_leader' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'etcd member {{ $labels.instance }} has no leader.' }
         ),
         alert.rule.new(
           'EtcdHighLeaderChanges',
           'rate(etcd_server_leader_changes_seen_total' + rsBrace + '[15m]) > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'etcd member {{ $labels.instance }} has seen frequent leader changes.' }
         ),
         alert.rule.new(
           'EtcdHighProposalFailures',
           'rate(etcd_server_proposals_failed_total' + rsBrace + '[5m]) > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'etcd member {{ $labels.instance }} is seeing proposal failures.' }
         ),
         alert.rule.new(
           'EtcdHighWalFsyncDuration',
           'histogram_quantile(0.99, sum by (le) (rate(etcd_disk_wal_fsync_duration_seconds_bucket' + rsBrace + '[5m]))) > 0.5',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'etcd member {{ $labels.instance }} WAL fsync p99 is high.' }
         ),
       ]),

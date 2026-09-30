@@ -15,7 +15,7 @@ local grid = import 'custom/util/grid.libsonnet';
     // repeat one placed panel per value of a variable.
     withItemRepeat(variable, direction='h', maxPerRow=null):
       { spec+: { repeat: { mode: 'variable', value: variable, direction: direction }
-                          + (if maxPerRow != null then { maxPerRow: maxPerRow } else {}) } },
+                         + (if maxPerRow != null then { maxPerRow: maxPerRow } else {}) } },
     // auto-place a list of element names left-to-right, wrapping at 24 columns.
     fromElements(names, width=12, height=8, startY=0):
       { kind: 'GridLayout', spec: { items: grid.wrapItems(names, width, height, startY) } },

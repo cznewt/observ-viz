@@ -1,8 +1,8 @@
 // observ-viz entrypoint. Layers the hand-written custom veneer over the
 // generated gen/ builders (grafonnet-style), and adds the higher-level modules
 // (signal, library, alert, logs, packs, patterns).
-local gen = import 'gen/observ-viz-v2beta1/main.libsonnet';
 local cv = import 'custom/variable.libsonnet';
+local gen = import 'gen/observ-viz-v2beta1/main.libsonnet';
 
 {
   dashboard: gen.dashboard + (import 'custom/dashboard.libsonnet'),

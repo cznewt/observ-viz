@@ -11,13 +11,14 @@ local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 local alertPanels = import 'libs/common-lib/alert/panels.libsonnet';
+local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 
 // Hierarchy traversal (dashboard-level dropdowns by level tag): cluster-level
 // boards link up to the env-level boards and across to their sibling
 // cluster-level boards (includeVars carries $cluster over).
 local clusterTraversalLinks = [
   { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-  { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+  { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
 ];
 local variable =
   local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
@@ -43,13 +44,38 @@ local defaults = {
   titleClusterDetail: 'Base cluster',
   // Grafana folder the base boards name themselves (null leaves the folder to
   // the consumer, e.g. a monitor-tools config's grafanaDashboardFolder)
-  folder: { uid: 'base', title: 'Base' },
+  folder: { uid: 'platform', title: 'Platform' },
+  // the Home dashboard sits at the Grafana root (null = no folder)
+  homeFolder: null,
   // how many alert rows the state timeline may draw, and therefore how tall
   // its tab is: one row per series, so the two travel together
   alertLimit: 100,
   nodeUid: 'compute-linux-overview',  // per-node board for Linux node drill-through
   windowsNodeUid: 'compute-windows-overview',  // per-node board for Windows node drill-through
   tags: ['base'],
+  // clusterDetail Applications tab: the board an app (app.kubernetes.io/part-of,
+  // else its workload) links to, and the board an app's component links to
+  // (key 'app/component'). Apps without an entry render as plain text. Every
+  // link carries var-cluster + var-namespace of its row.
+  appBoards: {
+    valheim: 'observ-viz-valheim',
+    syncthing: 'observ-viz-syncthing',
+    grafana: 'observ-viz-svc-grafana',
+    mimir: 'observ-viz-svc-mimir',
+    loki: 'observ-viz-svc-loki',
+    tempo: 'observ-viz-svc-tempo',
+    pyroscope: 'observ-viz-svc-pyroscope',
+    prometheus: 'observ-viz-svc-prometheus',
+    unifi: 'network-unifi-control',
+    argocd: 'observ-viz-argocd',
+    'ingress-nginx': 'observ-viz-nginx',
+    postgres: 'observ-viz-postgres',
+    redis: 'observ-viz-redis',
+  },
+  componentBoards: {},
+  // the Kubernetes pod board: an Applications row's Pods (and Component) cell
+  // opens it filtered to the row's namespace and its workload's pods
+  podBoardUid: 'observ-viz-kube-pod',
 };
 
 // ---- helpers ----
@@ -171,7 +197,8 @@ local sizeBuckets(mk) = [
   condRow([condVar('nodecount', 'notMatches', '^[1-9]$')], mk.rest),
 ];
 local gridOf(g) =
-  if std.objectHas(g, 'buckets') then
+  if std.objectHas(g, 'layout') then g.layout
+  else if std.objectHas(g, 'buckets') then
     layout.rows.new() + layout.rows.withRows(
       sizeBuckets(g.buckets)
       + (if std.objectHas(g, 'extraRows') then g.extraRows else [])
@@ -678,6 +705,128 @@ local storagePie(c) =
     ov('Free', [{ id: 'color', value: { mode: 'fixed', fixedColor: 'green' } }]),
   ]);
 
+// namespace variable (clusterDetail Applications tab): the namespaces that run
+// pods in $cluster - kube-state-metrics where it is scraped, cAdvisor otherwise.
+// The tab repeats one row per selected namespace.
+local namespaceVar(c) =
+  variable.query.new('namespace')
+  + variable.query.withLabel('Namespace')
+  + variable.query.withLabelValues('namespace', '{__name__=~"kube_pod_info|container_memory_working_set_bytes", namespace!="", ' + clComma(c) + '}')
+  + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
+
+// Applications table (one per repeated namespace row): one line per app x
+// component with pods, container readiness, restarts over the range, CPU,
+// memory and firing alerts.
+//   app       = app.kubernetes.io/part-of, else the pod's workload
+//   component = app.kubernetes.io/component, else app.kubernetes.io/name, else the workload
+//   workload  = the owner (ReplicaSet -> its Deployment, CronJob Job -> the
+//               CronJob), else the pod name less its generated suffixes
+// Every query rebuilds that pod -> app/component map from kube_pod_info (or
+// cAdvisor), kube_pod_labels and kube_pod_owner, each join falling back
+// (`or on (namespace, pod)`) so a pod missing a label or owner still gets a row.
+// Links: the identity query stamps app_url / comp_url labels from
+// c.appBoards / c.componentBoards (label_replace per entry, then the full
+// /d/<uid>?var-cluster=..&var-namespace=.. path); unmapped rows carry none,
+// and Grafana drops a data link whose URL renders empty, so only mapped cells
+// link. The two url columns stay in the frame (the link reads them) but are
+// hidden.
+local appsTable(c) =
+  local s = clComma(c) + ', namespace=~"$namespace"';
+  local cadv = 'job=~".*cadvisor", container!="", ';
+  // pod-name / owner / labels, joined by (namespace, pod)
+  local labelSet = 'label_app_kubernetes_io_part_of, label_app_kubernetes_io_component, label_app_kubernetes_io_name';
+  local pods = '(group by (namespace, pod) (kube_pod_info{' + s + '}) or group by (namespace, pod) (container_memory_working_set_bytes{' + cadv + 'pod!="", ' + s + '}))';
+  local podLabels = 'topk by (namespace, pod) (1, group by (namespace, pod, ' + labelSet + ') (kube_pod_labels{' + s + '}))';
+  local podOwner = 'topk by (namespace, pod) (1, group by (namespace, pod, owner_kind, owner_name) (kube_pod_owner{owner_kind!="Node", owner_name!="<none>", ' + s + '}))';
+  local withLabels = '((' + pods + ' * on (namespace, pod) group_left (' + labelSet + ') ' + podLabels + ') or on (namespace, pod) ' + pods + ')';
+  local withOwner = '((' + withLabels + ' * on (namespace, pod) group_left (owner_kind, owner_name) ' + podOwner + ') or on (namespace, pod) ' + withLabels + ')';
+  local rl(expr, dst, repl, src, re) = 'label_replace(' + expr + ', "' + dst + '", "' + repl + '", "' + src + '", "' + re + '")';
+  // pod name minus the generated suffixes (k8s' vowel-free alphabet): the
+  // workload when there is no owner to read (no kube-state-metrics)
+  local sfx = '[b-df-hj-np-tv-z2-9]';
+  local podWorkload = rl(withOwner, 'workload', '$1$2$3$4', 'pod', '(.+)-' + sfx + '{6,10}-' + sfx + '{5}|(.+)-' + sfx + '{5}|(.+)-[0-9]+|(.+)');
+  local workload = rl('label_join(' + podWorkload + ', "owner", ":", "owner_kind", "owner_name")',
+                      'workload', '$1$2$3', 'owner', 'ReplicaSet:(.+)-[a-z0-9]+|Job:(.+)-[0-9]{8,}|[A-Za-z]+:(.+)');
+  local app = rl(rl(workload, 'app', '$1', 'workload', '(.+)'), 'app', '$1', 'label_app_kubernetes_io_part_of', '(.+)');
+  local component = rl(rl(rl(app, 'component', '$1', 'workload', '(.+)'), 'component', '$1', 'label_app_kubernetes_io_name', '(.+)'),
+                       'component', '$1', 'label_app_kubernetes_io_component', '(.+)');
+  // one series per pod: namespace, pod, workload, app, component + the row key
+  local ident = 'label_join(group by (namespace, pod, workload, app, component) (' + component + '), "app_row", "|", "namespace", "app", "component")';
+  local byPod = 'topk by (namespace, pod) (1, group by (namespace, pod, app_row) (' + ident + '))';
+  local byWorkload = 'topk by (namespace, workload) (1, group by (namespace, workload, app_row) (' + ident + '))';
+  local onPod(expr) = '(' + expr + ' * on (namespace, pod) group_left (app_row) ' + byPod + ')';
+  // regex-escape a map key for label_replace (fully anchored match)
+  local reEsc(k) = std.join('', [if std.length(std.findSubstr(ch, '.+*?()[]{}|^$')) > 0 then '\\\\' + ch else ch for ch in std.stringChars(k)]);
+  local stamp(expr, dst, src, boards) =
+    std.foldl(function(e, k) rl(e, dst, boards[k], src, reEsc(k)), std.objectFields(boards), expr);
+  // "<uid>|<namespace>" -> "/d/<uid>?var-cluster=..&var-namespace=<namespace>"; unmapped ("|ns") -> dropped
+  local toUrl(expr, lbl) =
+    rl(rl('label_join(' + expr + ', "' + lbl + '", "|", "' + lbl + '", "namespace")',
+          lbl, '/d/$1?var-cluster=${cluster}&var-namespace=$2', lbl, '([^|]+)[|](.+)'),
+       lbl, '', lbl, '[|].*');
+  local linked =
+    toUrl(stamp('label_join(' + toUrl(stamp(ident, 'app_url', 'app', c.appBoards), 'app_url') + ', "app_component", "/", "app", "component")',
+                'comp_url', 'app_component', c.componentBoards), 'comp_url');
+  // pods_url: the pod board filtered to the row's namespace and, where the
+  // row is one workload, that workload's pods (var-pod=<workload>(-.*)?, a
+  // regex the pod board reads unescaped); a row spanning several workloads
+  // gets the whole namespace
+  local wlByRow = 'group by (app_row, namespace, workload) (' + ident + ')';
+  local oneWl = '(' + wlByRow + ' and on (app_row) (count by (app_row) (' + wlByRow + ') == 1))';
+  local podsRe = rl(oneWl, 'pods_re', '$1(-.*)?', 'workload', '(.+)')
+                 + ' or on (app_row) ' + rl('topk by (app_row) (1, ' + wlByRow + ')', 'pods_re', '.*', 'workload', '.*');
+  local podsUrl = 'group by (app_row, pods_url) (' + rl('label_join(' + podsRe + ', "pods_url", "|", "namespace", "pods_re")',
+                                                        'pods_url', '/d/' + c.podBoardUid + '?var-cluster=${cluster}&var-namespace=$1&var-pod=$2', 'pods_url', '([^|]+)[|](.+)') + ')';
+  local qPods = tq(c, 'count by (app_row, app, component, app_url, comp_url, pods_url) (' + linked + ' * on (app_row) group_left (pods_url) ' + podsUrl + ')');
+  local qReady = tq(c, 'sum by (app_row) ' + onPod('kube_pod_container_status_ready{' + s + '}')
+                       + ' / count by (app_row) ' + onPod('kube_pod_container_status_ready{' + s + '}'));
+  local qRestarts = tq(c, 'sum by (app_row) ' + onPod('increase(kube_pod_container_status_restarts_total{' + s + '}[$__range])'));
+  local qCpu = tq(c, 'sum by (app_row) ' + onPod('rate(container_cpu_usage_seconds_total{' + cadv + s + '}[5m])'));
+  local qMem = tq(c, 'sum by (app_row) ' + onPod('container_memory_working_set_bytes{' + cadv + s + '}'));
+  // pod-scoped alerts join on the pod; workload-scoped ones (kube-mixin's
+  // deployment / statefulset / daemonset label) on the workload
+  local alertWorkload = rl(rl(rl('ALERTS{alertstate="firing", pod="", ' + s + '}', 'workload', '$1', 'deployment', '(.+)'),
+                              'workload', '$1', 'statefulset', '(.+)'), 'workload', '$1', 'daemonset', '(.+)');
+  local qAlerts = tq(c, 'count by (app_row) (' + onPod('ALERTS{alertstate="firing", pod!="", ' + s + '}')
+                        + ' or (' + alertWorkload + ' * on (namespace, workload) group_left (app_row) ' + byWorkload + '))');
+  local vals = ['Value #A', 'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F'];
+  local lnk(title, field) = { title: title, url: '${__data.fields.' + field + ':raw}' };
+  local link(title, field) = [{ id: 'links', value: [lnk(title, field)] }];
+  local colorText(steps) = [
+    { id: 'custom.cellOptions', value: { type: 'color-text' } },
+    { id: 'color', value: { mode: 'thresholds' } },
+    { id: 'thresholds', value: { mode: 'absolute', steps: steps } },
+  ];
+  panel.table.new('Applications')
+  + panel.table.withDescription('One line per app (app.kubernetes.io/part-of, else the workload) and component (app.kubernetes.io/component, else app.kubernetes.io/name, else the workload). Ready = ready containers / containers; Restarts over the dashboard range; CPU in cores. App / Component link to their board where one is configured (appBoards / componentBoards); Pods (and Component) open the Kubernetes pod board on the row\'s pods.')
+  // refIds by position: A pods (+ app/component/url labels), B ready, C restarts, D cpu, E memory, F alerts
+  + panel.table.withTargets([qPods, qReady, qRestarts, qCpu, qMem, qAlerts])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: ['app_row', 'app', 'component', 'app_url', 'comp_url', 'pods_url'] + vals } } },
+    { id: 'seriesToColumns', options: { byField: 'app_row' } },
+    { id: 'organize', options: {
+      excludeByName: { app_row: true },
+      indexByName: { app_row: 0, app: 1, component: 2, 'Value #A': 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, 'Value #E': 7, 'Value #F': 8, app_url: 9, comp_url: 10, pods_url: 11 },
+      renameByName: { app: 'App', component: 'Component', 'Value #A': 'Pods', 'Value #B': 'Ready', 'Value #C': 'Restarts', 'Value #D': 'CPU', 'Value #E': 'Memory', 'Value #F': 'Alerts' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'App', desc: false }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('^App$', link('Open ${__data.fields.App} board', 'app_url')),
+    ov('^Component$', [{ id: 'links', value: [lnk('Open ${__data.fields.Component} board', 'comp_url'), lnk('Pods of ${__data.fields.Component}', 'pods_url')] }]),
+    ov('^(app_url|comp_url|pods_url)$', [{ id: 'custom.hidden', value: true }]),
+    ov('^Pods$', [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 70 }] + link('Pods of ${__data.fields.Component}', 'pods_url')),
+    ov('^Ready$', [{ id: 'unit', value: 'percentunit' }, { id: 'decimals', value: 0 }, { id: 'custom.width', value: 80 }]
+                  + colorText([{ color: 'red', value: null }, { color: 'orange', value: 0.5 }, { color: 'green', value: 1 }])),
+    ov('^Restarts$', [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 90 }]
+                     + colorText([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }])),
+    ov('^CPU$', [{ id: 'unit', value: 'short' }, { id: 'decimals', value: 3 }, { id: 'custom.width', value: 90 }]),
+    ov('^Memory$', [{ id: 'unit', value: 'bytes' }, { id: 'custom.width', value: 100 }]),
+    ov('^Alerts$', [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 80 }, { id: 'noValue', value: '0' }]
+                   + colorText([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }])),
+  ]);
+
 {
   config:: defaults,
 
@@ -802,7 +951,7 @@ local storagePie(c) =
       {
         config: c,
         // expose a dashboards map (uid-keyed) so render-lib can render base boards.
-        local fdash = dash + folderOf(c),
+        local fdash = dash + folderOf(c { folder: c.homeFolder }),
         grafana: { dashboard: fdash, dashboards: { [c.uidHome + '.json']: fdash } },
       },
   },
@@ -860,7 +1009,7 @@ local storagePie(c) =
         );
       local netRx = tsig('Network received', '(sum ' + byNode + ' (rate(node_network_receive_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_received_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network received');
       local netTx = tsig('Network transmitted', '(sum ' + byNode + ' (rate(node_network_transmit_bytes_total{device!="lo", %(queriesSelector)s}[$__rate_interval]))) or (sum ' + byNode + ' (rate(windows_net_bytes_sent_total{%(queriesSelector)s}[$__rate_interval])))', 'Bps').asTimeSeries('Network transmitted');
-      local dash = board(c.uidClusterDetail, c.titleClusterDetail, c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c)], [
+      local dash = board(c.uidClusterDetail, c.titleClusterDetail, c.tags + ['cluster-level'], [dsVar, clusterVar(c, false), instanceVar(c), nodeCountVar(c), namespaceVar(c)], [
                      // servers/cpus/gpus share one height per selection-size bucket.
                      local computeStack(h) = [
                        grid.item('servers', 0, 0, 24, h),
@@ -906,13 +1055,39 @@ local storagePie(c) =
                      { title: 'Alerts', width: 24, height: std.min(20, 10 + std.floor(std.max(0, c.alertLimit - 40) / 20)), elements: {
                        alertList: alertPanels.list('Alerts', instanceFilter='{cluster=~"$cluster"}', groupMode='custom', groupBy=['alertname']),
                        alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c)),
+                       alertsFiringDetail: alertPanels.firingDetailTable('Firing alerts - detail', c.datasource, cl + '=~"$cluster"' + selComma(c), c.podBoardUid, c.nodeUid),
                        alertTimeline: alertPanels.timeline('Alert state', c.datasource, c.clusterLabel + '=~"$cluster"', c.alertLimit),
                      } },
-                     { title: 'Applications', width: 24, height: 8, elements: { workload: workload } },
+                     // the fleet-wide workload count on top, then one row per
+                     // $namespace (row repeat) with its app x component table
+                     { title: 'Applications', elements: { workload: workload, apps: appsTable(c) }, layout:
+                       layout.rows.new() + layout.rows.withRows([
+                         layout.rows.row('Workload', layout.grid.new() + layout.grid.withItems([grid.item('workload', 0, 0, 24, 8)])),
+                         layout.rows.row('$namespace', layout.grid.new() + layout.grid.withItems([grid.item('apps', 0, 0, 24, 8)]))
+                         + layout.rows.withRepeat('namespace'),
+                       ]) },
                    ], asTabs=true)
                    // no explicit link to the Kubernetes board: it carries the
                    // cluster-level tag, so the traversal dropdown already has it
-                   + dashboard.withLinks(clusterTraversalLinks);
+                   + dashboard.withLinks(clusterTraversalLinks)
+                   // annotation toggles: firing alerts on; pod / container /
+                   // systemd-unit starts off until wanted
+                   + dashboard.withAnnotationsMixin(
+                     local podSel = clComma(c) + ', namespace=~"$namespace"';
+                     annotations.alert.bySeverity(c.datasource, clComma(c))
+                     + [
+                       annotations.restart.newAt('Pod starts', annotations.restart.kubePodStart(c.datasource, podSel), ['namespace', 'node'], '{{pod}} started on {{node}}')
+                       + annotations.base.asToggle(false),
+                       annotations.restart.newAt('Container starts', annotations.restart.kubeContainerStart(c.datasource, podSel), ['namespace', 'pod'], '{{pod}} / {{container}} started')
+                       + annotations.base.asToggle(false),
+                       annotations.restart.new('Container restarts', annotations.restart.kubeContainer(c.datasource, podSel), ['namespace', 'pod', 'container'])
+                       + annotations.base.withTitleFormat('{{pod}} / {{container}} restarted')
+                       + annotations.base.asToggle(false),
+                       annotations.restart.new('Service starts', annotations.restart.systemdUnitActivated(c.datasource, clComma(c) + ', ' + nl + '=~"$instance"'), ['instance', 'name'])
+                       + annotations.base.withTitleFormat('{{name}} started on {{instance}}')
+                       + annotations.base.asToggle(false),
+                     ]
+                   );
       {
         config: c,
         local fdash = dash + folderOf(c),

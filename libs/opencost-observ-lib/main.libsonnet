@@ -29,10 +29,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       overviewSignals: ['clusterMonthly', 'cpuAllocated', 'ramAllocated', 'nodes', 'pvTotal'],
       // what it costs to run the cluster is a monitoring concern, not a
       // property of Kubernetes itself
-      folderUid: 'components-monitoring',
-      folderTitle: 'Monitoring',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringCollectors,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

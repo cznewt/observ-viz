@@ -11,7 +11,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'observ-viz-docker',
+      // Platform / Infrastructure / Compute, beside the host boards
+      folderPath: (import 'libs/common-lib/folders.libsonnet').compute,
       dashboardTitle: 'Docker containers',
+      // tabbed board: Overview (instances table) + a tab per signal group
+      // (merged from the retired reference deploy-docker board)
+      tabbed: true,
+      overviewSignals: ['cpu', 'memUsage', 'netRx', 'netTx'],
       // node-level too: the containers on a host are reached from that host
       dashboardTags: ['docker', 'containers', 'app-level', 'node-level'],
       description: 'Container resource usage from cAdvisor on a Docker host: CPU, memory, network and disk IO per container.',

@@ -1,7 +1,7 @@
 // observ-viz anomaly-exporter pack (hand-written).
 // The multi-target anomaly exporter (anomaly_exporter_*): probes per module
 // (latency z-score, queue EWMA, memory IQR, rps mean-sigma...), their
-// results and duration. The scores themselves are the anomalyScorer pack.
+// results and duration (the scores too - the separate anomaly-scorer is obsolete).
 //   g.libs.monitoring.anomalyExporter.new({}).grafana.dashboard
 local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
@@ -29,10 +29,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['probes', 'failures', 'durationP99', 'rss'],
-      folderUid: 'components-monitoring',
-      folderTitle: 'Monitoring',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringCollectors,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

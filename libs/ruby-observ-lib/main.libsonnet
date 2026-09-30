@@ -3,11 +3,11 @@
 // Rails deployment actually reports through discourse/prometheus_exporter: the
 // Puma thread pool and workers, and the Sidekiq queues and jobs, over the
 // process base. Both rows are optional tabs, gated on the metrics being there.
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local processLib = import 'libs/process-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local processLib = import 'libs/process-observ-lib/main.libsonnet';
 
 {
   new(config={}):
@@ -74,15 +74,34 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('ruby', [
         alert.rule.new('PumaThreadPoolSaturated',
-                       '100 * puma_busy_threads' + rsBrace + ' / clamp_min(puma_max_threads' + rsBrace + ', 1) > 90', '10m', 'warning', {},
+                       '100 * puma_busy_threads' + rsBrace + ' / clamp_min(puma_max_threads' + rsBrace + ', 1) > 90',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Puma on {{ $labels.instance }} has kept over 90 percent of its threads busy for 10 minutes.' }),
-        alert.rule.new('PumaRequestBacklog', 'puma_request_backlog' + rsBrace + ' > 0', '10m', 'warning', {},
+        alert.rule.new('PumaRequestBacklog',
+                       'puma_request_backlog' + rsBrace + ' > 0',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Puma on {{ $labels.instance }} has kept requests queued for 10 minutes.' }),
-        alert.rule.new('SidekiqQueueLatencyHigh', 'sidekiq_queue_latency_seconds' + rsBrace + ' > 300', '15m', 'warning', {},
+        alert.rule.new('SidekiqQueueLatencyHigh',
+                       'sidekiq_queue_latency_seconds' + rsBrace + ' > 300',
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Sidekiq queue {{ $labels.queue }} has jobs waiting more than 5 minutes.' }),
-        alert.rule.new('SidekiqJobsFailing', 'rate(sidekiq_failed_jobs_total' + rsBrace + '[10m]) > 0', '15m', 'warning', {},
+        alert.rule.new('SidekiqJobsFailing',
+                       'rate(sidekiq_failed_jobs_total' + rsBrace + '[10m]) > 0',
+                       '15m',
+                       'warning',
+                       {},
                        { summary: 'Sidekiq jobs on {{ $labels.instance }} keep raising.' }),
-        alert.rule.new('SidekiqDeadJobsGrowing', 'increase(sidekiq_stats_dead_size' + rsBrace + '[1h]) > 0', '10m', 'info', {},
+        alert.rule.new('SidekiqDeadJobsGrowing',
+                       'increase(sidekiq_stats_dead_size' + rsBrace + '[1h]) > 0',
+                       '10m',
+                       'info',
+                       {},
                        { summary: 'Sidekiq moved jobs to the dead set on {{ $labels.instance }}; they are out of retries.' }),
       ]),
     ], [

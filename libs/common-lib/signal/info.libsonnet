@@ -1,5 +1,5 @@
-local g = import './g.libsonnet';
 local base = import './base.libsonnet';
+local g = import './g.libsonnet';
 
 //_info prometheus metric: something_info{<labels>}=1
 base {

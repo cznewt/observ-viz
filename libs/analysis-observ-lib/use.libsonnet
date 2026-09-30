@@ -3,10 +3,10 @@
 // generalised: a source profile (libs/analysis-observ-lib/sources.libsonnet)
 // says which four resources to read and how, so the same board covers nodes
 // (node_exporter) and containers (cAdvisor).
+local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 
 {
   new(config={}):
@@ -38,15 +38,18 @@ local sources = import 'libs/analysis-observ-lib/sources.libsonnet';
 
     local signals = {
       [key(res, kind)]:
-        signal.new(cap(kind) + ' - ' + res, 'prometheus', cfg.datasource,
-                   render(src.resources[res][kind].expr), src.resources[res][kind].unit)
+        signal.new(cap(kind) + ' - ' + res,
+                   'prometheus',
+                   cfg.datasource,
+                   render(src.resources[res][kind].expr),
+                   src.resources[res][kind].unit)
         .filteringSelector(sel).withLegendFormat(legendBy).withDescription(kindDesc[kind])
       for res in std.objectFields(src.resources)
       for kind in kinds
       if std.objectHas(src.resources[res], kind)
     };
 
-    pack.build(cfg + {
+    pack.build(cfg {
       description: 'The USE method over ' + std.asciiLower(src.title) + '. ' + src.description,
       references: [
         { title: 'The USE method', url: 'https://www.brendangregg.com/usemethod.html', description: 'Brendan Gregg: for every resource, check utilisation, saturation and errors' },

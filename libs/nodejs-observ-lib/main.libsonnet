@@ -3,9 +3,9 @@
 // v2 elements. Usage:
 //   g.libs.runtimes.nodejs.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.nodejs.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -86,25 +86,33 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
         alert.rule.new(
           'NodeJsDown',
           'absent(nodejs_heap_size_used_bytes' + rsBrace + ') == 1',
-          '5m', 'critical', {},
+          '5m',
+          'critical',
+          {},
           { summary: 'Node.js runtime metrics for {{ $labels.instance }} are unavailable.' }
         ),
         alert.rule.new(
           'NodeJsHighEventLoopLag',
           'nodejs_eventloop_lag_p99_seconds' + rsBrace + ' > 0.1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Event loop lag (p99) on {{ $labels.instance }} is above 100ms.' }
         ),
         alert.rule.new(
           'NodeJsHighHeapUsage',
           'nodejs_heap_size_used_bytes' + rsBrace + ' / nodejs_heap_size_total_bytes' + rsBrace + ' > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Heap usage on {{ $labels.instance }} is above 90% of heap total.' }
         ),
         alert.rule.new(
           'NodeJsHighGcTime',
           'rate(nodejs_gc_duration_seconds_sum{' + cfg.selector + '}[5m])' == '',  // placeholder
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'GC time on {{ $labels.instance }} is high.' }
         ),
       ]),

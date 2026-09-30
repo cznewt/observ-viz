@@ -8,17 +8,19 @@
 //   Bluetooth  -> hass_device_info{integration="bluetooth"}
 // Usage:
 //   g.libs.iot.devices.new({}).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'home-assistant',
       dashboardTitle: 'Home Assistant',
+      // Platform / Infrastructure / Compute
+      folderPath: (import 'libs/common-lib/folders.libsonnet').compute,
       dashboardTags: ['iot', 'home-assistant', 'cluster-level'],
       datasource: '${datasource}',
       selector: 'cluster=~"$cluster"',
@@ -28,7 +30,7 @@ local query = import 'custom/query.libsonnet';
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -65,15 +67,15 @@ local query = import 'custom/query.libsonnet';
       local infoSel = s + (if filter != '' then ', ' + filter else '');
       panel.table.new(title)
       + panel.table.withTargets([
-        tq('hass_device_info{' + infoSel + '}'),                              // A: identity
-        tq('sum by (device_id) (hass_device_available{' + s + '})'),          // B: available
+        tq('hass_device_info{' + infoSel + '}'),  // A: identity
+        tq('sum by (device_id) (hass_device_available{' + s + '})'),  // B: available
         tq('sum by (device_id) (hass_device_battery_remaining{' + s + '})'),  // C: battery
         tq('sum by (device_id) (hass_device_last_activity{' + s + '} * 1000)'),  // D: last activity (ms)
       ] + (if zha then [
-        // range queries -> Trend #E/#F sparkline columns via timeSeriesTable
-        query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_lqi{' + s + '})'),
-        query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_rssi{' + s + '})'),
-      ] else []))
+             // range queries -> Trend #E/#F sparkline columns via timeSeriesTable
+             query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_lqi{' + s + '})'),
+             query.prometheus.new(cfg.datasource, 'avg by (device_id) (hass_zha_device_rssi{' + s + '})'),
+           ] else []))
       + panel.table.withTransformations([
         { id: 'timeSeriesTable', options: {} },
         { id: 'labelsToFields' },
@@ -97,11 +99,15 @@ local query = import 'custom/query.libsonnet';
           { id: 'custom.cellOptions', value: { type: 'color-text' } },
         ]),
         ov('Battery', [
-          { id: 'unit', value: 'percent' }, { id: 'custom.width', value: 100 },
+          { id: 'unit', value: 'percent' },
+          { id: 'custom.width', value: 100 },
           { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } },
-          { id: 'min', value: 0 }, { id: 'max', value: 100 },
+          { id: 'min', value: 0 },
+          { id: 'max', value: 100 },
           { id: 'thresholds', value: { mode: 'absolute', steps: [
-            { color: 'red', value: null }, { color: 'yellow', value: 20 }, { color: 'green', value: 50 },
+            { color: 'red', value: null },
+            { color: 'yellow', value: 20 },
+            { color: 'green', value: 50 },
           ] } },
         ]),
         ov('Last activity', [{ id: 'unit', value: 'dateTimeFromNow' }, { id: 'custom.width', value: 130 }]),
@@ -118,11 +124,13 @@ local query = import 'custom/query.libsonnet';
 
     // entity values for one device family (value -> entity_info -> device_info chain)
     local familyEntities(title, filter) =
-      signal.new(title, 'prometheus', cfg.datasource,
-        'hass_entity_value{%(queriesSelector)s}'
-        + ' * on (cluster, entity_id) group_left(entity_name, device_id) (hass_entity_info{%(queriesSelector)s} == 1)'
-        + ' * on (cluster, device_id) group_left() (hass_device_info{' + filter + ', %(queriesSelector)s} == 1)',
-        'short').filteringSelector(s).withLegendFormat('{{entity_name}}');
+      signal.new(title,
+                 'prometheus',
+                 cfg.datasource,
+                 'hass_entity_value{%(queriesSelector)s}'
+                 + ' * on (cluster, entity_id) group_left(entity_name, device_id) (hass_entity_info{%(queriesSelector)s} == 1)'
+                 + ' * on (cluster, device_id) group_left() (hass_device_info{' + filter + ', %(queriesSelector)s} == 1)',
+                 'short').filteringSelector(s).withLegendFormat('{{entity_name}}');
 
     pack.build(cfg, signals, [
       {

@@ -8,12 +8,12 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `blockedClients` | short | `redis_blocked_clients{job=~"$job"}` | — |
-| `commands` | ops | `rate(redis_commands_processed_total{job=~"$job"}[$__rate_interval])` | `instance:redis_commands:rate5m` |
-| `connectedClients` | short | `redis_connected_clients{job=~"$job"}` | — |
-| `evictions` | short | `rate(redis_evicted_keys_total{job=~"$job"}[$__rate_interval])` | — |
-| `hitRatio` | percentunit | `sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) / (sum(rate(redis_keyspace_hits_total{job=~"$job"}[$__rate_interval])) + sum(rate(redis_keyspace_misses_total{job=~"$job"}[$__rate_interval])))` | — |
-| `memoryUsed` | bytes | `redis_memory_used_bytes{job=~"$job"}` | — |
+| `blockedClients` | short | `redis_blocked_clients{job=~"$job", instance=~"$instance"}` | — |
+| `commands` | ops | `rate(redis_commands_processed_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `instance:redis_commands:rate5m` |
+| `connectedClients` | short | `redis_connected_clients{job=~"$job", instance=~"$instance"}` | — |
+| `evictions` | short | `rate(redis_evicted_keys_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `hitRatio` | percentunit | `sum(rate(redis_keyspace_hits_total{job=~"$job", instance=~"$instance"}[$__rate_interval])) / (sum(rate(redis_keyspace_hits_total{job=~"$job", instance=~"$instance"}[$__rate_interval])) + sum(rate(redis_keyspace_misses_total{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `memoryUsed` | bytes | `redis_memory_used_bytes{job=~"$job", instance=~"$instance"}` | — |
 
 ## Dashboard
 

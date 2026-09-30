@@ -8,14 +8,14 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | `instance:dotnet_cpu_utilisation:rate5m` |
-| `exceptions` | short | `rate(dotnet_exceptions_total{job=~"$job"}[$__rate_interval])` | `instance:dotnet_exceptions:rate5m` |
-| `gcCollections` | ops | `sum without(generation)(rate(dotnet_collection_count_total{job=~"$job"}[$__rate_interval]))` | — |
-| `gcHeap` | bytes | `dotnet_total_memory_bytes{job=~"$job"}` | — |
-| `jitMethods` | short | `rate(dotnet_jit_method_total{job=~"$job"}[$__rate_interval])` | — |
-| `processThreads` | short | `process_num_threads{job=~"$job"}` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
-| `threadpool` | short | `dotnet_threadpool_num_threads{job=~"$job"}` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:dotnet_cpu_utilisation:rate5m` |
+| `exceptions` | short | `rate(dotnet_exceptions_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:dotnet_exceptions:rate5m` |
+| `gcCollections` | ops | `sum without(generation)(rate(dotnet_collection_count_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval]))` | — |
+| `gcHeap` | bytes | `dotnet_total_memory_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `jitMethods` | short | `rate(dotnet_jit_method_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | — |
+| `processThreads` | short | `process_num_threads{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `threadpool` | short | `dotnet_threadpool_num_threads{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
 
 ## Dashboard
 

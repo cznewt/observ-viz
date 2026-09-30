@@ -29,10 +29,7 @@ local panel = import 'custom/panel.libsonnet';
         { title: 'node_exporter', url: 'https://github.com/prometheus/node_exporter', description: 'the collectors and how to enable or disable them' },
         { title: 'Textfile collector', url: 'https://github.com/prometheus/node_exporter#textfile-collector', description: 'what node_textfile_scrape_error means' },
       ],
-      folderUid: 'components-monitoring',
-      folderTitle: 'Monitoring',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringCollectors,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local sig = filters.sig(cfg);
@@ -92,7 +89,7 @@ local panel = import 'custom/panel.libsonnet';
         },
       },
     ], [
-      alert.rule.group('node-exporter', [
+      alert.rule.group('node-exporter-collector', [
         alert.rule.new(
           'NodeExporterCollectorFailing',
           'node_scrape_collector_success' + rsBrace + ' == 0',

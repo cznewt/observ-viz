@@ -104,10 +104,11 @@ local gqlList = '{ catalog { list { kind metadata { name annotations labels } sp
       api: 'rest',
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-cicd',
-      folderTitle: 'CI/CD',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // Platform / Configuration (next to Argo CD and Salt)
+      folderUid: 'platform-configuration',
+      folderTitle: 'Configuration',
+      folderParentUid: 'platform',
+      folderParentTitle: 'Platform',
     } + config;
     local list(kind) = cfg.backendUrl + '/api/catalog/entities?filter=kind=' + kind;
     local components =

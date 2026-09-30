@@ -45,9 +45,15 @@ local util = import 'custom/util/main.libsonnet';
   // optional title is carried in a private annotation that the loader uses to
   // create the folder with a readable name (and strips before pushing).
   // parentUid/parentTitle nest the folder under a parent (loader creates both).
+  // Re-filing a board replaces its whole placement: the folder hints it already
+  // carried (a pack's default folderPath or parent) are dropped, so the loader
+  // does not walk the old chain instead.
   withFolder(folderUid, folderTitle=null, parentUid=null, parentTitle=null): {
+    local hints = ['observ-viz.dev/folder-path', 'observ-viz.dev/folder-title', 'observ-viz.dev/folder-parent-uid', 'observ-viz.dev/folder-parent-title'],
     metadata+: {
-      annotations+: { 'grafana.app/folder': folderUid }
+      local prev = if 'annotations' in super then super.annotations else {},
+      annotations: { [k]: prev[k] for k in std.objectFields(prev) if std.count(hints, k) == 0 }
+                    + { 'grafana.app/folder': folderUid }
                     + (if folderTitle != null then { 'observ-viz.dev/folder-title': folderTitle } else {})
                     + (if parentUid != null then { 'observ-viz.dev/folder-parent-uid': parentUid } else {})
                     + (if parentTitle != null then { 'observ-viz.dev/folder-parent-title': parentTitle } else {}),
@@ -60,8 +66,11 @@ local util = import 'custom/util/main.libsonnet';
   withFolderPath(path): {
     assert std.length(path) > 0 : 'withFolderPath needs at least one folder',
     local leaf = path[std.length(path) - 1],
+    // the chain replaces a single-level parent the board may already carry
+    local dropped = ['observ-viz.dev/folder-parent-uid', 'observ-viz.dev/folder-parent-title'],
     metadata+: {
-      annotations+: {
+      local prev = if 'annotations' in super then super.annotations else {},
+      annotations: { [k]: prev[k] for k in std.objectFields(prev) if std.count(dropped, k) == 0 } + {
         'grafana.app/folder': leaf.uid,
         'observ-viz.dev/folder-title': leaf.title,
         'observ-viz.dev/folder-path': std.manifestJsonMinified(path),

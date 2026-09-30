@@ -26,15 +26,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
-      // deploy target: Components / Monitoring (nested Grafana folders; loader creates both).
+      // deploy target: Platform / Monitoring / Alerting (nested Grafana folders; loader creates them).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['httpRate', 'httpErrorRatio', 'httpP99', 'activeUsers', 'rss'],
-      folderUid: 'components-monitoring',
-      folderTitle: 'Monitoring',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringAlerting,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

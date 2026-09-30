@@ -118,7 +118,10 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // merge the embedded platform packs' alert/recording rules, scoped per
       // platform (kubernetes.ruleSelector, docker.ruleSelector, ...; defaults
       // derive from the identity fields). Whitebox + Go rules use ruleSelector.
-      platformRules: true,
+      // Off by default: the platform groups (kubernetes-pod, cadvisor, systemd,
+      // ...) already cover every workload, and the per-service copies wrote the
+      // same recording series again and fired the same alerts twice.
+      platformRules: false,
       // narrow the cluster / namespace / pod variable menus to this deployment
       // (regexes). All = the listed options only, so the board is scoped.
       scope: { cluster: '', namespace: '', pod: '' },
@@ -289,15 +292,23 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local platformAlerts = if cfg.platformRules then std.flattenArrays([rename(p.alerts) for p in platformPacks]) else [];
     local platformRules = if cfg.platformRules then std.flattenArrays([rename(p.rules) for p in platformPacks]) else [];
 
-    // ----- annotations: firing alerts by severity + kubernetes events -----
-    local alertAnn(sev) = annotations.base.target(cfg.datasource, 'ALERTS{alertstate="firing", severity="' + sev + '", ' + cfg.selector + '}');
-    local annList = [
-      annotations.critical.new('Critical alerts', alertAnn('critical')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
-      annotations.warning.new('Warning alerts', alertAnn('warning')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']),
-      annotations.info.new('Info alerts', alertAnn('info')) + annotations.base.withTagKeys(['alertname', 'severity', 'pod', 'instance']) + { spec+: { enable: false } },
-      // restarts: the process start time moving, and a container restarting
-      annotations.restart.new('Restarts', annotations.restart.process(cfg.datasource, cfg.selector), ['instance', 'pod']),
-      annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, cfg.kubeSelector), ['pod', 'container']),
+    // ----- annotations (viewer toggles): firing alerts by severity on; starts,
+    // restarts and rollouts off until wanted; kubernetes events -----
+    local annList = annotations.alert.bySeverity(cfg.datasource, cfg.selector) + [
+      // exact start times: the process, the pod (with its node), its containers
+      annotations.restart.newAt('Process starts', annotations.restart.processStart(cfg.datasource, cfg.selector), ['instance', 'pod'], '{{job}} {{instance}} started')
+      + annotations.base.asToggle(false),
+      annotations.restart.newAt('Pod starts', annotations.restart.kubePodStart(cfg.datasource, cfg.kubeSelector), ['namespace', 'node'], '{{pod}} started on {{node}}')
+      + annotations.base.asToggle(false),
+      annotations.restart.newAt('Container starts', annotations.restart.kubeContainerStart(cfg.datasource, cfg.kubeSelector), ['namespace', 'pod'], '{{pod}} / {{container}} started')
+      + annotations.base.asToggle(false),
+      annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, cfg.kubeSelector), ['pod', 'container'])
+      + annotations.base.withTitleFormat('{{pod}} / {{container}} restarted')
+      + annotations.base.asToggle(false),
+      // the systemd unit went active on a host (start, restart, host back up)
+      annotations.restart.new('Service starts', annotations.restart.systemdUnitActivated(cfg.datasource, cfg.hostSelector + ', name=~"' + unit + '"'), ['instance', 'name'])
+      + annotations.base.withTitleFormat('{{name}} started on {{instance}}')
+      + annotations.base.asToggle(false),
       // rollouts: the controller observed a new spec for this workload
       annotations.deploy.new('Deploys', annotations.deploy.kubeDeployment(cfg.datasource, cfg.workloadSelector + ', deployment=~"' + cfg.kubernetes.workload + '"'), ['deployment']),
     ] + (if cfg.logs then [
@@ -522,6 +533,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
           { title: 'Firing', width: 24, height: 8, elements: {
             a11_firing: alertPanels.firingTable('Firing alerts', cfg.datasource, cfg.selector)
                         + panel.withDescription('Alerts firing right now for this service, counted by rule and severity.'),
+            a12_detail: alertPanels.firingDetailTable('Firing alerts - detail', cfg.datasource, cfg.selector),
           } },
         ],
       }];
@@ -542,6 +554,11 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       + variable.query.withLabelValues('namespace', wbVarMetric + '{job=~"$job", cluster=~"$cluster"' + scopeSel('namespace') + '}') + multi,
       variable.query.new('pod') + variable.query.withLabel('Pod')
       + variable.query.withLabelValues('pod', wbVarMetric + '{job=~"$job", cluster=~"$cluster", namespace=~"$namespace"' + scopeSel('pod') + '}') + multi,
+      // the runtime packs (whitebox and the embedded runtime tabs) add their
+      // own instance=~"$instance" filter; without the variable Grafana leaves
+      // "$instance" in the query literally and those panels match nothing.
+      variable.query.new('instance') + variable.query.withLabel('Instance')
+      + variable.query.withLabelValues('instance', wbVarMetric + '{' + cfg.selector + '}') + multi,
       // hosts where this service is a systemd unit, a windows service or a docker container.
       variable.query.new('host') + variable.query.withLabel('Host')
       + variable.query.withLabelValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,

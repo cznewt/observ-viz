@@ -8,17 +8,17 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `busy` | percent | `100 * sum by (instance) (rate(tokio_total_busy_duration{job=~"$job"}[$__rate_interval])) / sum by (instance) (tokio_workers_count{job=~"$job"})` | — |
-| `forcedYields` | ops | `rate(tokio_budget_forced_yield_count{job=~"$job"}[$__rate_interval])` | — |
-| `globalQueue` | short | `tokio_global_queue_depth{job=~"$job"}` | — |
-| `ioReady` | ops | `rate(tokio_io_driver_ready_count{job=~"$job"}[$__rate_interval])` | — |
-| `localQueue` | short | `tokio_total_local_queue_depth{job=~"$job"}` | — |
-| `overflows` | ops | `rate(tokio_total_overflow_count{job=~"$job"}[$__rate_interval])` | — |
-| `parks` | ops | `rate(tokio_total_park_count{job=~"$job"}[$__rate_interval])` | — |
-| `polls` | ops | `rate(tokio_total_polls_count{job=~"$job"}[$__rate_interval])` | — |
-| `remoteSchedules` | ops | `rate(tokio_num_remote_schedules{job=~"$job"}[$__rate_interval])` | — |
-| `steals` | ops | `rate(tokio_total_steal_count{job=~"$job"}[$__rate_interval])` | — |
-| `workers` | short | `tokio_workers_count{job=~"$job"}` | — |
+| `busy` | percent | `100 * sum by (instance) (rate(tokio_total_busy_duration{job=~"$job", instance=~"$instance"}[$__rate_interval])) / sum by (instance) (tokio_workers_count{job=~"$job", instance=~"$instance"})` | — |
+| `forcedYields` | ops | `rate(tokio_budget_forced_yield_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `globalQueue` | short | `tokio_global_queue_depth{job=~"$job", instance=~"$instance"}` | — |
+| `ioReady` | ops | `rate(tokio_io_driver_ready_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `localQueue` | short | `tokio_total_local_queue_depth{job=~"$job", instance=~"$instance"}` | — |
+| `overflows` | ops | `rate(tokio_total_overflow_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `parks` | ops | `rate(tokio_total_park_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `polls` | ops | `rate(tokio_total_polls_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `remoteSchedules` | ops | `rate(tokio_num_remote_schedules{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `steals` | ops | `rate(tokio_total_steal_count{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `workers` | short | `tokio_workers_count{job=~"$job", instance=~"$instance"}` | — |
 
 ## Dashboard
 

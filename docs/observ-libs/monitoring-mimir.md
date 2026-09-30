@@ -8,12 +8,12 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | — |
-| `heap` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job"}` | — |
-| `ingesterSeries` | short | `sum(cortex_ingester_memory_series{job=~"$job"})` | — |
-| `queries` | reqps | `sum(rate(cortex_query_frontend_queries_total{job=~"$job"}[$__rate_interval]))` | `instance:cortex_queries:rate5m` |
-| `receivedSamples` | short | `sum(rate(cortex_distributor_received_samples_total{job=~"$job"}[$__rate_interval]))` | `instance:cortex_received_samples:rate5m` |
-| `requestP99` | s | `histogram_quantile(0.99, sum by (le)(rate(cortex_request_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `heap` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `ingesterSeries` | short | `sum(cortex_ingester_memory_series{job=~"$job", instance=~"$instance"})` | — |
+| `queries` | reqps | `sum(rate(cortex_query_frontend_queries_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | `instance:cortex_queries:rate5m` |
+| `receivedSamples` | short | `sum(rate(cortex_distributor_received_samples_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | `instance:cortex_received_samples:rate5m` |
+| `requestP99` | s | `histogram_quantile(0.99, sum by (le)(rate(cortex_request_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
 
 ## Dashboard
 

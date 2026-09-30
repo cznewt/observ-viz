@@ -8,14 +8,14 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `classesLoaded` | short | `jvm_classes_loaded_classes{job=~"$job"}` | — |
-| `gcPauseAvg` | s | `rate(jvm_gc_pause_seconds_sum{job=~"$job"}[$__rate_interval]) / rate(jvm_gc_pause_seconds_count{job=~"$job"}[$__rate_interval])` | — |
-| `gcRate` | ops | `rate(jvm_gc_pause_seconds_count{job=~"$job"}[$__rate_interval])` | `instance:jvm_gc_rate:rate5m` |
-| `heapMax` | bytes | `sum without(area,id)(jvm_memory_max_bytes{area="heap",job=~"$job"})` | — |
-| `heapUsed` | bytes | `sum without(area,id)(jvm_memory_used_bytes{area="heap",job=~"$job"})` | — |
-| `nonheapUsed` | bytes | `sum without(area,id)(jvm_memory_used_bytes{area="nonheap",job=~"$job"})` | — |
-| `threadsDaemon` | short | `jvm_threads_daemon_threads{job=~"$job"}` | — |
-| `threadsLive` | short | `jvm_threads_live_threads{job=~"$job"}` | — |
+| `classesLoaded` | short | `jvm_classes_loaded_classes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `gcPauseAvg` | s | `rate(jvm_gc_pause_seconds_sum{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval]) / rate(jvm_gc_pause_seconds_count{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | — |
+| `gcRate` | ops | `rate(jvm_gc_pause_seconds_count{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:jvm_gc_rate:rate5m` |
+| `heapMax` | bytes | `sum without(area,id)(jvm_memory_max_bytes{area="heap",job=~"$job", instance=~"$instance", instance=~"$instance"})` | — |
+| `heapUsed` | bytes | `sum without(area,id)(jvm_memory_used_bytes{area="heap",job=~"$job", instance=~"$instance", instance=~"$instance"})` | — |
+| `nonheapUsed` | bytes | `sum without(area,id)(jvm_memory_used_bytes{area="nonheap",job=~"$job", instance=~"$instance", instance=~"$instance"})` | — |
+| `threadsDaemon` | short | `jvm_threads_daemon_threads{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `threadsLive` | short | `jvm_threads_live_threads{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
 
 ## Dashboard
 

@@ -1,6 +1,6 @@
-# Loki service  (`g.libs.services.loki`)
+# Loki  (`g.libs.services.loki`)
 
-Dashboard uid `observ-viz-svc-loki` · 85 signals · 27 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-loki` · 85 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -108,27 +108,6 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `LokiHighRequestLatency` | warning | 15m | — |
 | `LokiHighHeapMemory` | warning | 15m | — |
 | `LokiManyActiveStreams` | warning | 15m | — |
-| `KubePodNotReady` | critical | 15m | — |
-| `KubePodCrashLooping` | warning | 15m | — |
-| `KubePodCpuOverRequest` | warning | 15m | — |
-| `KubePodMemoryNearLimit` | warning | 15m | — |
-| `ContainerCpuThrottlingHigh` | warning | 15m | — |
-| `ContainerHighMemory` | warning | 15m | — |
-| `ContainerHighCpu` | warning | 15m | — |
-| `ContainerNetworkUnavailable` | critical | 5m | — |
-| `CadvisorDown` | critical | 5m | — |
-| `ContainerHighDiskWrite` | warning | 15m | — |
-| `SystemdUnitFailed` | critical | 5m | — |
-| `SystemdUnitRestarting` | warning | 0m | — |
-| `SystemdSystemDegraded` | warning | 15m | — |
-| `ProcessGroupFdRatioHigh` | warning | 15m | — |
-| `ProcessGroupGone` | warning | 10m | — |
-| `ProcessExporterScrapeErrors` | warning | 15m | — |
-| `IngressNginxHigh5xxRatio` | warning | 10m | — |
-| `IngressNginxHighLatency` | warning | 15m | — |
-| `IngressNginxUpstreamErrors` | warning | 10m | — |
-| `IngressNginxConfigReloadFailed` | critical | 5m | — |
-| `IngressNginxCertificateExpiringSoon` | warning | 1h | — |
 
 ## Recording rules
 
@@ -136,16 +115,3 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 |--------|------------|
 | `instance:loki_lines_received:rate5m` | `sum(rate(loki_distributor_lines_received_total[5m]))` |
 | `instance:loki_bytes_received:rate5m` | `sum(rate(loki_distributor_bytes_received_total[5m]))` |
-| `namespace_pod:container_cpu_usage:rate5m` | `sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod=~"loki.*"}[5m]))` |
-| `namespace_pod:container_memory_working_set_bytes:sum` | `sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~"loki.*"})` |
-| `pod:container_cpu_usage:rate5m` | `sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~"loki.*"}[5m]))` |
-| `pod:container_memory_working_set:sum` | `sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~"loki.*"})` |
-| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*loki.*"}[5m]))` |
-| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*loki.*"})` |
-| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"loki.service"} == 1)` |
-| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"loki.service"} == 1)` |
-| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"loki"}[5m]))` |
-| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"loki"})` |
-| `ingress:nginx_ingress_controller_requests:rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"loki.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_5xx:ratio_rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~"loki.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"loki.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_request_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~"loki.*"}[5m])))` |

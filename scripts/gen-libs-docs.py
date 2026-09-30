@@ -25,9 +25,9 @@ GROUPS = {
     "Networking": ["networking.ingressNginx"],
     "Instrumentation": ["instrumentation.httpServer", "instrumentation.httpClient", "instrumentation.rpc", "instrumentation.messaging", "instrumentation.otelSdk"],
     "Web servers": ["webservers.nginx", "webservers.caddy"],
-    "Frameworks": ["frameworks.django", "frameworks.rails"],
+    "Frameworks": ["frameworks.django", "frameworks.rails", "frameworks.wagtail", "frameworks.wordpress"],
     "CI/CD": ["cicd.argocd", "cicd.backstage"],
-    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGoDev", "services.demoGoProd", "services.demoGoWorkshop", "services.demoPythonDev", "services.demoPythonProd", "services.demoPythonWorkshop", "services.sreBack", "services.sreFront", "services.sreReader", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd"],
+    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGo", "services.demoPython", "services.demoJvm", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd"],
     "Cross-cutting": ["alerts", "logs", "backstage"],
 }
 

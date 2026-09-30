@@ -8,6 +8,9 @@
     // Analysis is a root of its own: these boards are not reference material
     // about observ-viz, they are methods you point at a running service.
     local analysis = { uid: 'observ-viz-analysis', title: 'Analysis' },
+    // the runtime and deployment-target boards describe the platform the
+    // services run on, so they sit under Platform (see common-lib/folders).
+    local platform = (import 'libs/common-lib/folders.libsonnet').platform[0],
     folders: {
       panels: { uid: 'observ-viz-panels', title: 'Panels', parent: reference },
       languages: { uid: 'observ-viz-languages', title: 'Runtimes', parent: reference },
@@ -17,7 +20,7 @@
       analysisGolden: { uid: 'observ-viz-analysis-golden', title: 'Golden signals', parent: analysis },
       analysisBurnRate: { uid: 'observ-viz-analysis-burnrate', title: 'Burn rate', parent: analysis },
       analysisCapacity: { uid: 'observ-viz-analysis-capacity', title: 'Capacity', parent: analysis },
-      deployments: { uid: 'observ-viz-deployments', title: 'Deployments', parent: reference },
+      deployments: { uid: 'platform-deployments', title: 'Deployments', parent: platform },
       // the machine itself is not a deployment target of ours, it is the base
       // everything else runs on
       operatingSystems: { uid: 'base-operating-systems', title: 'Operating systems', parent: base },

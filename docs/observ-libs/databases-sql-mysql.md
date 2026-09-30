@@ -8,13 +8,13 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `bufferPool` | bytes | `mysql_global_status_innodb_buffer_pool_bytes_data{job=~"$job"}` | — |
-| `bytesReceived` | Bps | `rate(mysql_global_status_bytes_received{job=~"$job"}[$__rate_interval])` | — |
-| `bytesSent` | Bps | `rate(mysql_global_status_bytes_sent{job=~"$job"}[$__rate_interval])` | — |
-| `connected` | short | `mysql_global_status_threads_connected{job=~"$job"}` | — |
-| `qps` | ops | `rate(mysql_global_status_queries{job=~"$job"}[$__rate_interval])` | `instance:mysql_queries:rate5m` |
-| `running` | short | `mysql_global_status_threads_running{job=~"$job"}` | — |
-| `slow` | ops | `rate(mysql_global_status_slow_queries{job=~"$job"}[$__rate_interval])` | `instance:mysql_slow_queries:rate5m` |
+| `bufferPool` | bytes | `mysql_global_status_innodb_buffer_pool_bytes_data{job=~"$job", instance=~"$instance"}` | — |
+| `bytesReceived` | Bps | `rate(mysql_global_status_bytes_received{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `bytesSent` | Bps | `rate(mysql_global_status_bytes_sent{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `connected` | short | `mysql_global_status_threads_connected{job=~"$job", instance=~"$instance"}` | — |
+| `qps` | ops | `rate(mysql_global_status_queries{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `instance:mysql_queries:rate5m` |
+| `running` | short | `mysql_global_status_threads_running{job=~"$job", instance=~"$instance"}` | — |
+| `slow` | ops | `rate(mysql_global_status_slow_queries{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `instance:mysql_slow_queries:rate5m` |
 
 ## Dashboard
 

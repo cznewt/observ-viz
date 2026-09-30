@@ -39,6 +39,10 @@ _DEFS = _strip_required(copy.deepcopy(SCHEMA["definitions"]))
 # are unit strings / link arrays / min-max numbers, and matcher options are names.
 _DEFS["DynamicConfigValue"]["properties"]["value"] = {}
 _DEFS["MatcherConfig"]["properties"]["options"] = {}
+# legacyOptions is typed as a map of objects, but Grafana stores (and its v2
+# transform spreads onto the v1 annotation) plain values: titleFormat, tagKeys,
+# useValueForTime - its own built-in annotation carries {"type": "dashboard"}.
+_DEFS["AnnotationQuerySpec"]["properties"]["legacyOptions"] = {"type": "object"}
 _Validator = validator_for(SCHEMA)
 VALIDATOR = _Validator({"$ref": "#/definitions/Dashboard", "definitions": _DEFS})
 
@@ -51,9 +55,14 @@ LIBS = [
     "databases.sql.postgres", "databases.sql.mysql",
     "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd",
     "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope",
+    "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter",
     "collector.alloy",
-    "networking.wireguard", "networking.unifi",
-    "applications.syncthing", "applications.guardian",
+    "networking.wireguard", "networking.unifi", "networking.traefik", "networking.envoy",
+    "webservers.apache",
+    "frameworks.django", "frameworks.wagtail", "frameworks.wordpress",
+    "services.demoGo", "services.demoPython", "services.demoJvm",
+    "applications.syncthing", "applications.guardian", "applications.valheim", "applications.minecraft",
+    "networking.pangolin",
     "base.home", "base.cluster", "base.clusterDetail",
 ]
 

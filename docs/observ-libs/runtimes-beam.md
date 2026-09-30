@@ -8,30 +8,30 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `atomLimit` | short | `erlang_vm_atom_limit{job=~"$job"}` | — |
-| `atomUtil` | percent | `100 * erlang_vm_atoms{job=~"$job"} / clamp_min(erlang_vm_atom_limit{job=~"$job"}, 1)` | — |
-| `atoms` | short | `erlang_vm_atoms{job=~"$job"}` | — |
-| `bytesIn` | Bps | `rate(erlang_vm_statistics_bytes_received_total{job=~"$job"}[$__rate_interval])` | — |
-| `bytesOut` | Bps | `rate(erlang_vm_statistics_bytes_output_total{job=~"$job"}[$__rate_interval])` | — |
-| `contextSwitches` | ops | `rate(erlang_vm_statistics_context_switches{job=~"$job"}[$__rate_interval])` | — |
-| `etsTables` | short | `erlang_vm_ets_tables{job=~"$job"}` | — |
-| `gcReclaimed` | Bps | `rate(erlang_vm_statistics_garbage_collection_bytes_reclaimed{job=~"$job"}[$__rate_interval])` | — |
-| `gcs` | ops | `rate(erlang_vm_statistics_garbage_collection_number_of_gcs{job=~"$job"}[$__rate_interval])` | — |
-| `memAtom` | bytes | `erlang_vm_memory_atom_bytes{job=~"$job"}` | — |
-| `memEts` | bytes | `erlang_vm_memory_ets_tables{job=~"$job"}` | — |
-| `memProcesses` | bytes | `erlang_vm_memory_processes_bytes{job=~"$job"}` | — |
-| `memSystem` | bytes | `erlang_vm_memory_system_bytes{job=~"$job"}` | — |
-| `memory` | bytes | `erlang_vm_memory_bytes_total{job=~"$job"}` | — |
-| `portLimit` | short | `erlang_vm_port_limit{job=~"$job"}` | — |
-| `portUtil` | percent | `100 * erlang_vm_ports{job=~"$job"} / clamp_min(erlang_vm_port_limit{job=~"$job"}, 1)` | — |
-| `ports` | short | `erlang_vm_ports{job=~"$job"}` | — |
-| `processLimit` | short | `erlang_vm_process_limit{job=~"$job"}` | — |
-| `processUtil` | percent | `100 * erlang_vm_processes{job=~"$job"} / clamp_min(erlang_vm_process_limit{job=~"$job"}, 1)` | — |
-| `processes` | short | `erlang_vm_processes{job=~"$job"}` | — |
-| `reductions` | ops | `rate(erlang_vm_statistics_reductions_total{job=~"$job"}[$__rate_interval])` | — |
-| `runQueueDirtyCpu` | short | `erlang_vm_statistics_dirty_cpu_run_queue_length{job=~"$job"}` | — |
-| `runQueueDirtyIo` | short | `erlang_vm_statistics_dirty_io_run_queue_length{job=~"$job"}` | — |
-| `schedulers` | short | `erlang_vm_logical_processors_online{job=~"$job"}` | — |
+| `atomLimit` | short | `erlang_vm_atom_limit{job=~"$job", instance=~"$instance"}` | — |
+| `atomUtil` | percent | `100 * erlang_vm_atoms{job=~"$job", instance=~"$instance"} / clamp_min(erlang_vm_atom_limit{job=~"$job", instance=~"$instance"}, 1)` | — |
+| `atoms` | short | `erlang_vm_atoms{job=~"$job", instance=~"$instance"}` | — |
+| `bytesIn` | Bps | `rate(erlang_vm_statistics_bytes_received_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `bytesOut` | Bps | `rate(erlang_vm_statistics_bytes_output_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `contextSwitches` | ops | `rate(erlang_vm_statistics_context_switches{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `etsTables` | short | `erlang_vm_ets_tables{job=~"$job", instance=~"$instance"}` | — |
+| `gcReclaimed` | Bps | `rate(erlang_vm_statistics_garbage_collection_bytes_reclaimed{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `gcs` | ops | `rate(erlang_vm_statistics_garbage_collection_number_of_gcs{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `memAtom` | bytes | `erlang_vm_memory_atom_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `memEts` | bytes | `erlang_vm_memory_ets_tables{job=~"$job", instance=~"$instance"}` | — |
+| `memProcesses` | bytes | `erlang_vm_memory_processes_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `memSystem` | bytes | `erlang_vm_memory_system_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `memory` | bytes | `erlang_vm_memory_bytes_total{job=~"$job", instance=~"$instance"}` | — |
+| `portLimit` | short | `erlang_vm_port_limit{job=~"$job", instance=~"$instance"}` | — |
+| `portUtil` | percent | `100 * erlang_vm_ports{job=~"$job", instance=~"$instance"} / clamp_min(erlang_vm_port_limit{job=~"$job", instance=~"$instance"}, 1)` | — |
+| `ports` | short | `erlang_vm_ports{job=~"$job", instance=~"$instance"}` | — |
+| `processLimit` | short | `erlang_vm_process_limit{job=~"$job", instance=~"$instance"}` | — |
+| `processUtil` | percent | `100 * erlang_vm_processes{job=~"$job", instance=~"$instance"} / clamp_min(erlang_vm_process_limit{job=~"$job", instance=~"$instance"}, 1)` | — |
+| `processes` | short | `erlang_vm_processes{job=~"$job", instance=~"$instance"}` | — |
+| `reductions` | ops | `rate(erlang_vm_statistics_reductions_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `runQueueDirtyCpu` | short | `erlang_vm_statistics_dirty_cpu_run_queue_length{job=~"$job", instance=~"$instance"}` | — |
+| `runQueueDirtyIo` | short | `erlang_vm_statistics_dirty_io_run_queue_length{job=~"$job", instance=~"$instance"}` | — |
+| `schedulers` | short | `erlang_vm_logical_processors_online{job=~"$job", instance=~"$instance"}` | — |
 
 ## Dashboard
 

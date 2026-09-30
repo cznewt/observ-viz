@@ -17,11 +17,11 @@
 //                                 asRuleExpression + all withX modifiers.
 //      unmarshallJson / unmarshallJsonMulti  -> the declarative forms.
 //      getVarMetric / collectMetricExprs     -> helpers.
-local signal = import 'libs/common-lib/signal/signal.libsonnet';
 local engine = import 'libs/common-lib/signal/engine.libsonnet';
+local signal = import 'libs/common-lib/signal/signal.libsonnet';
 
 engine
-+ {
+{
   // --- lean v2-native signal (backward compatible) -------------------------
   // new(name, type, datasource, expr, unit) -> a single signal.
   new(name, type, datasource, expr, unit='short'):
@@ -32,7 +32,7 @@ engine
   // NOTE: this 3-arg lean helper shadows the engine's init-scoped addSignal,
   // which is only reachable on an init(...) collection (different receiver),
   // so both remain usable.
-  addSignal(signals, name, sig): signals + { [name]: sig },
+  addSignal(signals, name, sig): signals { [name]: sig },
 
   // asElements(signals, viz) -> a ready elements map { name: PanelKind }.
   asElements(signals, viz='timeSeries'): {

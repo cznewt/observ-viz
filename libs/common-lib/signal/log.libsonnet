@@ -1,5 +1,5 @@
-local g = import './g.libsonnet';
 local base = import './base.libsonnet';
+local g = import './g.libsonnet';
 local lokiQuery = g.query.loki;
 base {
   new(

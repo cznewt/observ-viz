@@ -1,6 +1,12 @@
 // common-lib annotations — base. Builds a v2 AnnotationQuery from a
 // signal target (signal.asTarget()) or a plain { datasource, expr } target,
 // reusing the observ-viz annotation builder.
+//
+// Prometheus' own annotation options (titleFormat, tagKeys, textFormat,
+// useValueForTime) are not v2 AnnotationQuerySpec fields: Grafana drops them
+// there on save. They ride in spec.legacyOptions, which the v2 -> scene
+// transform spreads back onto the root of the v1 annotation the Prometheus
+// datasource reads them from.
 local annotation = import 'custom/annotation.libsonnet';
 
 // normalise a target to { ds, group, expr }.
@@ -29,7 +35,7 @@ local extract(target) =
     annotation.new(title)
     + {
       spec+: {
-        titleFormat: title,
+        legacyOptions+: { titleFormat: title },
         query: {
           kind: 'DataQuery',
           group: t.group,
@@ -40,7 +46,11 @@ local extract(target) =
       },
     },
 
-  withTagKeys(value):: { spec+: { tagKeys: if std.isArray(value) then std.join(',', value) else value } },
-  withValueForTime(value=false):: { spec+: { useValueForTime: value } },
-  withTextFormat(value=''):: { spec+: { textFormat: value } },
+  withTagKeys(value):: { spec+: { legacyOptions+: { tagKeys: if std.isArray(value) then std.join(',', value) else value } } },
+  withValueForTime(value=false):: { spec+: { legacyOptions+: { useValueForTime: value } } },
+  withTextFormat(value=''):: { spec+: { legacyOptions+: { textFormat: value } } },
+  // event title from the series labels, e.g. '{{alertname}}' (default: the annotation name)
+  withTitleFormat(value):: { spec+: { legacyOptions+: { titleFormat: value } } },
+  // a viewer toggle in the annotation bar: shown (hide=false), on or off by default
+  asToggle(enabled=true):: { spec+: { hide: false, enable: enabled } },
 }

@@ -27,6 +27,55 @@ local query = import 'custom/query.libsonnet';
       + query.prometheus.withFormat('table'),
     ]),
 
+  // Instant table of firing alerts, one row per alert x where it fires:
+  // Alert, Severity, Namespace, Pod, Node, Instance, Job and how long it has
+  // been active (time() - ALERTS_FOR_STATE, the rule's activation time, kept
+  // to what is firing now). The ruler's ALERTS / ALERTS_FOR_STATE series carry
+  // labels only, so there is no summary column - the rule itself (and its
+  // runbook_url) is one click away on the Alert link.
+  // Links: Alert -> Grafana's alert-rule list searched for it; Namespace / Pod
+  // -> the Kubernetes pod board; Node -> the Linux node board. Every link
+  // carries the row's cluster.
+  firingDetailTable(title='Firing alerts', datasource='${datasource}', selector='', podBoardUid='observ-viz-kube-pod', nodeBoardUid='compute-linux-overview'):
+    local sel = if selector != '' then ', ' + selector else '';
+    local by = 'cluster, alertname, severity, namespace, pod, node, instance, job';
+    local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+    local link(t, url) = { id: 'links', value: [{ title: t, url: url }] };
+    local colorText(mapping) = [
+      { id: 'custom.cellOptions', value: { type: 'color-text' } },
+      { id: 'mappings', value: [{ type: 'value', options: mapping }] },
+    ];
+    panel.table.new(title)
+    + panel.table.withDescription('Every alert firing now, one row per alert and place (namespace / pod / node / instance / job). Active for = time since the rule went active (ALERTS_FOR_STATE). ALERTS carries no annotations, so the summary lives with the rule: Alert opens it in Grafana alerting. Namespace / Pod open the Kubernetes pod board, Node the Linux node board.')
+    + panel.table.withTargets([
+      query.prometheus.new(datasource,
+                           'max by (' + by + ') (time() - (ALERTS_FOR_STATE{alertname!=""' + sel + '} and ignoring (alertstate) ALERTS{alertstate="firing"' + sel + '}))')
+      + query.prometheus.withInstant(true)
+      + query.prometheus.withFormat('table'),
+    ])
+    + panel.table.withTransformations([
+      { id: 'organize', options: {
+        excludeByName: { Time: true },
+        indexByName: { alertname: 0, severity: 1, namespace: 2, pod: 3, node: 4, instance: 5, job: 6, Value: 7, cluster: 8 },
+        renameByName: { alertname: 'Alert', severity: 'Severity', namespace: 'Namespace', pod: 'Pod', node: 'Node', instance: 'Instance', job: 'Job', Value: 'Active for' },
+      } },
+      { id: 'sortBy', options: { sort: [{ field: 'Active for', desc: true }] } },
+    ])
+    + panel.table.withOverrides([
+      ov('^cluster$', [{ id: 'custom.hidden', value: true }]),
+      ov('^Alert$', [link('Alert rule ${__value.raw}', '/alerting/list?search=${__value.raw}')]),
+      ov('^Severity$', [{ id: 'custom.width', value: 90 }] + colorText({
+        critical: { color: 'red', index: 0 },
+        'error': { color: 'red', index: 1 },
+        warning: { color: 'orange', index: 2 },
+        info: { color: 'blue', index: 3 },
+      })),
+      ov('^Namespace$', [link('Pods in ${__value.raw}', '/d/' + podBoardUid + '?var-cluster=${__data.fields.cluster}&var-namespace=${__value.raw}')]),
+      ov('^Pod$', [link('Open pod ${__value.raw}', '/d/' + podBoardUid + '?var-cluster=${__data.fields.cluster}&var-namespace=${__data.fields.Namespace}&var-pod=${__value.raw}')]),
+      ov('^Node$', [link('Open node ${__value.raw}', '/d/' + nodeBoardUid + '?var-cluster=${__data.fields.cluster}&var-instance=${__value.raw}')]),
+      ov('^Active for$', [{ id: 'unit', value: 's' }, { id: 'decimals', value: 0 }, { id: 'custom.width', value: 110 }]),
+    ]),
+
   // Alert state timeline: one row per alert (alertstate folded into the VALUE,
   // so a row shifts color as it warms pending -> firing), severity-tiered
   // colors, legend trimmed to alertname + instance/pod.

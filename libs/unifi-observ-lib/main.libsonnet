@@ -3,21 +3,23 @@
 // devices (UAP/USW/UXG) and wireless clients.
 // Usage:
 //   g.libs.networking.unifi.new({ selector: 'job="unpoller"' }).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'network-unifi-control',
+      // Platform / Infrastructure / Network
+      folderPath: (import 'libs/common-lib/folders.libsonnet').network,
       dashboardTitle: 'Unifi Controller',
       dashboardTags: ['unifi', 'unpoller', 'network', 'cluster-level'],
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
 
       datasource: '${datasource}',
@@ -66,11 +68,11 @@ local query = import 'custom/query.libsonnet';
     local clientsTable =
       panel.table.new('Clients')
       + panel.table.withTargets([
-        tq('unpoller_client_uptime_seconds{' + cfg.selector + '}'),                     // A: identity + Uptime
-        tq('sum by (mac) (unpoller_client_receive_bytes_total{' + cfg.selector + '})'),   // B: Down (rx)
+        tq('unpoller_client_uptime_seconds{' + cfg.selector + '}'),  // A: identity + Uptime
+        tq('sum by (mac) (unpoller_client_receive_bytes_total{' + cfg.selector + '})'),  // B: Down (rx)
         tq('sum by (mac) (unpoller_client_transmit_bytes_total{' + cfg.selector + '})'),  // C: Up (tx)
-        tq('sum by (mac) (unpoller_client_rssi_db{' + cfg.selector + '})'),               // D: RSSI (wireless)
-        tq('sum by (mac) (unpoller_client_satisfaction_ratio{' + cfg.selector + '})'),    // E: Satisfaction
+        tq('sum by (mac) (unpoller_client_rssi_db{' + cfg.selector + '})'),  // D: RSSI (wireless)
+        tq('sum by (mac) (unpoller_client_satisfaction_ratio{' + cfg.selector + '})'),  // E: Satisfaction
       ])
       + panel.table.withTransformations([
         { id: 'labelsToFields' },

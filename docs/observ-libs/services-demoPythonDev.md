@@ -1,6 +1,6 @@
 # Demo Python (dev) service  (`g.libs.services.demoPythonDev`)
 
-Dashboard uid `observ-viz-svc-demo-python-dev` · 85 signals · 27 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-demo-python-dev` · 85 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -8,9 +8,9 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | `instance:python_cpu_usage:rate5m` |
-| `gcCollections` | ops | `sum without(generation)(rate(python_gc_collections_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
-| `gcObjects` | short | `rate(python_gc_objects_collected_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}[$__rate_interval])` | `instance:python_cpu_usage:rate5m` |
+| `gcCollections` | ops | `sum without(generation)(rate(python_gc_collections_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}[$__rate_interval]))` | — |
+| `gcObjects` | short | `rate(python_gc_objects_collected_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}[$__rate_interval])` | — |
 | `hproc_cpu` | short | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))` | — |
 | `hproc_ctxSwitches` | ops | `sum by (instance, groupname, ctxswitchtype) (rate(namedprocess_namegroup_context_switches_total{groupname=~"demo-python-dev", instance=~"$host"}[$__rate_interval]))` | — |
 | `hproc_fdRatio` | percentunit | `max by (instance, groupname) (namedprocess_namegroup_worst_fd_ratio{groupname=~"demo-python-dev", instance=~"$host"})` | — |
@@ -66,15 +66,15 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `kube_youngest` | dtdurations | `min(time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
 | `logs_journal` | short | `{instance=~"$host", unit=~"demo-python-dev.service"}` | — |
 | `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
-| `maxFds` | short | `process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
-| `openFds` | short | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `maxFds` | short | `process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}` | — |
+| `openFds` | short | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}` | — |
 | `proc_cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | `instance:python_cpu_usage:rate5m` |
 | `proc_fdRatio` | percentunit | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} / process_max_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `proc_fds` | short | `process_open_fds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `proc_rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `proc_uptime` | s | `time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `proc_virt` | bytes | `process_virtual_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|", instance=~"$instance"}` | — |
 | `systemd_active` | short | `count(node_systemd_unit_state{name=~"demo-python-dev.service", state="active", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_failed` | short | `count(node_systemd_unit_state{name=~"demo-python-dev.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_failedTable` | short | `node_systemd_unit_state{name=~"demo-python-dev.service", state="failed", instance=~"$host"} == 1` | — |
@@ -108,27 +108,6 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `PythonHighCpu` | warning | 15m | — |
 | `PythonHighMemory` | warning | 15m | — |
 | `PythonFileDescriptorsExhausted` | warning | 15m | — |
-| `KubePodNotReady` | critical | 15m | — |
-| `KubePodCrashLooping` | warning | 15m | — |
-| `KubePodCpuOverRequest` | warning | 15m | — |
-| `KubePodMemoryNearLimit` | warning | 15m | — |
-| `ContainerCpuThrottlingHigh` | warning | 15m | — |
-| `ContainerHighMemory` | warning | 15m | — |
-| `ContainerHighCpu` | warning | 15m | — |
-| `ContainerNetworkUnavailable` | critical | 5m | — |
-| `CadvisorDown` | critical | 5m | — |
-| `ContainerHighDiskWrite` | warning | 15m | — |
-| `SystemdUnitFailed` | critical | 5m | — |
-| `SystemdUnitRestarting` | warning | 0m | — |
-| `SystemdSystemDegraded` | warning | 15m | — |
-| `ProcessGroupFdRatioHigh` | warning | 15m | — |
-| `ProcessGroupGone` | warning | 10m | — |
-| `ProcessExporterScrapeErrors` | warning | 15m | — |
-| `IngressNginxHigh5xxRatio` | warning | 10m | — |
-| `IngressNginxHighLatency` | warning | 15m | — |
-| `IngressNginxUpstreamErrors` | warning | 10m | — |
-| `IngressNginxConfigReloadFailed` | critical | 5m | — |
-| `IngressNginxCertificateExpiringSoon` | warning | 1h | — |
 
 ## Recording rules
 
@@ -136,16 +115,3 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 |--------|------------|
 | `instance:python_cpu_usage:rate5m` | `rate(process_cpu_seconds_total[5m])` |
 | `instance:python_gc_collections:rate5m` | `sum without (generation) (rate(python_gc_collections_total[5m]))` |
-| `namespace_pod:container_cpu_usage:rate5m` | `sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod=~"demo-.*python.*"}[5m]))` |
-| `namespace_pod:container_memory_working_set_bytes:sum` | `sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~"demo-.*python.*"})` |
-| `pod:container_cpu_usage:rate5m` | `sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~"demo-.*python.*"}[5m]))` |
-| `pod:container_memory_working_set:sum` | `sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~"demo-.*python.*"})` |
-| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*demo-python-dev.*"}[5m]))` |
-| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*demo-python-dev.*"})` |
-| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"demo-python-dev.service"} == 1)` |
-| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"demo-python-dev.service"} == 1)` |
-| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"demo-python-dev"}[5m]))` |
-| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"demo-python-dev"})` |
-| `ingress:nginx_ingress_controller_requests:rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"demo-.*python.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_5xx:ratio_rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~"demo-.*python.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"demo-.*python.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_request_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~"demo-.*python.*"}[5m])))` |

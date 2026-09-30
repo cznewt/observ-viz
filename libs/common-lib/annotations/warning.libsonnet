@@ -1,6 +1,6 @@
 // common-lib annotations — warning (yellow, hidden by default).
-local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 local base = import 'libs/common-lib/annotations/base.libsonnet';
+local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 base {
   new(title, target):
     super.new(title, target)

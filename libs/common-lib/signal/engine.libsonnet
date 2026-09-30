@@ -2,7 +2,6 @@
 // builders through ./g.libsonnet). Provides init/addSignal/unmarshallJson/
 // unmarshallJsonMulti + helpers. std.get/std.member/std.objectKeysValues are
 // avoided for the C++ _jsonnet binding.
-local variables = import './variables.libsonnet';
 local counter = import './counter.libsonnet';
 local gauge = import './gauge.libsonnet';
 local histogram = import './histogram.libsonnet';
@@ -10,6 +9,7 @@ local info = import './info.libsonnet';
 local log = import './log.libsonnet';
 local raw = import './raw.libsonnet';
 local stub = import './stub.libsonnet';
+local variables = import './variables.libsonnet';
 
 // helpers replacing std.get / std.member / std.objectKeysValues.
 local objGet(o, f, default=null) = if std.objectHasAll(o, f) then o[f] else default;
@@ -275,41 +275,82 @@ local kv(o) = [{ key: k, value: o[k] } for k in std.objectFields(o)];
           for sm in _sourceMaps
         ];
         if type == 'gauge' then
-        gauge.new(
-          name=name, type=type, unit=unit, nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource=this.datasource,
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
-      else if type == 'raw' then
-        raw.new(
-          name=name, type=type, unit=unit, nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource=this.datasource,
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
-      else if type == 'counter' then
-        counter.new(
-          name=name, type=type, unit=unit, nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource=this.datasource,
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
-      else if type == 'histogram' then
-        histogram.new(
-          name=name, type=type, unit=unit, nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource=this.datasource,
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
-      else if type == 'log' then
-        log.new(
-          name=name, type=type, unit='none', nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource='loki_datasource',
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
-      else if type == 'info' then
-        info.new(
-          name=name, type=type, nameShort=nameShort, description=description,
-          aggLevel=aggLevel, aggFunction=aggFunction, datasource=this.datasource,
-          vars=this.templatingVariables, sourceMaps=_filledSourceMaps,
-        )
+          gauge.new(
+            name=name,
+            type=type,
+            unit=unit,
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource=this.datasource,
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
+        else if type == 'raw' then
+          raw.new(
+            name=name,
+            type=type,
+            unit=unit,
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource=this.datasource,
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
+        else if type == 'counter' then
+          counter.new(
+            name=name,
+            type=type,
+            unit=unit,
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource=this.datasource,
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
+        else if type == 'histogram' then
+          histogram.new(
+            name=name,
+            type=type,
+            unit=unit,
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource=this.datasource,
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
+        else if type == 'log' then
+          log.new(
+            name=name,
+            type=type,
+            unit='none',
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource='loki_datasource',
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
+        else if type == 'info' then
+          info.new(
+            name=name,
+            type=type,
+            nameShort=nameShort,
+            description=description,
+            aggLevel=aggLevel,
+            aggFunction=aggFunction,
+            datasource=this.datasource,
+            vars=this.templatingVariables,
+            sourceMaps=_filledSourceMaps,
+          )
         else if type == 'stub' then
           stub.new(
             signalName=name,

@@ -8,24 +8,24 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `actions` | short | `sum by (rule, action) (rate(alert_handler_actions_total{job=~"$job"}[$__rate_interval]))` | — |
-| `actionsByResult` | short | `sum by (result) (rate(alert_handler_actions_total{job=~"$job"}[$__rate_interval]))` | — |
-| `actionsFailed` | short | `sum by (rule, action) (rate(alert_handler_actions_total{job=~"$job", result!~"ok\|success"}[$__rate_interval]))` | — |
-| `alerts` | short | `sum by (status) (rate(alert_handler_alerts_total{job=~"$job"}[$__rate_interval]))` | — |
-| `configAge` | dtdurations | `time() - max(alert_handler_config_loaded_timestamp_seconds{job=~"$job"})` | — |
-| `configRules` | short | `max(alert_handler_config_rules{job=~"$job"})` | — |
-| `configValid` | short | `min(alert_handler_config_valid{job=~"$job"})` | — |
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | — |
-| `durationAvg` | s | `sum by (rule, action) (rate(alert_handler_action_duration_seconds_sum{job=~"$job"}[$__rate_interval])) / sum by (rule, action) (rate(alert_handler_action_duration_seconds_count{job=~"$job"}[$__rate_interval]))` | — |
-| `durationP99` | s | `histogram_quantile(0.99, sum by (le, action) (rate(alert_handler_action_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `failureRatio` | percentunit | `sum(rate(alert_handler_actions_total{job=~"$job", result!~"ok\|success\|skipped"}[$__rate_interval])) / sum(rate(alert_handler_actions_total{job=~"$job"}[$__rate_interval]))` | — |
-| `inflight` | short | `sum(alert_handler_actions_inflight{job=~"$job"})` | — |
-| `matches` | short | `sum by (rule) (rate(alert_handler_rule_matches_total{job=~"$job"}[$__rate_interval]))` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
-| `runbooks` | short | `max(alert_handler_runbooks_available{job=~"$job"})` | — |
-| `secrets` | short | `max(alert_handler_secrets_loaded{job=~"$job"})` | — |
-| `webhookErrors` | short | `sum(rate(alert_handler_webhook_requests_total{job=~"$job", result!~"ok\|success\|accepted"}[$__rate_interval]))` | — |
-| `webhooks` | short | `sum by (result) (rate(alert_handler_webhook_requests_total{job=~"$job"}[$__rate_interval]))` | — |
+| `actions` | short | `sum by (rule, action) (rate(alert_handler_actions_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `actionsByResult` | short | `sum by (result) (rate(alert_handler_actions_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `actionsFailed` | short | `sum by (rule, action) (rate(alert_handler_actions_total{job=~"$job", instance=~"$instance", result!~"ok\|success"}[$__rate_interval]))` | — |
+| `alerts` | short | `sum by (status) (rate(alert_handler_alerts_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `configAge` | dtdurations | `time() - max(alert_handler_config_loaded_timestamp_seconds{job=~"$job", instance=~"$instance"})` | — |
+| `configRules` | short | `max(alert_handler_config_rules{job=~"$job", instance=~"$instance"})` | — |
+| `configValid` | short | `min(alert_handler_config_valid{job=~"$job", instance=~"$instance"})` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `durationAvg` | s | `sum by (rule, action) (rate(alert_handler_action_duration_seconds_sum{job=~"$job", instance=~"$instance"}[$__rate_interval])) / sum by (rule, action) (rate(alert_handler_action_duration_seconds_count{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `durationP99` | s | `histogram_quantile(0.99, sum by (le, action) (rate(alert_handler_action_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `failureRatio` | percentunit | `sum(rate(alert_handler_actions_total{job=~"$job", instance=~"$instance", result!~"ok\|success\|skipped"}[$__rate_interval])) / sum(rate(alert_handler_actions_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `inflight` | short | `sum(alert_handler_actions_inflight{job=~"$job", instance=~"$instance"})` | — |
+| `matches` | short | `sum by (rule) (rate(alert_handler_rule_matches_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `runbooks` | short | `max(alert_handler_runbooks_available{job=~"$job", instance=~"$instance"})` | — |
+| `secrets` | short | `max(alert_handler_secrets_loaded{job=~"$job", instance=~"$instance"})` | — |
+| `webhookErrors` | short | `sum(rate(alert_handler_webhook_requests_total{job=~"$job", instance=~"$instance", result!~"ok\|success\|accepted"}[$__rate_interval]))` | — |
+| `webhooks` | short | `sum by (result) (rate(alert_handler_webhook_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
 
 ## Dashboard
 

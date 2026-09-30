@@ -140,6 +140,27 @@ local variable =
             + panel.text.withOptions({ mode: 'markdown', content: ann(r, 'runbook', generatedRunbook(r)) })
           for r in alertRules
         },
+      // the documentation (the Signals / Runbooks tabs, and the tabbed board's
+      // per-tab signal tables) is behind a `signals` Hide / Show variable,
+      // Hide by default; a board with none of it does not get the variable
+      local docsOn = docTabsOn || tabbedOn,
+      local docsGate = layout.withConditionalRendering(layout.conditional.group([layout.conditional.variable('signals', 'Show', 'equals')])),
+      local signalsVar = {
+        kind: 'CustomVariable',
+        spec: {
+          name: 'signals',
+          label: 'Signals',
+          description: 'Show the signal / runbook documentation tables and tabs.',
+          query: 'Hide,Show',
+          current: { text: 'Hide', value: 'Hide' },
+          options: [{ text: 'Hide', value: 'Hide', selected: true }, { text: 'Show', value: 'Show', selected: false }],
+          multi: false,
+          includeAll: false,
+          allowCustomValue: false,
+          hide: 'dontHide',
+          skipUrlSync: false,
+        },
+      },
       local docTabList = if docTabsOn then [
         { title: 'Signals', width: 24, height: 12, elements: { doc_signals: panel.text.new('Signals') + panel.text.withOptions({ mode: 'markdown', content: signalsMd }) } },
         { title: 'Runbooks', width: 12, height: 14, elements: runbookPanels },
@@ -155,14 +176,14 @@ local variable =
             [tabbedBoard.overviewTab] + tabbedBoard.groupTabs
             + [layout.tabs.tab(t.title, tabLayout(t)) + tabGate(t) for t in optionalTabs]
             // the Signals doc tab would repeat what every group tab already shows
-            + [layout.tabs.tab(t.title, gridOf(t)) for t in docTabList if t.title != 'Signals']
+            + [layout.tabs.tab(t.title, gridOf(t)) + docsGate for t in docTabList if t.title != 'Signals']
           )
         else if std.length(optionalTabs) + std.length(docTabList) > 0 then
           layout.tabs.new()
           + layout.tabs.withTabs(
             [layout.tabs.tab(if std.objectHas(config, 'primaryTabTitle') then config.primaryTabTitle else config.dashboardTitle, rowsLayout)]
             + [layout.tabs.tab(t.title, tabLayout(t)) + tabGate(t) for t in optionalTabs]
-            + [layout.tabs.tab(t.title, gridOf(t)) for t in docTabList]
+            + [layout.tabs.tab(t.title, gridOf(t)) + docsGate for t in docTabList]
           )
         else rowsLayout,
 
@@ -234,7 +255,7 @@ local variable =
         ] + (if std.objectHas(config, 'extraVariables') then config.extraVariables else [])
         + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
                variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
-             ] else []) + presenceVars)
+             ] else []) + presenceVars + (if docsOn then [signalsVar] else []))
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
 

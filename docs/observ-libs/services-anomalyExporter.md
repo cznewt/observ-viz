@@ -1,6 +1,6 @@
-# Anomaly-exporter service  (`g.libs.services.anomalyExporter`)
+# Anomaly-exporter  (`g.libs.services.anomalyExporter`)
 
-Dashboard uid `observ-viz-svc-anomaly-exporter` · 90 signals · 26 alerts · 15 recording rules.
+Dashboard uid `observ-viz-svc-anomaly-exporter` · 97 signals · 3 alerts · 2 recording rules.
 
 ## Signals
 
@@ -70,6 +70,8 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `logs_journal` | short | `{instance=~"$host", unit=~"anomaly-exporter.service"}` | — |
 | `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
 | `modules` | short | `count(count by (module) (anomaly_exporter_probes_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}))` | — |
+| `probeLatency` | s | `max by (probe, module) (anomaly_probe_duration_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `probeSuccess` | short | `min by (probe, module) (anomaly_probe_success{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `probes` | short | `sum by (module, result) (rate(anomaly_exporter_probes_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | `module:anomaly_exporter_probes:rate5m` |
 | `probesTotal` | short | `sum(rate(anomaly_exporter_probes_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval]))` | — |
 | `proc_cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}[$__rate_interval])` | — |
@@ -79,6 +81,11 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `proc_uptime` | s | `time() - process_start_time_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `proc_virt` | bytes | `process_virtual_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
 | `rss` | bytes | `process_resident_memory_bytes{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `score` | short | `max by (probe, module) (anomaly_score{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `scoreBySeries` | short | `anomaly_score{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}` | — |
+| `scoreHigh` | short | `count(anomaly_score{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} > 0.8) or vector(0)` | — |
+| `seriesScored` | short | `sum by (probe) (anomaly_series_scored{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
+| `seriesSkipped` | short | `sum by (probe) (anomaly_series_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"} - anomaly_series_scored{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `systemd_active` | short | `count(node_systemd_unit_state{name=~"anomaly-exporter.service", state="active", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_failed` | short | `count(node_systemd_unit_state{name=~"anomaly-exporter.service", state="failed", instance=~"$host"} == 1) or vector(0)` | — |
 | `systemd_failedTable` | short | `node_systemd_unit_state{name=~"anomaly-exporter.service", state="failed", instance=~"$host"} == 1` | — |
@@ -102,6 +109,7 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 ## Dashboard
 
 - **Overview** — `ov01_rate`, `ov02_failureRatio`, `ov03_modules`
+- **Scores** — `sc01_score`, `sc02_scoreBySeries`, `sc03_probeSuccess`, `sc04_probeLatency`, `sc05_seriesScored`, `sc06_scoreHigh`
 - **Probes** — `duration`, `durationAvg`, `failures`, `probes`
 - **Resources** — `cpu`, `rss`
 
@@ -112,27 +120,6 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `AnomalyExporterDown` | warning | 10m | — |
 | `AnomalyExporterProbesFailing` | warning | 15m | — |
 | `AnomalyExporterProbeSlow` | warning | 15m | — |
-| `KubePodNotReady` | critical | 15m | — |
-| `KubePodCrashLooping` | warning | 15m | — |
-| `KubePodCpuOverRequest` | warning | 15m | — |
-| `KubePodMemoryNearLimit` | warning | 15m | — |
-| `ContainerCpuThrottlingHigh` | warning | 15m | — |
-| `ContainerHighMemory` | warning | 15m | — |
-| `ContainerHighCpu` | warning | 15m | — |
-| `ContainerNetworkUnavailable` | critical | 5m | — |
-| `CadvisorDown` | critical | 5m | — |
-| `ContainerHighDiskWrite` | warning | 15m | — |
-| `SystemdUnitFailed` | critical | 5m | — |
-| `SystemdUnitRestarting` | warning | 0m | — |
-| `SystemdSystemDegraded` | warning | 15m | — |
-| `ProcessGroupFdRatioHigh` | warning | 15m | — |
-| `ProcessGroupGone` | warning | 10m | — |
-| `ProcessExporterScrapeErrors` | warning | 15m | — |
-| `IngressNginxHigh5xxRatio` | warning | 10m | — |
-| `IngressNginxHighLatency` | warning | 15m | — |
-| `IngressNginxUpstreamErrors` | warning | 10m | — |
-| `IngressNginxConfigReloadFailed` | critical | 5m | — |
-| `IngressNginxCertificateExpiringSoon` | warning | 1h | — |
 
 ## Recording rules
 
@@ -140,16 +127,3 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 |--------|------------|
 | `module:anomaly_exporter_probes:rate5m` | `sum by (module, result) (rate(anomaly_exporter_probes_total[5m]))` |
 | `module:anomaly_exporter_probe_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, module) (rate(anomaly_exporter_probe_duration_seconds_bucket[5m])))` |
-| `namespace_pod:container_cpu_usage:rate5m` | `sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="", pod=~"anomaly-exporter.*"}[5m]))` |
-| `namespace_pod:container_memory_working_set_bytes:sum` | `sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod=~"anomaly-exporter.*"})` |
-| `pod:container_cpu_usage:rate5m` | `sum by (pod, container) (rate(container_cpu_usage_seconds_total{container!="", pod=~"anomaly-exporter.*"}[5m]))` |
-| `pod:container_memory_working_set:sum` | `sum by (pod, container) (container_memory_working_set_bytes{container!="", pod=~"anomaly-exporter.*"})` |
-| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", name=~".*anomaly-exporter.*"}[5m]))` |
-| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", name=~".*anomaly-exporter.*"})` |
-| `instance:node_systemd_units_failed:count` | `count by (instance) (node_systemd_unit_state{state="failed", name=~"anomaly-exporter.service"} == 1)` |
-| `instance:node_systemd_units_active:count` | `count by (instance) (node_systemd_unit_state{state="active", name=~"anomaly-exporter.service"} == 1)` |
-| `instance_groupname:namedprocess_cpu:rate5m` | `sum by (instance, groupname) (rate(namedprocess_namegroup_cpu_seconds_total{groupname=~"anomaly-exporter"}[5m]))` |
-| `instance_groupname:namedprocess_rss:sum` | `sum by (instance, groupname) (namedprocess_namegroup_memory_bytes{memtype="resident", groupname=~"anomaly-exporter"})` |
-| `ingress:nginx_ingress_controller_requests:rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"anomaly-exporter.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_5xx:ratio_rate5m` | `sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{status=~"5..", service=~"anomaly-exporter.*"}[5m])) / sum by (cluster, namespace, ingress) (rate(nginx_ingress_controller_requests{service=~"anomaly-exporter.*"}[5m]))` |
-| `ingress:nginx_ingress_controller_request_duration_seconds:p99_5m` | `histogram_quantile(0.99, sum by (le, cluster, namespace, ingress) (rate(nginx_ingress_controller_request_duration_seconds_bucket{service=~"anomaly-exporter.*"}[5m])))` |

@@ -3,9 +3,9 @@
 // dashboard. Reuse the panels directly, or the whole dashboard.
 //   g.libs.logs.new({ filterSelector: 'job="myapp"' }).grafana.panels.logsVolume
 local defaults = import 'libs/logs-lib/config.libsonnet';
-local queriesFn = import 'libs/logs-lib/queries.libsonnet';
-local panelsFn = import 'libs/logs-lib/panels.libsonnet';
 local dashboardsFn = import 'libs/logs-lib/dashboards.libsonnet';
+local panelsFn = import 'libs/logs-lib/panels.libsonnet';
+local queriesFn = import 'libs/logs-lib/queries.libsonnet';
 
 {
   withConfigMixin(config):: { config+: config },

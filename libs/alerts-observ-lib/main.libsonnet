@@ -1,11 +1,11 @@
 // alerts-observ-lib — ALERTS signals, alert annotations, reusable alert
 // panels, and an alerts-overview dashboard, all reusable.
 //   g.libs.alerts.new({ filteringSelector: 'cluster="$cluster"' })
-local defaults = import 'libs/alerts-observ-lib/config.libsonnet';
-local signalsFn = import 'libs/alerts-observ-lib/signals.libsonnet';
 local annotationsFn = import 'libs/alerts-observ-lib/annotations.libsonnet';
-local panelsFn = import 'libs/alerts-observ-lib/panels.libsonnet';
+local defaults = import 'libs/alerts-observ-lib/config.libsonnet';
 local dashboardsFn = import 'libs/alerts-observ-lib/dashboards.libsonnet';
+local panelsFn = import 'libs/alerts-observ-lib/panels.libsonnet';
+local signalsFn = import 'libs/alerts-observ-lib/signals.libsonnet';
 
 {
   withConfigMixin(config):: { config+: config },

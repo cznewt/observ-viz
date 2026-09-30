@@ -38,10 +38,7 @@ local sources = import 'libs/kong-observ-lib/sources.libsonnet';
       ruleSelector: '',
       errorRatio: 0.05,
       latency: 1,
-      folderUid: 'components-networking',
-      folderTitle: 'Networking',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').ingress,
     } + config;
     local src = sources[cfg.implementation];
     local sel = filters.selector(cfg);

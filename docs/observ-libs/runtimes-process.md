@@ -8,20 +8,20 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | `job_instance:process_cpu_seconds:rate5m` |
-| `down` | short | `sum(up{job=~"$job"} == 0) or vector(0)` | — |
-| `fdUtil` | percent | `100 * process_open_fds{job=~"$job"} / process_max_fds{job=~"$job"}` | — |
-| `maxFds` | short | `process_max_fds{job=~"$job"}` | — |
-| `openFds` | short | `process_open_fds{job=~"$job"}` | — |
-| `restarts1h` | short | `sum(changes(process_start_time_seconds{job=~"$job"}[1h])) or vector(0)` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
-| `scrapeDuration` | s | `scrape_duration_seconds{job=~"$job"}` | — |
-| `scrapeSamples` | short | `scrape_samples_scraped{job=~"$job"}` | — |
-| `targetTable` | short | `max by (job, instance) (up{job=~"$job"})` | — |
-| `threads` | short | `process_threads{job=~"$job"}` | — |
-| `up` | short | `sum(up{job=~"$job"})` | — |
-| `uptime` | s | `time() - process_start_time_seconds{job=~"$job"}` | — |
-| `vsz` | bytes | `process_virtual_memory_bytes{job=~"$job"}` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `job_instance:process_cpu_seconds:rate5m` |
+| `down` | short | `sum(up{job=~"$job", instance=~"$instance"} == 0) or vector(0)` | — |
+| `fdUtil` | percent | `100 * process_open_fds{job=~"$job", instance=~"$instance"} / process_max_fds{job=~"$job", instance=~"$instance"}` | — |
+| `maxFds` | short | `process_max_fds{job=~"$job", instance=~"$instance"}` | — |
+| `openFds` | short | `process_open_fds{job=~"$job", instance=~"$instance"}` | — |
+| `restarts1h` | short | `sum(changes(process_start_time_seconds{job=~"$job", instance=~"$instance"}[1h])) or vector(0)` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `scrapeDuration` | s | `scrape_duration_seconds{job=~"$job", instance=~"$instance"}` | — |
+| `scrapeSamples` | short | `scrape_samples_scraped{job=~"$job", instance=~"$instance"}` | — |
+| `targetTable` | short | `max by (job, instance) (up{job=~"$job", instance=~"$instance"})` | — |
+| `threads` | short | `process_threads{job=~"$job", instance=~"$instance"}` | — |
+| `up` | short | `sum(up{job=~"$job", instance=~"$instance"})` | — |
+| `uptime` | s | `time() - process_start_time_seconds{job=~"$job", instance=~"$instance"}` | — |
+| `vsz` | bytes | `process_virtual_memory_bytes{job=~"$job", instance=~"$instance"}` | — |
 
 ## Dashboard
 

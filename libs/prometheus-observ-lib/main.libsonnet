@@ -25,10 +25,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // deploy target: Components / Monitoring (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-monitoring',
-      folderTitle: 'Monitoring',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringStorage,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

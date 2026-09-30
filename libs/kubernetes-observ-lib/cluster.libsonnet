@@ -22,7 +22,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       dashboardTags: ['kubernetes', 'cluster-level'],
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
 
       datasource: '${datasource}',
@@ -39,9 +39,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       tabbed: true,
       // the Namespaces tab already tables what runs here
       overviewInstances: false,
-      // the base layer: what everything else runs on
-      folderUid: 'base',
-      folderTitle: 'Base',
+      // Platform / Kubernetes, beside the pod and container boards
+      folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
     } + config;
     local s = cfg.selector;
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -261,6 +260,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { id: 'sortBy', options: { sort: [{ field: 'Namespace', desc: false }] } },
       ])
       + panel.table.withOverrides([
+        // a workload's pods on the pod board (its $pod takes the regex unescaped)
+        ov('^Workload$', [{ id: 'links', value: [{ title: 'Pods of ${__value.raw}', url: '/d/' + cfg.podBoardUid + '?var-cluster=${cluster}&var-namespace=${__data.fields.Namespace}&var-pod=${__value.raw}(-.*)?' }] }]),
         ov('Type', [{ id: 'custom.width', value: 100 }]),
         ov('Pods', [{ id: 'custom.width', value: 60 }]),
         ov('^CPU$', [{ id: 'unit', value: 'short' }, { id: 'decimals', value: 2 }, sparkCell()]),

@@ -8,12 +8,12 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | `instance:python_cpu_usage:rate5m` |
-| `gcCollections` | ops | `sum without(generation)(rate(python_gc_collections_total{job=~"$job"}[$__rate_interval]))` | — |
-| `gcObjects` | short | `rate(python_gc_objects_collected_total{job=~"$job"}[$__rate_interval])` | — |
-| `maxFds` | short | `process_max_fds{job=~"$job"}` | — |
-| `openFds` | short | `process_open_fds{job=~"$job"}` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:python_cpu_usage:rate5m` |
+| `gcCollections` | ops | `sum without(generation)(rate(python_gc_collections_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval]))` | — |
+| `gcObjects` | short | `rate(python_gc_objects_collected_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | — |
+| `maxFds` | short | `process_max_fds{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `openFds` | short | `process_open_fds{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
 
 ## Dashboard
 

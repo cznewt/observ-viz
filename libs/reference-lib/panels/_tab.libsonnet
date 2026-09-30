@@ -44,7 +44,7 @@ local docs = {
         mode: 'markdown',
         content: '# ' + title + '\n\n' + d.desc
                  + (if d.slug != ''
-                    then '\n\n[Grafana docs \u2197](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/' + d.slug + '/)'
+                    then '\n\n[Grafana docs ↗](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/' + d.slug + '/)'
                     else ''),
       });
     local lay = board.spec.layout;
@@ -57,7 +57,7 @@ local docs = {
         'Overview',
         g.layout.grid.new() + g.layout.grid.withItems([g.layout.grid.item('__overview', 0, 0, 24, 6)])
       );
-    board + {
+    board {
       spec+: {
         elements+: g.element.panel('__overview', overview),
         layout: g.layout.rows.new() + g.layout.rows.withRows([overviewRow] + exampleRows),

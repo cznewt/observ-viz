@@ -3,9 +3,9 @@
 // elements. Usage:
 //   g.libs.databases.postgres.new({ selector: 'job="postgres"' }).grafana.dashboard
 //   g.libs.databases.postgres.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -28,11 +28,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['backends', 'commits', 'rollbacks', 'cacheHitRatio', 'databaseSize'],
-      folderPath: [
-        { uid: 'components', title: 'Components' },
-        { uid: 'components-database', title: 'Database' },
-        { uid: 'components-database-sql', title: 'SQL' },
-      ],
+      folderPath: (import 'libs/common-lib/folders.libsonnet').databases,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -88,25 +84,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('postgres', [
         alert.rule.new(
-          'PostgresDown', 'pg_up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'PostgresDown',
+          'pg_up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'PostgreSQL instance {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'PostgresHighRollbackRate',
           'sum without (datname) (rate(pg_stat_database_xact_rollback' + rsBrace + '[5m])) / sum without (datname) (rate(pg_stat_database_xact_commit' + rsBrace + '[5m]) + rate(pg_stat_database_xact_rollback' + rsBrace + '[5m])) > 0.1',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Rollback rate on {{ $labels.instance }} is above 10% of transactions.' }
         ),
         alert.rule.new(
           'PostgresLowCacheHitRatio',
           'sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) / (sum without (datname) (rate(pg_stat_database_blks_hit' + rsBrace + '[5m])) + sum without (datname) (rate(pg_stat_database_blks_read' + rsBrace + '[5m]))) < 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Buffer cache hit ratio on {{ $labels.instance }} is below 90%.' }
         ),
         alert.rule.new(
           'PostgresDeadlocks',
           'sum without (datname) (rate(pg_stat_database_deadlocks' + rsBrace + '[5m])) > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Deadlocks detected on {{ $labels.instance }}.' }
         ),
       ]),

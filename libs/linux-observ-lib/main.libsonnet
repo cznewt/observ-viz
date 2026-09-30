@@ -20,10 +20,12 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'compute-linux-overview',
+      // Platform / Infrastructure / Compute (shared by cfg + fleetCfg)
+      folderPath: (import 'libs/common-lib/folders.libsonnet').compute,
       // back-link to the fleet view, keeping the selected cluster (node filter
       // reset to All so the whole cluster shows).
       links: [
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
         { title: 'Node boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Node-level boards', tags: ['node-level'] },
         {
           title: 'Cluster Detail',
@@ -38,7 +40,12 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
           tags: [],
         },
       ],
-      dashboardTitle: 'Linux Server',
+      dashboardTitle: 'Linux node',
+      // tabbed board: Overview (instances table) + a tab per signal group
+      tabbed: true,
+      overviewSignals: ['cpuBusy', 'memUsedRatio', 'load1', 'fsUsed', 'uptime'],
+      overviewSparklines: ['cpuBusy', 'memUsedRatio'],
+      overviewTopK: 20,
       dashboardTags: ['linux', 'node', 'node-level'],
       description: 'One Linux host from node_exporter: facts and health tiles, then CPU, memory, disk, network, temperature and pressure rows, plus exporter tabs that appear only where their metrics exist (Proxmox, Docker, kubelet, Batocera, ZFS, NFS, battery, services, updates, logs).',
       datasource: '${datasource}',
@@ -973,7 +980,8 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
     //    windows-observ-lib fleet board.
     local fleetCfg = cfg {
       uid: 'linux-computers',
-      dashboardTitle: 'Linux Computers',
+      tabbed: false,  // the fleet board keeps its own row layout
+      dashboardTitle: 'Linux nodes',
       dashboardTags: ['linux', 'fleet', 'overview', 'cluster-level'],
       // fleet-wide: cluster is multi-select (defaults to All) and there is no
       // $instance — a row's Instance cell drills into the per-host board instead.
@@ -985,7 +993,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
       docTabs: false,  // Signals/Runbooks already ship on the per-host board
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
     };
     local fs = fleetCfg.selector;

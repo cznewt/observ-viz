@@ -3,9 +3,9 @@
 // Usage:
 //   g.libs.databases.redis.new({ selector: 'job="redis"' }).grafana.dashboard
 //   g.libs.databases.redis.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -28,11 +28,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['connectedClients', 'commands', 'hitRatio', 'memoryUsed', 'evictions'],
-      folderPath: [
-        { uid: 'components', title: 'Components' },
-        { uid: 'components-database', title: 'Database' },
-        { uid: 'components-database-kv', title: 'Key-value' },
-      ],
+      folderPath: (import 'libs/common-lib/folders.libsonnet').databases,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -92,25 +88,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('redis', [
         alert.rule.new(
-          'RedisDown', 'redis_up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'RedisDown',
+          'redis_up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'Redis instance {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'RedisHighMemory',
           'redis_memory_used_bytes' + rsBrace + ' > 4e9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Redis memory on {{ $labels.instance }} is above 4GB.' }
         ),
         alert.rule.new(
           'RedisTooManyBlockedClients',
           'redis_blocked_clients' + rsBrace + ' > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Redis on {{ $labels.instance }} has blocked clients.' }
         ),
         alert.rule.new(
           'RedisHighEvictionRate',
           'rate(redis_evicted_keys_total' + rsBrace + '[5m]) > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Redis on {{ $labels.instance }} is evicting keys.' }
         ),
       ]),

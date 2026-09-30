@@ -8,14 +8,14 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `activeHandles` | short | `nodejs_active_handles_total{job=~"$job"}` | — |
-| `activeRequests` | short | `nodejs_active_requests_total{job=~"$job"}` | — |
-| `eventloopLag` | s | `nodejs_eventloop_lag_seconds{job=~"$job"}` | — |
-| `eventloopLagP99` | s | `nodejs_eventloop_lag_p99_seconds{job=~"$job"}` | — |
-| `gcDuration` | s | `rate(nodejs_gc_duration_seconds_sum{job=~"$job"}[$__rate_interval])` | — |
-| `heapTotal` | bytes | `nodejs_heap_size_total_bytes{job=~"$job"}` | — |
-| `heapUsed` | bytes | `nodejs_heap_size_used_bytes{job=~"$job"}` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
+| `activeHandles` | short | `nodejs_active_handles_total{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `activeRequests` | short | `nodejs_active_requests_total{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `eventloopLag` | s | `nodejs_eventloop_lag_seconds{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `eventloopLagP99` | s | `nodejs_eventloop_lag_p99_seconds{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `gcDuration` | s | `rate(nodejs_gc_duration_seconds_sum{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | — |
+| `heapTotal` | bytes | `nodejs_heap_size_total_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `heapUsed` | bytes | `nodejs_heap_size_used_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
 
 ## Dashboard
 

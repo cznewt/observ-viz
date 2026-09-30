@@ -42,7 +42,11 @@ function(config) {
     + g.panel.table.withOverrides([{
       matcher: { id: 'byRegexp', options: 'Trend.*' },
       properties: [{ id: 'custom.cellOptions', value: {
-        type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme',
+        type: 'sparkline',
+        hideValue: false,
+        lineWidth: 1.5,
+        fillOpacity: 16,
+        gradientMode: 'scheme',
       } }],
     }]),
 

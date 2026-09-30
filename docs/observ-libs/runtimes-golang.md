@@ -8,17 +8,17 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job"}[$__rate_interval])` | `instance:go_cpu_usage:rate5m` |
-| `gcPauseMax` | s | `go_gc_duration_seconds{quantile="1", job=~"$job"}` | — |
-| `gcRate` | ops | `rate(go_gc_duration_seconds_count{job=~"$job"}[$__rate_interval])` | `instance:go_gc_rate:rate5m` |
-| `goroutines` | short | `go_goroutines{job=~"$job"}` | — |
-| `heapAlloc` | bytes | `go_memstats_heap_alloc_bytes{job=~"$job"}` | — |
-| `heapInuse` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job"}` | — |
-| `heapObjects` | short | `go_memstats_heap_objects{job=~"$job"}` | — |
-| `openFds` | short | `process_open_fds{job=~"$job"}` | — |
-| `rss` | bytes | `process_resident_memory_bytes{job=~"$job"}` | — |
-| `stackInuse` | bytes | `go_memstats_stack_inuse_bytes{job=~"$job"}` | — |
-| `threads` | short | `go_threads{job=~"$job"}` | — |
+| `cpu` | short | `rate(process_cpu_seconds_total{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:go_cpu_usage:rate5m` |
+| `gcPauseMax` | s | `go_gc_duration_seconds{quantile="1", job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `gcRate` | ops | `rate(go_gc_duration_seconds_count{job=~"$job", instance=~"$instance", instance=~"$instance"}[$__rate_interval])` | `instance:go_gc_rate:rate5m` |
+| `goroutines` | short | `go_goroutines{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `heapAlloc` | bytes | `go_memstats_heap_alloc_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `heapInuse` | bytes | `go_memstats_heap_inuse_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `heapObjects` | short | `go_memstats_heap_objects{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `openFds` | short | `process_open_fds{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `rss` | bytes | `process_resident_memory_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `stackInuse` | bytes | `go_memstats_stack_inuse_bytes{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
+| `threads` | short | `go_threads{job=~"$job", instance=~"$instance", instance=~"$instance"}` | — |
 
 ## Dashboard
 

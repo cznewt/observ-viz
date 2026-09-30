@@ -31,10 +31,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['apps', 'appsOutOfSync', 'appsUnhealthy', 'syncs', 'reconcileP99'],
-      folderUid: 'components-cicd',
-      folderTitle: 'CI/CD',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // Platform / Configuration
+      folderPath: (import 'libs/common-lib/folders.libsonnet').configuration,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

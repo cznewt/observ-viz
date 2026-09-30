@@ -11,6 +11,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
   new(config={}):
     local cfg = {
       uid: 'observ-viz-alloy',
+      // Platform / Monitoring / Collectors
+      folderPath: (import 'libs/common-lib/folders.libsonnet').monitoringCollectors,
       dashboardTitle: 'Alloy',
       dashboardTags: ['alloy', 'collector', 'grafana', 'app-level'],
       description: 'Grafana Alloy self-monitoring: pipeline components, evaluation latency, remote-write throughput and backlog, process resources.',

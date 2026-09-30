@@ -2,13 +2,14 @@
 
 ## Reference boards (`libs/reference-lib/`)
 
-Three Grafana folders, structured as a subdir per category:
+Three Grafana folders, structured as a subdir per category (the runtime and
+deployment boards describe the platform, so they file under Platform):
 
 ```
 libs/reference-lib/
 ├─ panels/      -> 'Reference / Panels'       one board per panel type (built from g.panel.*)
-├─ languages/   -> 'Reference / Runtimes'     tabbed board per runtime pack
-└─ deployments/ -> 'Reference / Deployments'  tabbed board per system/kubernetes pack
+├─ languages/   -> 'Platform / Runtimes'      tabbed board per runtime pack
+└─ deployments/ -> 'Platform / Deployments'   tabbed board per system/kubernetes pack
 ```
 
 All non-panel reference boards **come from the pack mixins** — each is a pack's

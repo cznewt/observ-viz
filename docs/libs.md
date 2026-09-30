@@ -25,7 +25,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `system.linux` | Linux Server | 96 | 138 |
+| `system.linux` | Linux Server | 96 | 139 |
 | `system.docker` | Docker containers | 7 | 12 |
 | `system.windows` | Windows Server | 58 | 92 |
 | `system.systemd` | systemd units | 13 | 24 |
@@ -35,7 +35,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `kubernetes.pod` | Kubernetes pod | 29 | 42 |
+| `kubernetes.pod` | Kubernetes pod | 29 | 47 |
 | `kubernetes.cadvisor` | Container resources | 24 | 32 |
 
 ## Databases
@@ -61,7 +61,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `monitoring.alertmanager` | Alertmanager | 34 | 50 |
 | `monitoring.alertHandler` | Alert handler | 18 | 32 |
 | `monitoring.opencost` | OpenCost | 21 | 29 |
-| `monitoring.anomalyExporter` | Anomaly exporter | 11 | 19 |
+| `monitoring.anomalyExporter` | Anomaly exporter | 18 | 26 |
 
 ## Collector
 
@@ -96,7 +96,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `frameworks.django` | Django | 15 | 24 |
+| `frameworks.django` | Django | 15 | 31 |
 | `frameworks.rails` | Rails | 11 | 20 |
 
 ## CI/CD
@@ -104,20 +104,20 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `cicd.argocd` | Argo CD | 26 | 41 |
-| `cicd.backstage` | Backstage catalog | 0 | 3 |
+| `cicd.backstage` | Backstage | 0 | 3 |
 
 ## Services
 
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
-| `services.alloy` | Alloy service | 89 | 297 |
+| `services.alloy` | Alloy | 89 | 297 |
 | `services.k8sMonitoring` | k8s-monitoring (Alloy) service | 89 | 297 |
-| `services.grafana` | Grafana service | 123 | 332 |
+| `services.grafana` | Grafana | 123 | 332 |
 | `services.grafanaTest` | Grafana (test) service | 123 | 332 |
-| `services.mimir` | Mimir service | 85 | 293 |
-| `services.loki` | Loki service | 85 | 293 |
-| `services.tempo` | Tempo service | 88 | 297 |
-| `services.pyroscope` | Pyroscope service | 87 | 295 |
+| `services.mimir` | Mimir | 85 | 293 |
+| `services.loki` | Loki | 85 | 293 |
+| `services.tempo` | Tempo | 88 | 297 |
+| `services.pyroscope` | Pyroscope | 87 | 295 |
 | `services.redisTest` | Redis (test) service | 85 | 294 |
 | `services.demoGoDev` | Demo Go (dev) service | 90 | 297 |
 | `services.demoGoProd` | Demo Go (prod) service | 90 | 297 |
@@ -129,10 +129,10 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `services.sreFront` | SRE sample: front (JVM) service | 87 | 296 |
 | `services.sreReader` | SRE sample: reader (JVM) service | 87 | 296 |
 | `services.backstage` | Backstage service (Postgres) | 85 | 294 |
-| `services.alertmanager` | Alertmanager service | 113 | 326 |
-| `services.alertHandler` | Alert-handler service | 97 | 308 |
-| `services.opencost` | Opencost service | 100 | 305 |
-| `services.anomalyExporter` | Anomaly-exporter service | 90 | 295 |
+| `services.alertmanager` | Alertmanager | 113 | 326 |
+| `services.alertHandler` | Alert-handler | 97 | 308 |
+| `services.opencost` | OpenCost service | 100 | 305 |
+| `services.anomalyExporter` | Anomaly-exporter | 97 | 302 |
 | `services.argocd` | Argo CD service | 105 | 317 |
 
 ## Cross-cutting
@@ -141,7 +141,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 |---|---|---|---|
 | `alerts` | Alerts overview | 4 | 6 |
 | `logs` | Logs | 3 | 3 |
-| `backstage` | Backstage catalog | 0 | 3 |
+| `backstage` | Backstage | 0 | 3 |
 
 ## common-lib
 

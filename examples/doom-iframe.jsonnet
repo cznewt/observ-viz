@@ -22,6 +22,7 @@ local dash =
   + g.dashboard.withElements(g.element.panel('doom', doom))
   + g.dashboard.withLayout(
     g.layout.grid.new()
-    + g.layout.grid.withItems([ g.layout.grid.item('doom', 0, 0, 24, 22) ]));
+    + g.layout.grid.withItems([g.layout.grid.item('doom', 0, 0, 24, 22)])
+  );
 
 dash.toResource()

@@ -32,6 +32,7 @@ function(cfg, signals, annotations, panels)
 
   dashboard.new(cfg.dashboardTitle)
   + dashboard.withUid(cfg.uid)
+  + (if std.objectHas(cfg, 'folderPath') then dashboard.withFolderPath(cfg.folderPath) else {})
   + dashboard.withTags(cfg.dashboardTags)
   + dashboard.withVariables([{ kind: 'DatasourceVariable', spec: { name: 'datasource', pluginId: 'prometheus', label: 'Data source' } }])
   + dashboard.withAnnotations([annotations.critical, annotations.warning, annotations.info])

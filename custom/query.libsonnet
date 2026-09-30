@@ -16,7 +16,7 @@ local shared = {
   withDatasourceFromVariable(name): { spec+: { query+: { datasource: { name: '${' + name + '}' } } } },
 };
 
-shared + {
+shared {
   // generic escape hatch: works for ANY datasource by name.
   base(dsKind, spec): qbase(dsKind, spec),
 

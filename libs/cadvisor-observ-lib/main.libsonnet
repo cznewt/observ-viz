@@ -26,10 +26,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // deploy target: Components / Kubernetes (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-kubernetes',
-      folderTitle: 'Kubernetes',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -111,6 +108,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         title: 'Network',
         width: 12,
         height: 7,
+        // every panel here draws a receive/transmit pair, so name the signals
+        // outright rather than leaving the table to guess from panel keys
+        signalKeys: ['netRx', 'netTx', 'netRxPackets', 'netTxPackets', 'netRxDropped', 'netTxDropped', 'netRxErrors', 'netTxErrors'],
         elements: {
           netThroughput: signals.netRx.asTimeSeries('Network throughput')
                          + panel.withTargetsMixin([signals.netTx.asTarget()]),

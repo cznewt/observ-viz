@@ -14,11 +14,11 @@
 // cfg.series is the whole contract:
 //   { key: 'rate', title: 'Request rate', unit: 'reqps',
 //     expr: 'sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval]))' }
-local alert = import 'libs/common-lib/alert/main.libsonnet';
+local panel = import 'custom/panel.libsonnet';
 local anomalySources = import 'libs/analysis-observ-lib/sources.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 local defaults = {
@@ -72,13 +72,19 @@ local exprs(cfg, s, sel, rate) = {
     local sel = filters.selector(cfg);
     local legend = filters.legendFormat(cfg);
     local sig(name, expr, unit, desc) =
-      local s = signal.new(name, 'prometheus', cfg.datasource, expr, unit).withDescription(desc);
+      local s = signal.new(name, 'prometheus', cfg.datasource, expr, unit)
+                .filteringSelector(sel).withDescription(desc);
       if legend != null then s.withLegendFormat(legend) else s;
+    local tpl = '%(queriesSelector)s';
     std.foldl(function(acc, s) acc {
-      [s.key]: sig(s.title, exprs(cfg, s, sel, '$__rate_interval').value, s.unit, 'The series as measured.'),
-      [s.key + '_baseline']: sig(s.title + ' baseline', exprs(cfg, s, sel, '$__rate_interval').baseline, s.unit,
+      [s.key]: sig(s.title, exprs(cfg, s, tpl, '$__rate_interval').value, s.unit, 'The series as measured.'),
+      [s.key + '_baseline']: sig(s.title + ' baseline',
+                                 exprs(cfg, s, tpl, '$__rate_interval').baseline,
+                                 s.unit,
                                  'Its rolling mean over the last ' + cfg.baseline + '.'),
-      [s.key + '_zscore']: sig(s.title + ' z-score', exprs(cfg, s, sel, '$__rate_interval').zscore, 'short',
+      [s.key + '_zscore']: sig(s.title + ' z-score',
+                               exprs(cfg, s, tpl, '$__rate_interval').zscore,
+                               'short',
                                'Standard deviations from that mean. Past ' + cfg.z + ' is what the alert calls anomalous.'),
     }, cfg.series, {}),
 
@@ -88,14 +94,14 @@ local exprs(cfg, s, sel, rate) = {
     local sel = filters.selector(cfg);
     local sigs = this.signals(config);
     local band(s) =
-      local e = exprs(cfg, s, sel, '$__rate_interval');
+      local e = exprs(cfg, s, '%(queriesSelector)s', '$__rate_interval');
       panel.timeSeries.new(s.title + ' against its baseline')
       + panel.timeSeries.withDescription('The series, its rolling mean over ' + cfg.baseline + ', and the band ' + cfg.z + ' standard deviations either side. Outside the band is what the alert calls anomalous.')
       + panel.timeSeries.withTargets([
         sigs[s.key].asTarget(),
-        signal.new('Baseline', 'prometheus', cfg.datasource, e.baseline, s.unit).withLegendFormat('baseline').asTarget(),
-        signal.new('Upper', 'prometheus', cfg.datasource, e.upper, s.unit).withLegendFormat('upper').asTarget(),
-        signal.new('Lower', 'prometheus', cfg.datasource, e.lower, s.unit).withLegendFormat('lower').asTarget(),
+        signal.new('Baseline', 'prometheus', cfg.datasource, e.baseline, s.unit).filteringSelector(sel).withLegendFormat('baseline').asTarget(),
+        signal.new('Upper', 'prometheus', cfg.datasource, e.upper, s.unit).filteringSelector(sel).withLegendFormat('upper').asTarget(),
+        signal.new('Lower', 'prometheus', cfg.datasource, e.lower, s.unit).filteringSelector(sel).withLegendFormat('lower').asTarget(),
       ])
       + panel.timeSeries.standardOptions.withUnit(s.unit)
       + panel.timeSeries.withFieldConfigDefaults({ custom: { fillOpacity: 0, lineWidth: 2, showPoints: 'never' } })
@@ -147,7 +153,7 @@ local exprs(cfg, s, sel, rate) = {
   new(config={})::
     local cfg = defaults + config;
     local els = this.elements(config);
-    pack.build(cfg + {
+    pack.build(cfg {
       description: 'Every series below is compared with its own past: the rolling mean over ' + cfg.baseline + ' and a band ' + cfg.z + ' standard deviations wide. It owns no metrics - point it at any service.',
       references: [
         { title: 'Prometheus anomaly detection', url: 'https://prometheus.io/docs/prometheus/latest/querying/functions/#stddev_over_time', description: 'the functions this is built on' },

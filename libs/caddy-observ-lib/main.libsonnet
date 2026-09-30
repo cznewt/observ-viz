@@ -29,10 +29,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-webservers',
-      folderTitle: 'Web servers',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').ingress,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

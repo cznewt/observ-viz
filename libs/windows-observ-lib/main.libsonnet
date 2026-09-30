@@ -26,7 +26,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
       // back-link to the fleet view, keeping the selected cluster (node filter
       // reset to All so the whole cluster shows).
       links: [
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
         { title: 'Node boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Node-level boards', tags: ['node-level'] },
         {
           title: 'Cluster Detail',
@@ -41,17 +41,19 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
           tags: [],
         },
       ],
-      dashboardTitle: 'Windows Server',
+      dashboardTitle: 'Windows node',
+      // tabbed board: Overview (instances table) + a tab per signal group
+      tabbed: true,
+      overviewSignals: ['cpuBusy', 'memUsedRatio', 'diskUsedRatio', 'processes', 'uptime'],
+      overviewSparklines: ['cpuBusy', 'memUsedRatio'],
+      overviewTopK: 20,
       dashboardTags: ['windows', 'node-level'],
       // fleet board: every Windows host in the selected cluster(s) at once.
       fleetUid: 'windows-computers',
-      fleetTitle: 'Windows Computers',
-      // both boards land in Infrastructure / Compute, beside Linux Server (the
-      // loader creates the nested folders). Shared by cfg + fleetCfg.
-      folderUid: 'observ-viz-compute',
-      folderTitle: 'Compute',
-      folderParentUid: 'observ-viz-infrastructure',
-      folderParentTitle: 'Infrastructure',
+      fleetTitle: 'Windows nodes',
+      // both boards land in Platform / Infrastructure / Compute, beside Linux
+      // Server (the loader creates the nested folders). Shared by cfg + fleetCfg.
+      folderPath: (import 'libs/common-lib/folders.libsonnet').compute,
       datasource: '${datasource}',
       // cluster -> instance cascading selection (vars built by pack.build), so a
       // per-node drill (e.g. from Cluster Overview) lands on a single host.
@@ -496,6 +498,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
     // 10467's per-host half is intentionally not duplicated — the table drills into
     // the per-host board above, which already covers it.
     local fleetCfg = cfg {
+      tabbed: false,  // the fleet board keeps its own row layout
       uid: cfg.fleetUid,
       dashboardTitle: cfg.fleetTitle,
       dashboardTags: ['windows', 'fleet', 'overview', 'cluster-level'],
@@ -508,7 +511,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
       docTabs: false,  // Signals/Runbooks already ship on the per-host board
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
     };
     local fs = fleetCfg.selector;

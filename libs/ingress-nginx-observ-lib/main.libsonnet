@@ -5,6 +5,11 @@
 //   g.libs.networking.ingressNginx.new({}).grafana.dashboard
 //   g.libs.networking.ingressNginx.ingress(ds, 'namespace=~"x", service=~"y"')
 //     -> { stats: {..}, charts: {..} } element maps for embedding in a service board
+//   g.libs.networking.ingressNginx.controller(ds, 'cluster=~"$cluster"')
+//     -> the same for the controller itself (reloads, nginx process)
+// The deployed board is the combined NGINX board (webservers.nginx, uid
+// observ-viz-nginx), which embeds both maps behind presence-gated tabs; this
+// lib's own new() board (observ-viz-ingress-nginx) stays for standalone use.
 local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
@@ -61,10 +66,51 @@ local ingressElements(signals, prefix='') = {
   },
 };
 
+// controller-level signals (config reloads, connections, nginx process): the
+// series carry controller_pod, not an ingress, so they take their own selector.
+local controllerSignals(datasource, selector) = {
+  local csig(name, expr, unit, legend='{{controller_pod}}', desc='') =
+    signal.new(name, 'prometheus', datasource, expr, unit).filteringSelector(selector).withLegendFormat(legend).withDescription(desc),
+  reloadOk: csig('Config reload ok', 'min(nginx_ingress_controller_config_last_reload_successful{%(queriesSelector)s})', 'short', 'ok', desc='1 while the last nginx configuration reload succeeded on every controller. 0 means a broken Ingress object left the controller serving a stale config.'),
+  reloadAge: csig('Last reload', 'time() - max(nginx_ingress_controller_config_last_reload_successful_timestamp_seconds{%(queriesSelector)s})', 'dtdurations', 'since reload', desc='Time since the last successful configuration reload.'),
+  controllers: csig('Controllers', 'count(nginx_ingress_controller_build_info{%(queriesSelector)s})', 'short', 'pods', desc='Running controller pods.'),
+  connActive: csig('Connections', 'sum by (state) (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s})', 'short', '{{state}}', desc='Current nginx connections by state (active, reading, writing, waiting).'),
+  connRate: csig('Connections accepted / handled', 'sum by (state) (rate(nginx_ingress_controller_nginx_process_connections_total{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{state}}', desc='Connections accepted and handled per second. Accepted above handled means nginx is refusing connections.'),
+  nginxRequests: csig('nginx requests', 'sum(rate(nginx_ingress_controller_nginx_process_requests_total{%(queriesSelector)s}[$__rate_interval]))', 'reqps', 'requests', desc='Requests per second handled by the nginx workers, all Ingress objects included.'),
+  cpu: csig('Controller CPU', 'sum by (controller_pod) (rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval]))', 'short', desc='CPU cores used by the nginx worker processes per controller pod.'),
+  rss: csig('Controller memory', 'sum by (controller_pod) (nginx_ingress_controller_nginx_process_resident_memory_bytes{%(queriesSelector)s})', 'bytes', desc='Resident memory of the nginx worker processes per controller pod.'),
+  workers: csig('nginx workers', 'sum by (controller_pod) (nginx_ingress_controller_nginx_process_num_procs{%(queriesSelector)s})', 'short', desc='nginx worker processes per controller pod.'),
+  certExpiry: csig('Certificate expiry', 'min by (host) (nginx_ingress_controller_ssl_expire_time_seconds{%(queriesSelector)s}) - time()', 'dtdurations', '{{host}}', desc='Time until each TLS certificate served by the controller expires (only for certificates the controller loads itself).'),
+};
+
+// the controller's element maps: reload/controller stats + process charts.
+local controllerElements(ctl, prefix='') = {
+  signals:: ctl,
+  stats: {
+    [prefix + 'i07_reloadOk']: ctl.reloadOk.asStat('Config reload')
+                               + panel.stat.withMappings([{ type: 'value', options: { '0': { text: 'FAILED', color: 'red', index: 0 }, '1': { text: 'ok', color: 'green', index: 1 } } }]),
+    [prefix + 'i08_reloadAge']: ctl.reloadAge.asStat('Since last reload'),
+    [prefix + 'i09_controllers']: ctl.controllers.asStat('Controllers'),
+  },
+  charts: {
+    [prefix + 'c01_connections']: ctl.connActive.asTimeSeries('Connections by state'),
+    [prefix + 'c02_connRate']: ctl.connRate.asTimeSeries('Connections accepted / handled'),
+    [prefix + 'c03_requests']: ctl.nginxRequests.asTimeSeries('nginx requests/s'),
+    [prefix + 'c04_cpu']: ctl.cpu.asTimeSeries('Controller CPU (cores)'),
+    [prefix + 'c05_rss']: ctl.rss.asTimeSeries('Controller memory'),
+    [prefix + 'c06_workers']: ctl.workers.asTimeSeries('nginx workers'),
+    [prefix + 'c07_certs']: ctl.certExpiry.asTable('Certificate expiry'),
+  },
+};
+
 {
   // for embedding: the per-Ingress element maps for a selector.
   ingress(datasource, selector, prefix='')::
     ingressElements(ingressSignals(datasource, selector), prefix),
+  // for embedding: the controller element maps (reload/controller stats +
+  // process charts) for a controller-level selector.
+  controller(datasource, selector, prefix='')::
+    controllerElements(controllerSignals(datasource, selector), prefix),
 
   new(config={}):
     local cfg = {
@@ -86,51 +132,23 @@ local ingressElements(signals, prefix='') = {
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['rate', 'err5xx', 'p99', 'bytesOut', 'hosts'],
-      folderUid: 'components-networking',
-      folderTitle: 'Networking',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').ingress,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
-    local csig(name, expr, unit, legend='{{controller_pod}}', desc='') =
-      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.controllerSelector).withLegendFormat(legend).withDescription(desc);
     local ing = ingressSignals(cfg.datasource, cfg.selector);
-    local ctl = {
-      reloadOk: csig('Config reload ok', 'min(nginx_ingress_controller_config_last_reload_successful{%(queriesSelector)s})', 'short', 'ok', desc='1 while the last nginx configuration reload succeeded on every controller. 0 means a broken Ingress object left the controller serving a stale config.'),
-      reloadAge: csig('Last reload', 'time() - max(nginx_ingress_controller_config_last_reload_successful_timestamp_seconds{%(queriesSelector)s})', 'dtdurations', 'since reload', desc='Time since the last successful configuration reload.'),
-      controllers: csig('Controllers', 'count(nginx_ingress_controller_build_info{%(queriesSelector)s})', 'short', 'pods', desc='Running controller pods.'),
-      connActive: csig('Connections', 'sum by (state) (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s})', 'short', '{{state}}', desc='Current nginx connections by state (active, reading, writing, waiting).'),
-      connRate: csig('Connections accepted / handled', 'sum by (state) (rate(nginx_ingress_controller_nginx_process_connections_total{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{state}}', desc='Connections accepted and handled per second. Accepted above handled means nginx is refusing connections.'),
-      nginxRequests: csig('nginx requests', 'sum(rate(nginx_ingress_controller_nginx_process_requests_total{%(queriesSelector)s}[$__rate_interval]))', 'reqps', 'requests', desc='Requests per second handled by the nginx workers, all Ingress objects included.'),
-      cpu: csig('Controller CPU', 'sum by (controller_pod) (rate(nginx_ingress_controller_nginx_process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval]))', 'short', desc='CPU cores used by the nginx worker processes per controller pod.'),
-      rss: csig('Controller memory', 'sum by (controller_pod) (nginx_ingress_controller_nginx_process_resident_memory_bytes{%(queriesSelector)s})', 'bytes', desc='Resident memory of the nginx worker processes per controller pod.'),
-      workers: csig('nginx workers', 'sum by (controller_pod) (nginx_ingress_controller_nginx_process_num_procs{%(queriesSelector)s})', 'short', desc='nginx worker processes per controller pod.'),
-      certExpiry: csig('Certificate expiry', 'min by (host) (nginx_ingress_controller_ssl_expire_time_seconds{%(queriesSelector)s}) - time()', 'dtdurations', '{{host}}', desc='Time until each TLS certificate served by the controller expires (only for certificates the controller loads itself).'),
-    };
+    local ctl = controllerSignals(cfg.datasource, cfg.controllerSelector);
+    local ctlEls = controllerElements(ctl);
     local els = ingressElements(ing);
 
     pack.build(cfg, ing + { ['controller_' + k]: ctl[k] for k in std.objectFields(ctl) }, [
-      { title: 'Overview', width: 4, height: 4, elements: els.stats {
-        i07_reloadOk: ctl.reloadOk.asStat('Config reload')
-                      + panel.stat.withMappings([{ type: 'value', options: { '0': { text: 'FAILED', color: 'red', index: 0 }, '1': { text: 'ok', color: 'green', index: 1 } } }]),
-        i08_reloadAge: ctl.reloadAge.asStat('Since last reload'),
-        i09_controllers: ctl.controllers.asStat('Controllers'),
-      } },
+      { title: 'Overview', width: 4, height: 4, elements: els.stats + ctlEls.stats },
       { title: 'Traffic', width: 12, height: 7, elements: els.charts {
         i10_byIngress: ing.byIngress.asTimeSeries('Requests/s by ingress'),
         i19_byMethod: ing.byMethod.asTimeSeries('Requests/s by method'),
       } },
-      { title: 'Controller', width: 12, height: 7, elements: {
-        c01_connections: ctl.connActive.asTimeSeries('Connections by state'),
-        c02_connRate: ctl.connRate.asTimeSeries('Connections accepted / handled'),
-        c03_requests: ctl.nginxRequests.asTimeSeries('nginx requests/s'),
-        c04_cpu: ctl.cpu.asTimeSeries('Controller CPU (cores)'),
-        c05_rss: ctl.rss.asTimeSeries('Controller memory'),
-        c06_workers: ctl.workers.asTimeSeries('nginx workers'),
-        c07_certs: ctl.certExpiry.asTable('Certificate expiry'),
-      } },
+      { title: 'Controller', width: 12, height: 7, elements: ctlEls.charts },
     ], [
       alert.rule.group('ingress-nginx', [
         alert.rule.new(

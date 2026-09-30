@@ -7,8 +7,8 @@ local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local filters = import 'libs/common-lib/filters.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local python = import 'libs/python-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local python = import 'libs/python-observ-lib/main.libsonnet';
 
 {
   elements(datasource, selector, prefix='')::
@@ -41,10 +41,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-frameworks',
-      folderTitle: 'Frameworks',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      // Workloads / Content Management (the reference copy in
+      // libs/reference-lib/languages re-files itself under Reference / Runtimes)
+      folderPath: (import 'libs/common-lib/folders.libsonnet').cms,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';

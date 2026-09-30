@@ -8,12 +8,12 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `dbSize` | bytes | `etcd_mvcc_db_total_size_in_bytes{job=~"$job"}` | — |
-| `hasLeader` | short | `etcd_server_has_leader{job=~"$job"}` | — |
-| `leaderChanges` | short | `rate(etcd_server_leader_changes_seen_total{job=~"$job"}[$__rate_interval])` | — |
-| `proposalsCommitted` | ops | `rate(etcd_server_proposals_committed_total{job=~"$job"}[$__rate_interval])` | — |
-| `proposalsFailed` | ops | `rate(etcd_server_proposals_failed_total{job=~"$job"}[$__rate_interval])` | `instance:etcd_proposals_failed:rate5m` |
-| `walFsyncP99` | s | `histogram_quantile(0.99, sum by (le)(rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
+| `dbSize` | bytes | `etcd_mvcc_db_total_size_in_bytes{job=~"$job", instance=~"$instance"}` | — |
+| `hasLeader` | short | `etcd_server_has_leader{job=~"$job", instance=~"$instance"}` | — |
+| `leaderChanges` | short | `rate(etcd_server_leader_changes_seen_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `proposalsCommitted` | ops | `rate(etcd_server_proposals_committed_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | — |
+| `proposalsFailed` | ops | `rate(etcd_server_proposals_failed_total{job=~"$job", instance=~"$instance"}[$__rate_interval])` | `instance:etcd_proposals_failed:rate5m` |
+| `walFsyncP99` | s | `histogram_quantile(0.99, sum by (le)(rate(etcd_disk_wal_fsync_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
 
 ## Dashboard
 

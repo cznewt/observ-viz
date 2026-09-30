@@ -32,13 +32,13 @@ local withDsRef = {
     withQuery(value): { spec+: { query: value } },
     withOptions(value): { spec+: { options: value } },
   },
-  interval: common + {
+  interval: common {
     withQuery(value): { spec+: { query: value } },
     withOptions(value): { spec+: { options: value } },
     withAuto(value=true): { spec+: { auto: value } },
   },
-  text: common + { withQuery(value): { spec+: { query: value } } },
-  constant: common + { withQuery(value): { spec+: { query: value } } },
+  text: common { withQuery(value): { spec+: { query: value } } },
+  constant: common { withQuery(value): { spec+: { query: value } } },
   groupBy: common + withDsRef,
   adhoc: common + withDsRef,
 }

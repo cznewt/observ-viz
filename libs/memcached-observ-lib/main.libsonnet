@@ -3,9 +3,9 @@
 // Usage:
 //   g.libs.databases.memcached.new({ selector: 'job="memcached"' }).grafana.dashboard
 //   g.libs.databases.memcached.new({...}).grafana.elements   // reuse in a board
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 
 {
   new(config={}):
@@ -28,11 +28,7 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       tabbed: true,
       // columns of the Overview tab's instances table
       overviewSignals: ['connections', 'commands', 'hitRatio', 'memoryUsed', 'evictions'],
-      folderPath: [
-        { uid: 'components', title: 'Components' },
-        { uid: 'components-database', title: 'Database' },
-        { uid: 'components-database-kv', title: 'Key-value' },
-      ],
+      folderPath: (import 'libs/common-lib/folders.libsonnet').databases,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
@@ -100,25 +96,35 @@ local alert = import 'libs/common-lib/alert/main.libsonnet';
       // alerting rule group
       alert.rule.group('memcached', [
         alert.rule.new(
-          'MemcachedDown', 'memcached_up' + rsBrace + ' == 0', '5m', 'critical', {},
+          'MemcachedDown',
+          'memcached_up' + rsBrace + ' == 0',
+          '5m',
+          'critical',
+          {},
           { summary: 'Memcached {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
           'MemcachedLowHitRatio',
           'sum without (slab) (rate(memcached_slab_lru_hits_total{' + cfg.ruleSelector + '}[5m])) / (sum without (slab) (rate(memcached_slab_lru_hits_total{' + cfg.ruleSelector + '}[5m])) + sum without (slab) (rate(memcached_slab_lru_misses_total{' + cfg.ruleSelector + '}[5m]))) < 0.5',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Memcached LRU hit ratio on {{ $labels.instance }} is below 50%.' }
         ),
         alert.rule.new(
           'MemcachedHighMemory',
           'memcached_current_bytes' + rsBrace + ' / memcached_limit_bytes' + rsBrace + ' > 0.9',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Memcached memory usage on {{ $labels.instance }} is above 90%.' }
         ),
         alert.rule.new(
           'MemcachedHighEvictions',
           'sum without (slab) (rate(memcached_items_evicted_total{' + cfg.ruleSelector + '}[5m])) > 0',
-          '15m', 'warning', {},
+          '15m',
+          'warning',
+          {},
           { summary: 'Memcached is evicting items on {{ $labels.instance }}.' }
         ),
       ]),

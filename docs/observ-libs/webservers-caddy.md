@@ -8,17 +8,17 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `byCode` | reqps | `sum by (code) (rate(caddy_http_requests_total{job=~"$job"}[$__rate_interval]))` | — |
-| `byHandler` | reqps | `topk(10, sum by (handler) (rate(caddy_http_requests_total{job=~"$job"}[$__rate_interval])))` | — |
-| `errorRate` | percentunit | `sum(rate(caddy_http_requests_total{job=~"$job", code=~"5.."}[$__rate_interval])) / clamp_min(sum(rate(caddy_http_requests_total{job=~"$job"}[$__rate_interval])), 0.001)` | — |
-| `handlerErrors` | ops | `sum by (handler) (rate(caddy_http_request_errors_total{job=~"$job"}[$__rate_interval]))` | — |
-| `handlerTable` | reqps | `topk(20, sum by (handler, code) (rate(caddy_http_requests_total{job=~"$job"}[$__rate_interval])))` | — |
-| `inFlight` | short | `sum(caddy_http_requests_in_flight{job=~"$job"})` | — |
-| `p95` | s | `histogram_quantile(0.95, sum by (le) (rate(caddy_http_request_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `p99` | s | `histogram_quantile(0.99, sum by (le) (rate(caddy_http_request_duration_seconds_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `requestSize` | Bps | `sum(rate(caddy_http_request_size_bytes_sum{job=~"$job"}[$__rate_interval]))` | — |
-| `requests` | reqps | `sum(rate(caddy_http_requests_total{job=~"$job"}[$__rate_interval]))` | — |
-| `responseSize` | Bps | `sum(rate(caddy_http_response_size_bytes_sum{job=~"$job"}[$__rate_interval]))` | — |
+| `byCode` | reqps | `sum by (code) (rate(caddy_http_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `byHandler` | reqps | `topk(10, sum by (handler) (rate(caddy_http_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `errorRate` | percentunit | `sum(rate(caddy_http_requests_total{job=~"$job", instance=~"$instance", code=~"5.."}[$__rate_interval])) / clamp_min(sum(rate(caddy_http_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval])), 0.001)` | — |
+| `handlerErrors` | ops | `sum by (handler) (rate(caddy_http_request_errors_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `handlerTable` | reqps | `topk(20, sum by (handler, code) (rate(caddy_http_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `inFlight` | short | `sum(caddy_http_requests_in_flight{job=~"$job", instance=~"$instance"})` | — |
+| `p95` | s | `histogram_quantile(0.95, sum by (le) (rate(caddy_http_request_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `p99` | s | `histogram_quantile(0.99, sum by (le) (rate(caddy_http_request_duration_seconds_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `requestSize` | Bps | `sum(rate(caddy_http_request_size_bytes_sum{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `requests` | reqps | `sum(rate(caddy_http_requests_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `responseSize` | Bps | `sum(rate(caddy_http_response_size_bytes_sum{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
 
 ## Dashboard
 

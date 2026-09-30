@@ -4,21 +4,23 @@
 // scrape with metrics_path=/metrics/prometheus.
 // Usage:
 //   g.libs.networking.wireguard.new({ selector: 'job="wg-easy"' }).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'network-wireguard--wg-easy',
+      // Platform / Infrastructure / Network
+      folderPath: (import 'libs/common-lib/folders.libsonnet').network,
       dashboardTitle: 'Wireguard Controller',
       dashboardTags: ['wireguard', 'wg-easy', 'vpn', 'cluster-level'],
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
 
       datasource: '${datasource}',
@@ -55,8 +57,8 @@ local query = import 'custom/query.libsonnet';
     local peersTable =
       panel.table.new('Peer overview')
       + panel.table.withTargets([
-        tq('wireguard_received_bytes{' + cfg.selector + '}'),         // A: In
-        tq('wireguard_sent_bytes{' + cfg.selector + '}'),             // B: Out
+        tq('wireguard_received_bytes{' + cfg.selector + '}'),  // A: In
+        tq('wireguard_sent_bytes{' + cfg.selector + '}'),  // B: Out
         tq('wireguard_latest_handshake_seconds{' + cfg.selector + '}'),  // C: Handshake age
         // D: Active = handshaked within the last 3m (0/1 per peer; 0=never/stale)
         tq('sum by (name) ((wireguard_latest_handshake_seconds{' + cfg.selector + '} > bool 0) * (wireguard_latest_handshake_seconds{' + cfg.selector + '} < bool 180))'),

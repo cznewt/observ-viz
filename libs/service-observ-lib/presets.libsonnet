@@ -12,6 +12,7 @@ local packs = {
   loki: import 'libs/loki-observ-lib/main.libsonnet',
   tempo: import 'libs/tempo-observ-lib/main.libsonnet',
   pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
+  prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
   redis: import 'libs/redis-observ-lib/main.libsonnet',
   postgres: import 'libs/postgres-observ-lib/main.libsonnet',
   golang: import 'libs/golang-observ-lib/main.libsonnet',
@@ -29,44 +30,89 @@ local packs = {
 // workload = pod-name regex for the Kubernetes workload panels and the rule
 // scopes, service = ingress-nginx backend Service regex.
 local catalog = [
-  { key: 'alloy', app: 'alloy', whitebox: packs.alloy, tags: ['collector'], workload: 'alloy.*', service: 'alloy.*', windows: '(?i)alloy', unit: 'alloy.service', folder: 'monitoring' },
-  { key: 'k8sMonitoring', app: 'k8s-monitoring', title: 'k8s-monitoring (Alloy) service', whitebox: packs.alloy, tags: ['collector', 'kubernetes'], workload: 'k8s-monitoring-alloy.*', service: 'k8s-monitoring-alloy.*', folder: 'monitoring' },
-  { key: 'grafana', app: 'grafana', whitebox: packs.grafana, tags: ['monitoring'], workload: 'grafana.*', service: 'grafana.*', unit: 'grafana(-server)?.service', process: 'grafana(-server)?', windows: '(?i)grafana(-server)?', folder: 'monitoring' },
-  { key: 'grafanaTest', app: 'grafana-test', title: 'Grafana (test) service', whitebox: packs.grafana, tags: ['monitoring', 'lab'], workload: 'grafana.*', service: 'grafana.*', folder: 'monitoring' },
-  { key: 'mimir', app: 'mimir', whitebox: packs.mimir, tags: ['lgtm'], workload: 'mimir.*', service: 'mimir.*', folder: 'monitoring' },
-  { key: 'loki', app: 'loki', whitebox: packs.loki, tags: ['lgtm'], workload: 'loki.*', service: 'loki.*', folder: 'monitoring' },
-  { key: 'tempo', app: 'tempo', whitebox: packs.tempo, tags: ['lgtm'], workload: 'tempo.*', service: 'tempo.*', folder: 'monitoring' },
-  { key: 'pyroscope', app: 'pyroscope', whitebox: packs.pyroscope, tags: ['lgtm'], workload: 'pyroscope.*', service: 'pyroscope.*', folder: 'monitoring' },
+  { key: 'alloy', app: 'alloy', whitebox: packs.alloy, tags: ['collector'], workload: 'alloy.*', service: 'alloy.*', windows: '(?i)alloy', unit: 'alloy.service', folder: 'collectors' },
+  { key: 'k8sMonitoring', app: 'k8s-monitoring', title: 'k8s-monitoring (Alloy) service', whitebox: packs.alloy, tags: ['collector', 'kubernetes'], workload: 'k8s-monitoring-alloy.*', service: 'k8s-monitoring-alloy.*', folder: 'collectors' },
+  { key: 'grafana', app: 'grafana', whitebox: packs.grafana, tags: ['monitoring'], workload: 'grafana.*', service: 'grafana.*', unit: 'grafana(-server)?.service', process: 'grafana(-server)?', windows: '(?i)grafana(-server)?', folder: 'alerting' },
+  { key: 'grafanaTest', app: 'grafana-test', title: 'Grafana (test) service', whitebox: packs.grafana, tags: ['monitoring', 'lab'], workload: 'grafana.*', service: 'grafana.*', folder: 'alerting' },
+  { key: 'mimir', app: 'mimir', whitebox: packs.mimir, tags: ['lgtm'], workload: 'mimir.*', service: 'mimir.*', folder: 'storage' },
+  { key: 'loki', app: 'loki', whitebox: packs.loki, tags: ['lgtm'], workload: 'loki.*', service: 'loki.*', folder: 'storage' },
+  { key: 'tempo', app: 'tempo', whitebox: packs.tempo, tags: ['lgtm'], workload: 'tempo.*', service: 'tempo.*', folder: 'storage' },
+  { key: 'pyroscope', app: 'pyroscope', whitebox: packs.pyroscope, tags: ['lgtm'], workload: 'pyroscope.*', service: 'pyroscope.*', folder: 'storage' },
+  { key: 'prometheus', app: 'prometheus', whitebox: packs.prometheus, tags: ['lgtm'], workload: 'prometheus-server.*', service: 'prometheus-server.*', unit: 'prometheus.service', folder: 'storage' },
   { key: 'redisTest', app: 'redis-test', title: 'Redis (test) service', whitebox: packs.redis, tags: ['database', 'lab'], workload: 'redis-test.*', service: 'redis-test.*' },
-  { key: 'demoGoDev', app: 'demo-go-dev', title: 'Demo Go (dev) service', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*' },
-  { key: 'demoGoProd', app: 'demo-go-prod', title: 'Demo Go (prod) service', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*' },
-  { key: 'demoGoWorkshop', app: 'demo-go-workshop', title: 'Demo Go (workshop) service', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*' },
-  { key: 'demoPythonDev', app: 'demo-python-dev', title: 'Demo Python (dev) service', whitebox: packs.python, tags: ['demo', 'python'], workload: 'demo-.*python.*', service: 'demo-.*python.*' },
-  { key: 'demoPythonProd', app: 'demo-python-prod', title: 'Demo Python (prod) service', whitebox: packs.python, tags: ['demo', 'python'], workload: 'demo-.*python.*', service: 'demo-.*python.*' },
-  { key: 'demoPythonWorkshop', app: 'demo-python-workshop', title: 'Demo Python (workshop) service', whitebox: packs.python, tags: ['demo', 'python'], workload: 'demo-.*python.*', service: 'demo-.*python.*' },
-  { key: 'sreBack', app: 'sre-back', title: 'SRE sample: back (JVM) service', whitebox: packs.jvm, tags: ['sample', 'jvm'], workload: 'sre-back.*', service: 'sre-back.*' },
-  { key: 'sreFront', app: 'sre-front', title: 'SRE sample: front (JVM) service', whitebox: packs.jvm, tags: ['sample', 'jvm'], workload: 'sre-front.*', service: 'sre-front.*' },
-  { key: 'sreReader', app: 'sre-reader', title: 'SRE sample: reader (JVM) service', whitebox: packs.jvm, tags: ['sample', 'jvm'], workload: 'sre-reader.*', service: 'sre-reader.*' },
+  // the course demos: one board per runtime. The environments are namespaces
+  // (monitor-lab-model manifests/monitor-lab/demo-{apps,envs}.yaml): the
+  // workshop set in global-monitor-demo (Mimir tenant anonymous), dev in
+  // demo-dev (tenant dev), prod in demo-prod (tenant prod) - an `env` variable
+  // over them scopes the namespace menu. Pick the tenant's datasource too.
+  { key: 'demoGo', app: 'demo-go', title: 'Demo Go', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*', folder: 'demos', variant: 'env' },
+  { key: 'demoPython', app: 'demo-python', title: 'Demo Python', whitebox: packs.python, tags: ['demo', 'python'], workload: 'demo-.*python.*', service: 'demo-.*python.*', folder: 'demos', variant: 'env' },
+  // cznewt/sample-java-app: three JVM services (sre-back / sre-front /
+  // sre-reader) in one namespace; a `service` variable picks among them.
+  { key: 'demoJvm', app: 'demo-jvm', title: 'Demo JVM', whitebox: packs.jvm, tags: ['demo', 'sample', 'jvm'], workload: 'sre-(back|front|reader).*', service: 'sre-(back|front|reader).*', folder: 'demos', variant: 'service', namespace: 'sample-java-app|sre.*' },
   { key: 'backstage', app: 'backstage', title: 'Backstage service (Postgres)', whitebox: packs.postgres, tags: ['cicd'], workload: 'backstage.*', service: 'backstage.*' },
-  { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*', folder: 'monitoring' },
-  { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*', folder: 'monitoring' },
-  { key: 'opencost', app: 'opencost', title: 'OpenCost service', whitebox: packs.opencost, tags: ['cost', 'kubernetes'], workload: '.*opencost.*', service: '.*opencost.*' },
+  { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*', folder: 'alerting' },
+  { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*', folder: 'alerting' },
+  { key: 'opencost', app: 'opencost', title: 'OpenCost service', whitebox: packs.opencost, tags: ['cost', 'kubernetes'], workload: '.*opencost.*', service: '.*opencost.*', folder: 'collectors' },
   { key: 'argocd', app: 'argo-cd', title: 'Argo CD service', whitebox: packs.argocd, tags: ['cicd', 'gitops'], workload: 'argo-cd-argocd.*', service: 'argo-cd.*' },
-  { key: 'anomalyExporter', app: 'anomaly-exporter', whitebox: packs.anomalyExporter, tags: ['monitoring'], workload: 'anomaly-exporter.*', service: 'anomaly-exporter.*', folder: 'monitoring' },
+  { key: 'anomalyExporter', app: 'anomaly-exporter', whitebox: packs.anomalyExporter, tags: ['monitoring'], workload: 'anomaly-exporter.*', service: 'anomaly-exporter.*', folder: 'collectors' },
 ];
 
 local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
-// Where a service board lands. Services default to Components / Services; a
-// monitoring-stack service sits with its component boards in Components /
-// Monitoring instead (catalog entry: folder: 'monitoring').
+// Where a service board lands. Services default to Components / Services (the
+// composer's own folderUid); a monitoring-stack service sits under Platform /
+// Monitoring instead (catalog entry folder:): 'storage' = the telemetry
+// stores, 'collectors' = what collects/exports telemetry, 'alerting' =
+// Alertmanager / alert handler / Grafana. See libs/common-lib/folders.libsonnet.
+local tree = import 'libs/common-lib/folders.libsonnet';
 local folders = {
-  services: { uid: 'components-services', title: 'Services' },
-  monitoring: { uid: 'components-monitoring', title: 'Monitoring' },
+  services: {},
+  monitoring: { folderPath: tree.monitoring },
+  storage: { folderPath: tree.monitoringStorage },
+  collectors: { folderPath: tree.monitoringCollectors },
+  alerting: { folderPath: tree.monitoringAlerting },
+  demos: { folderPath: tree.demos },
 };
-local folderOf(c) =
-  local f = folders[if std.objectHas(c, 'folder') then c.folder else 'services'];
-  { folderUid: f.uid, folderTitle: f.title };
-local entry(c) = preset(folderOf(c) {
+local folderOf(c) = folders[if std.objectHas(c, 'folder') then c.folder else 'services'];
+// A demo board folds what used to be one board per environment (or per
+// service) into a variable: `env` maps an environment to its namespace,
+// `service` maps a service to its pod-name prefix. The composer's namespace /
+// pod menus are scoped by it (scope), so every panel follows. Values are plain
+// names, not regexes: Grafana regex-escapes multi-value interpolations.
+local customVar(name, label, description, pairs) = {
+  kind: 'CustomVariable',
+  spec: {
+    name: name,
+    label: label,
+    description: description,
+    query: std.join(', ', [p[0] + ' : ' + p[1] for p in pairs]),
+    current: { text: 'All', value: '$__all' },
+    options: [{ text: p[0], value: p[1], selected: false } for p in pairs],
+    multi: true,
+    includeAll: true,
+    allowCustomValue: false,
+    hide: 'dontHide',
+    skipUrlSync: false,
+  },
+};
+local variants = {
+  env: {
+    extraVariables: [customVar('env', 'Environment', 'Demo environment: each one is a namespace (and a Mimir tenant - pick the matching datasource).',
+                               [['workshop', 'global-monitor-demo'], ['dev', 'demo-dev'], ['prod', 'demo-prod']])],
+    scope(c): { cluster: '', namespace: '$env', pod: c.workload },
+  },
+  service: {
+    extraVariables: [customVar('service', 'Service', 'Sample service (pod-name prefix).',
+                               [['back', 'sre-back'], ['front', 'sre-front'], ['reader', 'sre-reader']])],
+    scope(c): { cluster: '', namespace: c.namespace, pod: '${service}.*' },
+  },
+};
+local variantOf(c) =
+  if std.objectHas(c, 'variant') then
+    local v = variants[c.variant];
+    { extraVariables: v.extraVariables, scope: v.scope(c) }
+  else {};
+local entry(c) = preset(folderOf(c) + variantOf(c) {
   app: c.app,
   whitebox: c.whitebox,
   // named for the app alone. A service board embeds the app's component pack

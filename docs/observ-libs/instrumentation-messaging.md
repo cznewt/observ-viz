@@ -8,20 +8,20 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Signal | Unit | Query | Recorded as |
 |--------|------|-------|-------------|
-| `activeConsumers` | short | `sum(celery_active_consumer_count{job=~"$job"})` | — |
-| `activeProcesses` | short | `sum(celery_active_process_count{job=~"$job"})` | — |
-| `activeWorkers` | short | `sum(celery_active_worker_count{job=~"$job"})` | — |
-| `lag` | short | `sum by (consumergroup, topic) (kafka_consumergroup_lag{job=~"$job"})` | — |
-| `lagSum` | short | `sum(kafka_consumergroup_lag{job=~"$job"})` | — |
-| `members` | short | `sum by (consumergroup) (kafka_consumergroup_members{job=~"$job"})` | — |
-| `offsetRate` | ops | `sum by (consumergroup, topic) (rate(kafka_consumergroup_current_offset{job=~"$job"}[$__rate_interval]))` | — |
-| `queueLength` | short | `celery_queue_length{job=~"$job"}` | — |
-| `queueWait` | s | `histogram_quantile(0.95, sum by (le, queue_name) (rate(celery_task_queue_wait_time_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `taskRuntime` | s | `histogram_quantile(0.95, sum by (le, name) (rate(celery_task_runtime_bucket{job=~"$job"}[$__rate_interval])))` | — |
-| `tasksFailed` | ops | `sum by (name) (rate(celery_task_failed_total{job=~"$job"}[$__rate_interval]))` | — |
-| `tasksRetried` | ops | `sum(rate(celery_task_retried_total{job=~"$job"}[$__rate_interval]))` | — |
-| `tasksSucceeded` | ops | `sum(rate(celery_task_succeeded_total{job=~"$job"}[$__rate_interval]))` | — |
-| `workers` | short | `sum(celery_worker_up{job=~"$job"})` | — |
+| `activeConsumers` | short | `sum(celery_active_consumer_count{job=~"$job", instance=~"$instance"})` | — |
+| `activeProcesses` | short | `sum(celery_active_process_count{job=~"$job", instance=~"$instance"})` | — |
+| `activeWorkers` | short | `sum(celery_active_worker_count{job=~"$job", instance=~"$instance"})` | — |
+| `lag` | short | `sum by (consumergroup, topic) (kafka_consumergroup_lag{job=~"$job", instance=~"$instance"})` | — |
+| `lagSum` | short | `sum(kafka_consumergroup_lag{job=~"$job", instance=~"$instance"})` | — |
+| `members` | short | `sum by (consumergroup) (kafka_consumergroup_members{job=~"$job", instance=~"$instance"})` | — |
+| `offsetRate` | ops | `sum by (consumergroup, topic) (rate(kafka_consumergroup_current_offset{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `queueLength` | short | `celery_queue_length{job=~"$job", instance=~"$instance"}` | — |
+| `queueWait` | s | `histogram_quantile(0.95, sum by (le, queue_name) (rate(celery_task_queue_wait_time_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `taskRuntime` | s | `histogram_quantile(0.95, sum by (le, name) (rate(celery_task_runtime_bucket{job=~"$job", instance=~"$instance"}[$__rate_interval])))` | — |
+| `tasksFailed` | ops | `sum by (name) (rate(celery_task_failed_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `tasksRetried` | ops | `sum(rate(celery_task_retried_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `tasksSucceeded` | ops | `sum(rate(celery_task_succeeded_total{job=~"$job", instance=~"$instance"}[$__rate_interval]))` | — |
+| `workers` | short | `sum(celery_worker_up{job=~"$job", instance=~"$instance"})` | — |
 
 ## Dashboard
 

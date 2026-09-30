@@ -30,7 +30,8 @@ local serviceSignals(datasource, selector, name) = {
     + ' or (windows_service_state{' + n + 'state=~"start pending|continue pending", %(queriesSelector)s} == 1) * 2'
     + ' or (windows_service_state{' + n + 'state=~"paused|pause pending|stop pending", %(queriesSelector)s} == 1) * 3'
     + ' or (windows_service_state{' + n + 'state="stopped", %(queriesSelector)s} == 1) * 4)',
-    'short', '{{instance}} {{name}}',
+    'short',
+    '{{instance}} {{name}}',
     'State of each service on each host: running, pending, paused or stopped.'
   ),
   running: sig('Running services', 'count(windows_service_state{' + n + 'state="running", %(queriesSelector)s} == 1) or vector(0)', 'short', 'running', 'Services currently running.'),
@@ -40,14 +41,16 @@ local serviceSignals(datasource, selector, name) = {
     'Automatic but stopped',
     'count((windows_service_state{' + n + 'state="stopped", %(queriesSelector)s} == 1)'
     + ' and on (instance, name) (windows_service_start_mode{' + n + 'start_mode="auto", %(queriesSelector)s} == 1)) or vector(0)',
-    'short', 'auto but stopped',
+    'short',
+    'auto but stopped',
     'Services Windows is supposed to start at boot that are not running. This is the number to watch.'
   ),
   autoStoppedTable: sig(
     'Automatic but stopped',
     '(windows_service_state{' + n + 'state="stopped", %(queriesSelector)s} == 1)'
     + ' and on (instance, name) (windows_service_start_mode{' + n + 'start_mode="auto", %(queriesSelector)s} == 1)',
-    'short', '{{instance}} {{name}}',
+    'short',
+    '{{instance}} {{name}}',
     'Which ones, by host.'
   ),
   hosts: sig('Hosts', 'count(count by (instance) (windows_service_state{' + n + '%(queriesSelector)s}))', 'short', 'hosts', 'Hosts exporting a matching service at all.'),

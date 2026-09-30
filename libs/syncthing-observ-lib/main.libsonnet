@@ -2,21 +2,23 @@
 // Built for Syncthing's built-in Prometheus endpoint (/metrics, syncthing_*).
 // Usage:
 //   g.libs.applications.syncthing.new({ selector: 'job="syncthing"' }).grafana.dashboard
-local pack = import 'libs/common-lib/pack.libsonnet';
-local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
+local pack = import 'libs/common-lib/pack.libsonnet';
+local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
   new(config={}):
     local cfg = {
       uid: 'observ-viz-syncthing',
       dashboardTitle: 'Syncthing',
+      // Platform / Infrastructure / Storage
+      folderPath: (import 'libs/common-lib/folders.libsonnet').storage,
       dashboardTags: ['syncthing', 'sync', 'app-level'],
       links: [
         { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
-        { title: 'Cluster boards', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
+        { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
       datasource: '${datasource}',
@@ -63,8 +65,8 @@ local query = import 'custom/query.libsonnet';
       panel.table.new('Folders')
       + panel.table.withTargets([
         tq('label_join(syncthing_config_folder_info{' + cfg.selector + '}, ' + jk + ')'),  // A: identity
-        tq(sum('bytes')),      // B
-        tq(sum('files')),      // C
+        tq(sum('bytes')),  // B
+        tq(sum('files')),  // C
         tq(sum('directories')),  // D
         tq(sum('bytes', 'global')),  // E
         tq('sum by (key) (label_join(syncthing_model_folder_state{' + cfg.selector + '}, ' + jk + '))'),  // F: state
@@ -72,21 +74,51 @@ local query = import 'custom/query.libsonnet';
       + panel.table.withTransformations([
         { id: 'labelsToFields' },
         { id: 'filterFieldsByName', options: { include: { names: [
-          'key', 'cluster', 'instance', 'folder', 'label', 'path', 'type', 'paused',
-          'Value #B', 'Value #C', 'Value #D', 'Value #E', 'Value #F',
+          'key',
+          'cluster',
+          'instance',
+          'folder',
+          'label',
+          'path',
+          'type',
+          'paused',
+          'Value #B',
+          'Value #C',
+          'Value #D',
+          'Value #E',
+          'Value #F',
         ] } } },
         { id: 'seriesToColumns', options: { byField: 'key' } },
         { id: 'organize', options: {
           excludeByName: { key: true, 'Value #A': true, folder: true },
           indexByName: {
-            cluster: 0, instance: 1, label: 2, path: 3, type: 4, 'Value #F': 5, 'Value #C': 6,
-            'Value #D': 7, 'Value #B': 8, 'Value #E': 9, paused: 10,
-            key: 11, folder: 12, 'Value #A': 13,
+            cluster: 0,
+            instance: 1,
+            label: 2,
+            path: 3,
+            type: 4,
+            'Value #F': 5,
+            'Value #C': 6,
+            'Value #D': 7,
+            'Value #B': 8,
+            'Value #E': 9,
+            paused: 10,
+            key: 11,
+            folder: 12,
+            'Value #A': 13,
           },
           renameByName: {
-            cluster: 'Cluster', instance: 'Host', label: 'Folder', path: 'Path', type: 'Mode',
-            'Value #F': 'State', 'Value #C': 'Files', 'Value #D': 'Dirs',
-            'Value #B': 'Local size', 'Value #E': 'Global size', paused: 'Paused',
+            cluster: 'Cluster',
+            instance: 'Host',
+            label: 'Folder',
+            path: 'Path',
+            type: 'Mode',
+            'Value #F': 'State',
+            'Value #C': 'Files',
+            'Value #D': 'Dirs',
+            'Value #B': 'Local size',
+            'Value #E': 'Global size',
+            paused: 'Paused',
           },
         } },
         { id: 'sortBy', options: { sort: [{ field: 'Host', desc: false }] } },

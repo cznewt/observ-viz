@@ -6,9 +6,9 @@
 // here, and every other runtime pack embeds these elements.
 //   g.libs.runtimes.process.new({ selector: 'job="api"' }).grafana.dashboard
 //   g.libs.runtimes.process.new({...}).grafana.elements   // reuse in a board
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 {
@@ -105,14 +105,29 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       } + charts,
     ], [
       alert.rule.group('process', [
-        alert.rule.new('ProcessDown', alert.rule.targetDown('process_start_time_seconds', cfg.ruleSelector), '5m', 'critical', {},
+        alert.rule.new('ProcessDown',
+                       alert.rule.targetDown('process_start_time_seconds', cfg.ruleSelector),
+                       '5m',
+                       'critical',
+                       {},
                        { summary: 'Target {{ $labels.instance }} ({{ $labels.job }}) stopped answering its scrape.' }),
-        alert.rule.new('ProcessRestartLoop', 'changes(process_start_time_seconds' + rsBrace + '[15m]) > 2', '5m', 'warning', {},
+        alert.rule.new('ProcessRestartLoop',
+                       'changes(process_start_time_seconds' + rsBrace + '[15m]) > 2',
+                       '5m',
+                       'warning',
+                       {},
                        { summary: 'Process {{ $labels.instance }} restarted more than twice in 15 minutes.' }),
         alert.rule.new('ProcessFileDescriptorsNearLimit',
-                       'process_open_fds' + rsBrace + ' / process_max_fds' + rsBrace + ' > 0.8', '10m', 'warning', {},
+                       'process_open_fds' + rsBrace + ' / process_max_fds' + rsBrace + ' > 0.8',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Process {{ $labels.instance }} holds over 80 percent of its file descriptor limit.' }),
-        alert.rule.new('ScrapeSlow', 'scrape_duration_seconds' + rsBrace + ' > 10', '15m', 'info', {},
+        alert.rule.new('ScrapeSlow',
+                       'scrape_duration_seconds' + rsBrace + ' > 10',
+                       '15m',
+                       'info',
+                       {},
                        { summary: 'Target {{ $labels.instance }} takes more than 10 seconds to answer a scrape.' }),
       ]),
     ], [

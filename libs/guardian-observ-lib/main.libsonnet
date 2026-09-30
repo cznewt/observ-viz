@@ -7,11 +7,11 @@
 //            — only present once the control half is enabled.
 // Usage:
 //   g.libs.applications.guardian.new({ selector: 'job=~"$job"' }).grafana.dashboard
+local dashboard = import 'custom/dashboard.libsonnet';
+local panel = import 'custom/panel.libsonnet';
+local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
-local alert = import 'libs/common-lib/alert/main.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local dashboard = import 'custom/dashboard.libsonnet';
 
 {
   new(config={}):

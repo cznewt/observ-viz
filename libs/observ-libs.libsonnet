@@ -67,13 +67,18 @@
     loki: import 'libs/loki-observ-lib/main.libsonnet',
     tempo: import 'libs/tempo-observ-lib/main.libsonnet',
     pyroscope: import 'libs/pyroscope-observ-lib/main.libsonnet',
-    anomalyScorer: import 'libs/anomaly-scorer-observ-lib/main.libsonnet',
     anomalyExporter: import 'libs/anomaly-exporter-observ-lib/main.libsonnet',
     alertmanager: import 'libs/alertmanager-observ-lib/main.libsonnet',
     alertHandler: import 'libs/alert-handler-observ-lib/main.libsonnet',
     opencost: import 'libs/opencost-observ-lib/main.libsonnet',
     // the exporter itself, not the machine: collectors, scrape cost, textfiles
     nodeExporter: import 'libs/node-exporter-observ-lib/main.libsonnet',
+    // black-box probes (probe_*): availability, latency by phase, HTTP, TLS expiry
+    blackboxExporter: import 'libs/blackbox-exporter-observ-lib/main.libsonnet',
+    // pushed batch-job groups: freshness, push failures, push traffic
+    pushgateway: import 'libs/pushgateway-observ-lib/main.libsonnet',
+    // statsd_exporter on itself: ingest, mapping, parse errors, exported metrics
+    statsdExporter: import 'libs/statsd-exporter-observ-lib/main.libsonnet',
   },
   collector: {
     alloy: import 'libs/alloy-observ-lib/main.libsonnet',
@@ -84,10 +89,19 @@
     ingressNginx: import 'libs/ingress-nginx-observ-lib/main.libsonnet',
     // the Kong gateway, from the Prometheus plugin or OpenTelemetry
     kong: import 'libs/kong-observ-lib/main.libsonnet',
+    // Traefik v3 (entrypoints / routers / services / TLS) and Envoy (admin /stats/prometheus)
+    traefik: import 'libs/traefik-observ-lib/main.libsonnet',
+    envoy: import 'libs/envoy-observ-lib/main.libsonnet',
+    // Pangolin tunnels: the Newt clients (kube health + Loki tunnel events, optional newt_* metrics)
+    pangolin: import 'libs/pangolin-observ-lib/main.libsonnet',
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
     guardian: import 'libs/guardian-observ-lib/main.libsonnet',
+    // Valheim dedicated servers on Kubernetes (exporter up + kube health + Loki players/logs)
+    valheim: import 'libs/valheim-observ-lib/main.libsonnet',
+    // Minecraft Java servers + Velocity proxy on Kubernetes (kube health + Loki players/logs)
+    minecraft: import 'libs/minecraft-observ-lib/main.libsonnet',
   },
   // a service wherever it runs: whitebox pack + gated platform tabs
   // (Kubernetes / Containers / Docker / systemd / process / Windows / Logs).
@@ -106,10 +120,16 @@
   webservers: {
     nginx: import 'libs/nginx-observ-lib/main.libsonnet',
     caddy: import 'libs/caddy-observ-lib/main.libsonnet',
+    // Apache httpd via apache_exporter (mod_status)
+    apache: import 'libs/apache-observ-lib/main.libsonnet',
   },
   frameworks: {
     django: import 'libs/django-observ-lib/main.libsonnet',
     rails: import 'libs/rails-observ-lib/main.libsonnet',
+    // Wagtail CMS: django-prometheus cut by the Wagtail views (pages / admin / media / search)
+    wagtail: import 'libs/wagtail-observ-lib/main.libsonnet',
+    // WordPress: exporter content counts + PHP-FPM + web server + MySQL + container, presence-gated
+    wordpress: import 'libs/wordpress-observ-lib/main.libsonnet',
   },
   // analysis methods (RED / USE) over any instrumentation - they own no metrics
   analysis: import 'libs/analysis-observ-lib/main.libsonnet',

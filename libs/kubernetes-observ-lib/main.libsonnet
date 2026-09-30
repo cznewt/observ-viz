@@ -3,12 +3,22 @@
 // native v2 elements. Usage:
 //   g.libs.kubernetes.pod.new({ selector: 'namespace="prod"' }).grafana.dashboard
 //   g.libs.kubernetes.pod.new({...}).grafana.elements   // reuse in a board
+local dashboard = import 'custom/dashboard.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local annotations = import 'libs/common-lib/annotations/main.libsonnet';
+local pods = import 'libs/kubernetes-observ-lib/pods.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local tabs = import 'libs/common-lib/tabs.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local variable =
+  local gv = import 'gen/observ-viz-v2beta1/variable/main.libsonnet';
+  local cv = import 'custom/variable.libsonnet';
+  { query: gv.query + cv.query };
 
 {
+  // the Pods table (one row per pod), for any board: see pods.libsonnet
+  podsTable(config={}):: pods.table(config),
+
   new(config={}):
     local cfg = {
       uid: 'observ-viz-kube-pod',
@@ -26,36 +36,56 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // deploy target: Components / Kubernetes (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
-      folderUid: 'components-kubernetes',
-      folderTitle: 'Kubernetes',
-      folderParentUid: 'components',
-      folderParentTitle: 'Components',
+      folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
+      // a $pod filter on the pod-scoped panels, the Pods table and the
+      // annotations. Multi-select with All = .*, read as ${pod:pipe} so a regex
+      // arriving in the URL (var-pod=<workload>(-.*)? from the Applications and
+      // Pods tables) reaches the query unescaped.
+      podFilter: true,
+      // the Overview tab's Pods table drills to a node here
+      nodeBoardUid: 'compute-linux-overview',
+      // the generic instances table keys on the scrape target (the
+      // kube-state-metrics pod), so the Pods table replaces it - unless a
+      // caller asks for one with its own overviewSignals
+      overviewInstances: std.objectHas(config, 'overviewSignals'),
     } + config;
+    local podSel = cfg.selector + (if cfg.podFilter then (if cfg.selector != '' then ', ' else '') + 'pod=~"${pod:pipe}"' else '');
+    local podVar =
+      variable.query.new('pod')
+      + variable.query.withLabel('Pod')
+      + variable.query.withLabelValues('pod', 'kube_pod_info{' + std.join(', ', std.filter(function(p) p != '', ['job=~"$job"', cfg.selector])) + '}')
+      + variable.query.withMulti()
+      + variable.query.withIncludeAll()
+      + variable.query.withAllValue('.*')
+      + { spec+: { allowCustomValue: true, current: { text: 'All', value: '$__all' } } };
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
     local rsComma = if cfg.ruleSelector != '' then ', ' + cfg.ruleSelector else '';
 
     local sig(name, expr, unit, legend='{{pod}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.selector).withLegendFormat(legend);
+    // pod-scoped series (they carry a pod label) also honour $pod
+    local sigP(name, expr, unit, legend='{{pod}}') =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(podSel).withLegendFormat(legend);
 
     local signals = {
       // ===== Pods — cAdvisor resource usage =====
-      cpuUsage: sig('CPU usage', 'sum by (pod)(rate(container_cpu_usage_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short'),
-      cpuThrottled: sig('CPU throttled', 'sum by (pod)(rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval])) / sum by (pod)(rate(container_cpu_cfs_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'percentunit'),
-      memWorkingSet: sig('Memory working set', 'sum by (pod)(container_memory_working_set_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
-      memRss: sig('Memory RSS', 'sum by (pod)(container_memory_rss{%(queriesSelector)s,container!=""})', 'bytes'),
-      memCache: sig('Memory cache', 'sum by (pod)(container_memory_cache{%(queriesSelector)s,container!=""})', 'bytes'),
-      fsReads: sig('Pod disk read', 'sum by (pod)(rate(container_fs_reads_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
-      fsWrites: sig('Pod disk write', 'sum by (pod)(rate(container_fs_writes_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
+      cpuUsage: sigP('CPU usage', 'sum by (pod)(rate(container_cpu_usage_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short'),
+      cpuThrottled: sigP('CPU throttled', 'sum by (pod)(rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval])) / sum by (pod)(rate(container_cpu_cfs_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'percentunit'),
+      memWorkingSet: sigP('Memory working set', 'sum by (pod)(container_memory_working_set_bytes{%(queriesSelector)s,container!=""})', 'bytes'),
+      memRss: sigP('Memory RSS', 'sum by (pod)(container_memory_rss{%(queriesSelector)s,container!=""})', 'bytes'),
+      memCache: sigP('Memory cache', 'sum by (pod)(container_memory_cache{%(queriesSelector)s,container!=""})', 'bytes'),
+      fsReads: sigP('Pod disk read', 'sum by (pod)(rate(container_fs_reads_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
+      fsWrites: sigP('Pod disk write', 'sum by (pod)(rate(container_fs_writes_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps'),
 
       // ===== Pods — kube-state-metrics requests/limits/status =====
-      cpuRequests: sig('CPU requests', 'sum by (pod)(kube_pod_container_resource_requests{%(queriesSelector)s,resource="cpu"})', 'short'),
-      cpuLimits: sig('CPU limits', 'sum by (pod)(kube_pod_container_resource_limits{%(queriesSelector)s,resource="cpu"})', 'short'),
-      memRequests: sig('Memory requests', 'sum by (pod)(kube_pod_container_resource_requests{%(queriesSelector)s,resource="memory"})', 'bytes'),
-      memLimits: sig('Memory limits', 'sum by (pod)(kube_pod_container_resource_limits{%(queriesSelector)s,resource="memory"})', 'bytes'),
-      restarts: sig('Container restarts', 'sum by (pod)(kube_pod_container_status_restarts_total{%(queriesSelector)s})', 'short'),
-      phase: sig('Pods by phase', 'sum by (phase)(kube_pod_status_phase{%(queriesSelector)s})', 'short', '{{phase}}'),
-      containersWaiting: sig('Containers waiting', 'sum by (pod)(kube_pod_container_status_waiting{%(queriesSelector)s})', 'short'),
-      containersReady: sig('Containers ready', 'sum by (pod)(kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
+      cpuRequests: sigP('CPU requests', 'sum by (pod)(kube_pod_container_resource_requests{%(queriesSelector)s,resource="cpu"})', 'short'),
+      cpuLimits: sigP('CPU limits', 'sum by (pod)(kube_pod_container_resource_limits{%(queriesSelector)s,resource="cpu"})', 'short'),
+      memRequests: sigP('Memory requests', 'sum by (pod)(kube_pod_container_resource_requests{%(queriesSelector)s,resource="memory"})', 'bytes'),
+      memLimits: sigP('Memory limits', 'sum by (pod)(kube_pod_container_resource_limits{%(queriesSelector)s,resource="memory"})', 'bytes'),
+      restarts: sigP('Container restarts', 'sum by (pod)(kube_pod_container_status_restarts_total{%(queriesSelector)s})', 'short'),
+      phase: sigP('Pods by phase', 'sum by (phase)(kube_pod_status_phase{%(queriesSelector)s})', 'short', '{{phase}}'),
+      containersWaiting: sigP('Containers waiting', 'sum by (pod)(kube_pod_container_status_waiting{%(queriesSelector)s})', 'short'),
+      containersReady: sigP('Containers ready', 'sum by (pod)(kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
 
       // ===== Workloads — deployments / statefulsets / daemonsets =====
       deployDesired: sig('Deployment desired', 'kube_deployment_spec_replicas{%(queriesSelector)s}', 'short', '{{deployment}}'),
@@ -78,7 +108,17 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       pvcCapacity: sig('PVC requested storage', 'kube_persistentvolumeclaim_resource_requests_storage_bytes{%(queriesSelector)s}', 'bytes', '{{persistentvolumeclaim}}'),
     };
 
-    pack.build(cfg, signals, [
+    local built = pack.build(cfg { extraVariables+: if cfg.podFilter then [podVar] else [] }, signals, [
+      // folded into the Overview tab (tabbed): one row per pod
+      {
+        title: 'Overview',
+        width: 24,
+        height: 12,
+        signalKeys: ['cpuUsage', 'memWorkingSet', 'restarts', 'containersReady'],
+        elements: {
+          pods: pods.table({ datasource: cfg.datasource, selector: podSel, podBoardUid: cfg.uid, nodeBoardUid: cfg.nodeBoardUid }),
+        },
+      },
       {
         title: 'Pod resources',  // cAdvisor + KSM requests/limits
         width: 12,
@@ -190,5 +230,21 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // only where its own queries return something
       tabs.alerts(cfg.datasource, 'namespace=~"$namespace"'),
       tabs.logs('${loki_datasource}', tabs.kubernetesStreams('$namespace', '.+', '.+')),
-    ]),
+    ]);
+    // annotation toggles: firing alerts on; pod / container starts and
+    // restarts off until a viewer wants them
+    local annList =
+      annotations.alert.bySeverity(cfg.datasource, podSel)
+      + [
+        annotations.restart.newAt('Pod starts', annotations.restart.kubePodStart(cfg.datasource, podSel), ['namespace', 'node'], '{{pod}} started on {{node}}')
+        + annotations.base.asToggle(false),
+        annotations.restart.newAt('Container starts', annotations.restart.kubeContainerStart(cfg.datasource, podSel), ['namespace', 'pod'], '{{pod}} / {{container}} started')
+        + annotations.base.asToggle(false),
+        annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, podSel), ['namespace', 'pod', 'container'])
+        + annotations.base.withTitleFormat('{{pod}} / {{container}} restarted')
+        + annotations.base.asToggle(false),
+      ];
+    built {
+      grafana+: { dashboard: super.dashboard + dashboard.withAnnotationsMixin(annList) },
+    },
 }

@@ -46,9 +46,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'kube-state-metrics', url: 'https://github.com/kubernetes/kube-state-metrics', description: 'where kube_node_info, kube_pod_status_phase and the restart counter come from' },
         { title: 'cAdvisor metrics', url: 'https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md', description: 'the container_* series behind the usage columns' },
       ],
-      // the base layer: what everything else runs on
-      folderUid: 'base',
-      folderTitle: 'Base',
+      // Platform / Kubernetes, beside the pod and container boards
+      folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
     } + config;
     local s = cfg.selector;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';

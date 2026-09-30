@@ -4,8 +4,11 @@
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
 local alertsSignal(name, datasource, extra, selector) =
-  signal.new(name, 'prometheus', datasource,
-             'ALERTS{alertstate="firing"' + extra + ', %(queriesSelector)s}', 'short')
+  signal.new(name,
+             'prometheus',
+             datasource,
+             'ALERTS{alertstate="firing"' + extra + ', %(queriesSelector)s}',
+             'short')
   .filteringSelector(selector);
 
 {

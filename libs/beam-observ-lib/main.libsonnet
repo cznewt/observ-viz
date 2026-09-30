@@ -3,11 +3,11 @@
 // prometheus_ex and the Phoenix stacks expose as well. The limits are the
 // thing to watch on the BEAM: processes, ports and atoms all have ceilings a
 // node dies against, and the run queues show scheduler backlog.
+local panel = import 'custom/panel.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
-local panel = import 'custom/panel.libsonnet';
-local processLib = import 'libs/process-observ-lib/main.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local processLib = import 'libs/process-observ-lib/main.libsonnet';
 
 {
   new(config={}):
@@ -115,16 +115,28 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       alert.rule.group('beam', [
         alert.rule.new('BeamProcessLimitNear',
-                       '100 * erlang_vm_processes' + rsBrace + ' / clamp_min(erlang_vm_process_limit' + rsBrace + ', 1) > 80', '10m', 'warning', {},
+                       '100 * erlang_vm_processes' + rsBrace + ' / clamp_min(erlang_vm_process_limit' + rsBrace + ', 1) > 80',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'The BEAM on {{ $labels.instance }} is using over 80 percent of its process limit.' }),
         alert.rule.new('BeamPortLimitNear',
-                       '100 * erlang_vm_ports' + rsBrace + ' / clamp_min(erlang_vm_port_limit' + rsBrace + ', 1) > 80', '10m', 'warning', {},
+                       '100 * erlang_vm_ports' + rsBrace + ' / clamp_min(erlang_vm_port_limit' + rsBrace + ', 1) > 80',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'The BEAM on {{ $labels.instance }} is using over 80 percent of its port limit.' }),
         alert.rule.new('BeamAtomLimitNear',
-                       '100 * erlang_vm_atoms' + rsBrace + ' / clamp_min(erlang_vm_atom_limit' + rsBrace + ', 1) > 80', '30m', 'critical', {},
+                       '100 * erlang_vm_atoms' + rsBrace + ' / clamp_min(erlang_vm_atom_limit' + rsBrace + ', 1) > 80',
+                       '30m',
+                       'critical',
+                       {},
                        { summary: 'The BEAM on {{ $labels.instance }} is using over 80 percent of its atom limit; atoms are never freed.' }),
         alert.rule.new('BeamRunQueueBacklog',
-                       'erlang_vm_statistics_dirty_cpu_run_queue_length' + rsBrace + ' > 10', '10m', 'warning', {},
+                       'erlang_vm_statistics_dirty_cpu_run_queue_length' + rsBrace + ' > 10',
+                       '10m',
+                       'warning',
+                       {},
                        { summary: 'Work is backing up on the dirty CPU schedulers of {{ $labels.instance }}.' }),
       ]),
     ], [

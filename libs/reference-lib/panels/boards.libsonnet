@@ -59,7 +59,11 @@ local label = {
 
 // panel types without a rich example board -> a single example panel.
 local simpleKinds = [
-  'text', 'news', 'dashList', 'alertList', 'annotationsList',
+  'text',
+  'news',
+  'dashList',
+  'alertList',
+  'annotationsList',
   'canvas',
 ];
 

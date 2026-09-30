@@ -9,8 +9,8 @@
 // To actually play: build + install the plugin (see scripts/build-doom-plugin.sh
 // or the plugin README), then `just up && just load`. The palette/options below
 // are imported from the plugin's own dashboard so the screen renders correctly.
-local g = import 'g.libsonnet';
 local render = import 'doom_render.json';
+local g = import 'g.libsonnet';
 
 local doomDs = 'doom';  // uid of the provisioned Doom datasource
 
@@ -30,6 +30,7 @@ local dash =
   + g.dashboard.withElements(g.element.panel('doom', screen))
   + g.dashboard.withLayout(
     g.layout.grid.new()
-    + g.layout.grid.withItems([ g.layout.grid.item('doom', 0, 0, 12, 14) ]));
+    + g.layout.grid.withItems([g.layout.grid.item('doom', 0, 0, 12, 14)])
+  );
 
 dash.toResource()

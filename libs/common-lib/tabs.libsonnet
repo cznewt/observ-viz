@@ -22,6 +22,8 @@ local query = import 'custom/query.libsonnet';
     elements: {
       al01_list: alertPanels.list('Alerts', groupMode='custom', groupBy=['alertname']),
       al02_firing: alertPanels.firingTable('Firing alerts', datasource, selector),
+      // where each one fires and for how long, with drill links
+      al02b_detail: alertPanels.firingDetailTable('Firing alerts - detail', datasource, selector),
       al03_state: alertPanels.timeline('Alert state', datasource, selector, limit),
     },
   },
