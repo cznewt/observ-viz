@@ -866,7 +866,10 @@ local appsTable(c) =
       // Applications and Alerts tabs (dtab = the tab title's slug), and the
       // nodes board. Grafana's text sanitizer keeps inline styles on <a>; no
       // flexbox, which it may strip.
-      local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all';
+      // every button carries the current time range and datasource, as Grafana's
+      // own dashboard links do (otherwise the target opens on its defaults)
+      local carry = '&${__url_time_range}&${datasource:queryparam}';
+      local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all' + carry;
       local button(label, url) =
         '<a href="' + url + '" style="display:inline-block; margin-right:6px; padding:0 12px; '
         + 'border:1px solid rgba(128,128,140,0.45); border-radius:4px; background:rgba(128,128,140,0.12); '
@@ -877,7 +880,7 @@ local appsTable(c) =
         + panel.text.withOptions({ mode: 'markdown', content: std.join(' ', [
           button('Details', detail),
           button('Workload', detail + '&dtab=applications'),
-          button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster'),
+          button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster' + carry),
           button('Alerts', detail + '&dtab=alerts'),
         ]) });
       // capacity stats are plain values: no threshold colour on value or sparkline
