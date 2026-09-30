@@ -28,13 +28,13 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | Alert | Severity | For | Runbook |
 |-------|----------|-----|---------|
 | `CadvisorDown` | critical | 5m | — |
-| `ContainerHighCpu` | warning | 15m | — |
-| `ContainerHighMemory` | warning | 15m | — |
-| `ContainerHighDiskWrite` | warning | 15m | — |
+| `DockerContainerHighCpu` | warning | 15m | — |
+| `DockerContainerHighMemory` | warning | 15m | — |
+| `DockerContainerHighDiskWrite` | warning | 15m | — |
 
 ## Recording rules
 
 | Record | Expression |
 |--------|------------|
-| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!=""}[5m]))` |
-| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!=""})` |
+| `instance_name:container_cpu_usage:rate5m` | `sum by (name) (rate(container_cpu_usage_seconds_total{name!="", pod=""}[5m]))` |
+| `instance_name:container_memory_working_set_bytes:sum` | `sum by (name) (container_memory_working_set_bytes{name!="", pod=""})` |

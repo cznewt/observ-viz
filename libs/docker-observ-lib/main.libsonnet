@@ -85,7 +85,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         },
       },
     ], [
-      // alerting rule group
+      // alerting rule group - Docker-host containers only: the kubelet's cAdvisor
+      // series carry a `name` too, so without `pod=""` these also fired for every
+      // Kubernetes container, doubling the cadvisor pack's Container* alerts.
       alert.rule.group('docker', [
         alert.rule.new(
           'CadvisorDown',
@@ -96,24 +98,24 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           { summary: 'cAdvisor on {{ $labels.instance }} is down.' }
         ),
         alert.rule.new(
-          'ContainerHighCpu',
-          'sum by (name) (rate(container_cpu_usage_seconds_total{name!=""' + rsComma + '}[5m])) > 0.9',
+          'DockerContainerHighCpu',
+          'sum by (instance, name) (rate(container_cpu_usage_seconds_total{name!="", pod=""' + rsComma + '}[5m])) > 0.9',
           '15m',
           'warning',
           {},
           { summary: 'Container {{ $labels.name }} on {{ $labels.instance }} CPU usage is above 0.9 cores.' }
         ),
         alert.rule.new(
-          'ContainerHighMemory',
-          'container_memory_working_set_bytes{name!=""' + rsComma + '} > 1e9',
+          'DockerContainerHighMemory',
+          'container_memory_working_set_bytes{name!="", pod=""' + rsComma + '} > 1e9',
           '15m',
           'warning',
           {},
           { summary: 'Container {{ $labels.name }} on {{ $labels.instance }} working set memory is above 1GB.' }
         ),
         alert.rule.new(
-          'ContainerHighDiskWrite',
-          'rate(container_fs_writes_bytes_total{name!=""' + rsComma + '}[5m]) > 5e7',
+          'DockerContainerHighDiskWrite',
+          'rate(container_fs_writes_bytes_total{name!="", pod=""' + rsComma + '}[5m]) > 5e7',
           '15m',
           'warning',
           {},
@@ -123,8 +125,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     ], [
       // recording rule group
       alert.rule.group('docker.rules', [
-        alert.rule.record('instance_name:container_cpu_usage:rate5m', 'sum by (name) (rate(container_cpu_usage_seconds_total{name!=""' + rsComma + '}[5m]))'),
-        alert.rule.record('instance_name:container_memory_working_set_bytes:sum', 'sum by (name) (container_memory_working_set_bytes{name!=""' + rsComma + '})'),
+        alert.rule.record('instance_name:container_cpu_usage:rate5m', 'sum by (name) (rate(container_cpu_usage_seconds_total{name!="", pod=""' + rsComma + '}[5m]))'),
+        alert.rule.record('instance_name:container_memory_working_set_bytes:sum', 'sum by (name) (container_memory_working_set_bytes{name!="", pod=""' + rsComma + '})'),
       ]),
     ]),
 }

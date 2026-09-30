@@ -184,24 +184,11 @@ local variable =
         },
       },
     ], [
-      // alerting rule group
+      // alerting rule group - pod resource alerts only. KubePodNotReady and
+      // KubePodCrashLooping belong to the cluster pack's kubernetes-apps group
+      // (kubernetes-mixin semantics); defining them here as well made every
+      // stuck pod alert twice under the same name.
       alert.rule.group('kubernetes-pod', [
-        alert.rule.new(
-          'KubePodNotReady',
-          'sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"' + rsComma + '}) > 0',
-          '15m',
-          'critical',
-          {},
-          { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for more than 15 minutes.' }
-        ),
-        alert.rule.new(
-          'KubePodCrashLooping',
-          'rate(kube_pod_container_status_restarts_total' + rsBrace + '[10m]) * 60 * 5 > 0',
-          '15m',
-          'warning',
-          {},
-          { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} is restarting frequently.' }
-        ),
         alert.rule.new(
           'KubePodCpuOverRequest',
           'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m])) > sum by (namespace, pod) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})',
