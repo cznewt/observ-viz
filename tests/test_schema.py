@@ -50,19 +50,22 @@ VALIDATOR = _Validator({"$ref": "#/definitions/Dashboard", "definitions": _DEFS}
 # without a single .grafana.dashboard are skipped at render time.
 LIBS = [
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs",
-    "system.linux", "system.docker", "system.windows",
-    "kubernetes.pod", "kubernetes.cadvisor",
+    "system.linux", "system.docker", "system.windows", "system.proxmox",
+    "kubernetes.pod", "kubernetes.cadvisor", "kubernetes.coredns", "kubernetes.certManager",
     "databases.sql.postgres", "databases.sql.mysql",
     "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd",
+    "databases.document.mongodb", "databases.search.elasticsearch",
     "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope",
-    "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter",
+    "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter", "monitoring.kubeStateMetrics",
     "collector.alloy",
     "networking.wireguard", "networking.unifi", "networking.traefik", "networking.envoy",
     "webservers.apache",
     "frameworks.django", "frameworks.wagtail", "frameworks.wordpress",
     "services.demoGo", "services.demoPython", "services.demoJvm",
-    "applications.syncthing", "applications.guardian", "applications.valheim", "applications.minecraft",
+    "applications.syncthing", "applications.guardian", "applications.valheim", "applications.minecraft", "applications.minio",
+    "cicd.vault",
     "networking.pangolin",
+    "demos.demoApp",
     "base.home", "base.cluster", "base.clusterDetail",
 ]
 

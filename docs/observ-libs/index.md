@@ -19,13 +19,19 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`system.windows`](system-windows.md) | 58 | 6 | 4 |
 | [`system.systemd`](system-systemd.md) | 13 | 3 | 2 |
 | [`system.processExporter`](system-processExporter.md) | 15 | 3 | 2 |
+| [`system.proxmox`](system-proxmox.md) | 15 | 3 | 0 |
 | [`kubernetes.pod`](kubernetes-pod.md) | 29 | 2 | 2 |
 | [`kubernetes.cadvisor`](kubernetes-cadvisor.md) | 24 | 4 | 2 |
+| [`kubernetes.coredns`](kubernetes-coredns.md) | 24 | 5 | 0 |
+| [`kubernetes.certManager`](kubernetes-certManager.md) | 13 | 5 | 0 |
 | [`databases.sql.postgres`](databases-sql-postgres.md) | 6 | 4 | 2 |
 | [`databases.sql.mysql`](databases-sql-mysql.md) | 7 | 4 | 2 |
 | [`databases.kv.redis`](databases-kv-redis.md) | 6 | 4 | 2 |
 | [`databases.kv.memcached`](databases-kv-memcached.md) | 10 | 4 | 2 |
 | [`databases.kv.etcd`](databases-kv-etcd.md) | 6 | 4 | 2 |
+| [`databases.document.mongodb`](databases-document-mongodb.md) | 38 | 7 | 0 |
+| [`databases.search.elasticsearch`](databases-search-elasticsearch.md) | 28 | 7 | 0 |
+| [`monitoring.kubeStateMetrics`](monitoring-kubeStateMetrics.md) | 9 | 4 | 0 |
 | [`monitoring.prometheus`](monitoring-prometheus.md) | 7 | 4 | 2 |
 | [`monitoring.mimir`](monitoring-mimir.md) | 6 | 4 | 2 |
 | [`monitoring.loki`](monitoring-loki.md) | 6 | 4 | 2 |
@@ -83,5 +89,6 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`services.opencost`](services-opencost.md) | 100 | 3 | 3 |
 | [`services.anomalyExporter`](services-anomalyExporter.md) | 97 | 3 | 2 |
 | [`services.argocd`](services-argocd.md) | 105 | 6 | 2 |
+| [`demos.demoApp`](demos-demoApp.md) | 21 | 6 | 8 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |
 | [`backstage`](backstage.md) | 0 | 0 | 0 |

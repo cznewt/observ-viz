@@ -23,6 +23,8 @@
     // node_exporter systemd collector + process-exporter, by host
     systemd: import 'libs/systemd-observ-lib/main.libsonnet',
     windowsService: import 'libs/windows-service-observ-lib/main.libsonnet',
+    // Proxmox VE hosts (node_exporter) + proxmox-exporter allocation, Platform / Infrastructure / Compute
+    proxmox: import 'libs/proxmox-observ-lib/main.libsonnet',
     processExporter: import 'libs/process-exporter-observ-lib/main.libsonnet',
   },
   kubernetes: {
@@ -34,6 +36,10 @@
     // node-level kubelet elements for embedding in host boards
     kubelet: import 'libs/kubernetes-observ-lib/kubelet.libsonnet',
     cadvisor: import 'libs/cadvisor-observ-lib/main.libsonnet',
+    // cluster DNS (coredns_*), Platform / Kubernetes
+    coredns: import 'libs/coredns-observ-lib/main.libsonnet',
+    // cert-manager Certificates / ClusterIssuers / ACME, Platform / Kubernetes
+    certManager: import 'libs/cert-manager-observ-lib/main.libsonnet',
   },
   iot: {
     // Home Assistant device/entity telemetry (hass_* from home_assistant_exporter)
@@ -59,8 +65,18 @@
       memcached: import 'libs/memcached-observ-lib/main.libsonnet',
       etcd: import 'libs/etcd-observ-lib/main.libsonnet',
     },
+    document: {
+      // percona/mongodb_exporter (catalog mongodb-mixin alerts), Platform / Databases
+      mongodb: import 'libs/mongodb-observ-lib/main.libsonnet',
+    },
+    search: {
+      // elasticsearch_exporter (upstream elasticsearch-mixin port), Platform / Databases
+      elasticsearch: import 'libs/elasticsearch-observ-lib/main.libsonnet',
+    },
   },
   monitoring: {
+    // kube-state-metrics' own health (telemetry port), Platform / Monitoring / Collectors
+    kubeStateMetrics: import 'libs/kube-state-metrics-observ-lib/main.libsonnet',
     prometheus: import 'libs/prometheus-observ-lib/main.libsonnet',
     mimir: import 'libs/mimir-observ-lib/main.libsonnet',
     grafana: import 'libs/grafana-observ-lib/main.libsonnet',
@@ -141,6 +157,10 @@
     argocd: import 'libs/argocd-observ-lib/main.libsonnet',
     // HashiCorp Vault / OpenBao (vault_* telemetry), Platform / Configuration
     vault: import 'libs/vault-observ-lib/main.libsonnet',
+  },
+  demos: {
+    // the demo-apps chart's online store (storefront RED, checkout, inventory), Workloads / Demos
+    demoApp: import 'libs/demo-app-observ-lib/main.libsonnet',
   },
   // Backstage catalog context through the Infinity datasource (alias of cicd.backstage)
   backstage: import 'libs/backstage-observ-lib/main.libsonnet',

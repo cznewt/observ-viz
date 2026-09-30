@@ -6,26 +6,31 @@
 //   Platform / Ingress                        ingress controllers, proxies, web servers:
 //                                             ingress-nginx, NGINX, Kong, Caddy, Traefik,
 //                                             Envoy, Apache HTTP Server
-//   Platform / Kubernetes                     cluster, pod, container boards
+//   Platform / Kubernetes                     cluster, pod, container boards, CoreDNS,
+//                                             cert-manager
 //   Platform / Monitoring / Storage           the telemetry stores: Prometheus, Mimir, Loki,
 //                                             Tempo, Pyroscope
 //   Platform / Monitoring / Collectors        what collects/exports telemetry: Alloy,
-//                                             node_exporter, OpenCost, anomaly exporter/scorer
+//                                             node_exporter, kube-state-metrics, OpenCost,
+//                                             anomaly exporter/scorer
 //   Platform / Monitoring / Alerting          Alertmanager, alert handler, Grafana, alerts overview
-//   Platform / Infrastructure / Compute       hosts: Linux, Windows, Docker
+//   Platform / Infrastructure / Compute       hosts: Linux, Windows, Docker, Proxmox VE
 //   Platform / Infrastructure / Network       UniFi, WireGuard
 //   Platform / Infrastructure / Storage       file sync and storage services: Syncthing,
 //                                             MinIO
-//   Platform / Configuration                  config management + GitOps: Salt, Argo CD
+//   Platform / Configuration                  config management, GitOps, secrets: Salt,
+//                                             Argo CD, Vault
 //   Reference / Runtimes                      language runtimes and frameworks (reference boards)
-//   Platform / Databases                      SQL and key-value stores
+//   Platform / Databases                      SQL, key-value, document and search stores:
+//                                             MongoDB, Elasticsearch
 //   Platform / Deployments                    reference-lib deployment-target boards
 //   Workloads / Gaming                        game servers the platform hosts: Valheim,
 //                                             Minecraft
 //   Workloads / Content Management            CMS sites the platform hosts: Django,
 //                                             Wagtail, WordPress
 //   Workloads / Demos                         demo / course sample services: the demo
-//                                             Go and Python apps, the SRE sample (JVM)
+//                                             Go and Python apps, the SRE sample (JVM),
+//                                             the demo-apps online store
 //
 // A caller re-files a board with its own `folderPath` in the pack config
 // (`folderPath` wins over `folderUid` in pack.build).
