@@ -47,6 +47,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`networking.envoy`](networking-envoy.md) | 30 | 4 | 3 |
 | [`networking.pangolin`](networking-pangolin.md) | 31 | 2 | 0 |
 | [`applications.syncthing`](applications-syncthing.md) | 16 | 1 | 0 |
+| [`applications.minio`](applications-minio.md) | 34 | 7 | 0 |
 | [`applications.valheim`](applications-valheim.md) | 10 | 2 | 0 |
 | [`applications.minecraft`](applications-minecraft.md) | 16 | 2 | 0 |
 | [`instrumentation.httpServer`](instrumentation-httpServer.md) | 13 | 3 | 3 |
@@ -63,6 +64,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`frameworks.wordpress`](frameworks-wordpress.md) | 36 | 3 | 0 |
 | [`cicd.argocd`](cicd-argocd.md) | 26 | 6 | 2 |
 | [`cicd.backstage`](cicd-backstage.md) | 0 | 0 | 0 |
+| [`cicd.vault`](cicd-vault.md) | 24 | 3 | 0 |
 | [`services.alloy`](services-alloy.md) | 89 | 4 | 2 |
 | [`services.k8sMonitoring`](services-k8sMonitoring.md) | 89 | 4 | 2 |
 | [`services.grafana`](services-grafana.md) | 123 | 5 | 2 |

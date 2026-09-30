@@ -21,11 +21,11 @@ GROUPS = {
     "Monitoring": ["monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter", "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter"],
     "Collector": ["collector.alloy"],
     "Networking": ["networking.wireguard", "networking.unifi", "networking.ingressNginx", "networking.traefik", "networking.envoy", "networking.pangolin"],
-    "Applications": ["applications.syncthing", "applications.valheim", "applications.minecraft"],
+    "Applications": ["applications.syncthing", "applications.minio", "applications.valheim", "applications.minecraft"],
     "Instrumentation": ["instrumentation.httpServer", "instrumentation.httpClient", "instrumentation.rpc", "instrumentation.messaging", "instrumentation.otelSdk"],
     "Web servers": ["webservers.nginx", "webservers.caddy", "webservers.apache"],
     "Frameworks": ["frameworks.django", "frameworks.rails", "frameworks.wagtail", "frameworks.wordpress"],
-    "CI/CD": ["cicd.argocd", "cicd.backstage"],
+    "CI/CD": ["cicd.argocd", "cicd.backstage", "cicd.vault"],
     "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGo", "services.demoPython", "services.demoJvm", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd"],
     "Cross-cutting": ["alerts", "logs", "backstage"],
 }

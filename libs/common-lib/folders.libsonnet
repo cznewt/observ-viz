@@ -14,7 +14,8 @@
 //   Platform / Monitoring / Alerting          Alertmanager, alert handler, Grafana, alerts overview
 //   Platform / Infrastructure / Compute       hosts: Linux, Windows, Docker
 //   Platform / Infrastructure / Network       UniFi, WireGuard
-//   Platform / Infrastructure / Storage       file sync and storage services: Syncthing
+//   Platform / Infrastructure / Storage       file sync and storage services: Syncthing,
+//                                             MinIO
 //   Platform / Configuration                  config management + GitOps: Salt, Argo CD
 //   Reference / Runtimes                      language runtimes and frameworks (reference boards)
 //   Platform / Databases                      SQL and key-value stores

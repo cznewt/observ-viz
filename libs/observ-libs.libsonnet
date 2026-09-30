@@ -97,6 +97,8 @@
   },
   applications: {
     syncthing: import 'libs/syncthing-observ-lib/main.libsonnet',
+    // MinIO object storage (v2 metrics), Platform / Infrastructure / Storage
+    minio: import 'libs/minio-observ-lib/main.libsonnet',
     guardian: import 'libs/guardian-observ-lib/main.libsonnet',
     // Valheim dedicated servers on Kubernetes (exporter up + kube health + Loki players/logs)
     valheim: import 'libs/valheim-observ-lib/main.libsonnet',
@@ -137,6 +139,8 @@
   cicd: {
     backstage: import 'libs/backstage-observ-lib/main.libsonnet',
     argocd: import 'libs/argocd-observ-lib/main.libsonnet',
+    // HashiCorp Vault / OpenBao (vault_* telemetry), Platform / Configuration
+    vault: import 'libs/vault-observ-lib/main.libsonnet',
   },
   // Backstage catalog context through the Infinity datasource (alias of cicd.backstage)
   backstage: import 'libs/backstage-observ-lib/main.libsonnet',
