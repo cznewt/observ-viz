@@ -1,6 +1,7 @@
 // Deployment profile — the monitoring-lab cluster. The platform's own services
 // (Grafana, Mimir, Loki, Tempo, Pyroscope, Alloy, Alertmanager, the alert
-// handler, OpenCost, Backstage) are component boards in Components; what is
+// handler, OpenCost, Backstage) are the component libraries' boards in Platform /
+// Monitoring and Platform / Configuration (list them in a site's libs); what is
 // left here is what the lab exists to run: the instrumentation demos and the
 // test instances. Their boards land in Lab, and the merged alert rules of
 // every member are the profile's rule set.

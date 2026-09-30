@@ -19,7 +19,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`system.windows`](system-windows.md) | 58 | 6 | 4 |
 | [`system.systemd`](system-systemd.md) | 13 | 3 | 2 |
 | [`system.processExporter`](system-processExporter.md) | 15 | 3 | 2 |
-| [`kubernetes.pod`](kubernetes-pod.md) | 29 | 4 | 2 |
+| [`kubernetes.pod`](kubernetes-pod.md) | 29 | 2 | 2 |
 | [`kubernetes.cadvisor`](kubernetes-cadvisor.md) | 24 | 4 | 2 |
 | [`databases.sql.postgres`](databases-sql-postgres.md) | 6 | 4 | 2 |
 | [`databases.sql.mysql`](databases-sql-mysql.md) | 7 | 4 | 2 |
@@ -36,6 +36,9 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`monitoring.alertHandler`](monitoring-alertHandler.md) | 18 | 5 | 2 |
 | [`monitoring.opencost`](monitoring-opencost.md) | 21 | 3 | 3 |
 | [`monitoring.anomalyExporter`](monitoring-anomalyExporter.md) | 18 | 3 | 2 |
+| [`monitoring.blackboxExporter`](monitoring-blackboxExporter.md) | 31 | 6 | 3 |
+| [`monitoring.pushgateway`](monitoring-pushgateway.md) | 23 | 3 | 2 |
+| [`monitoring.statsdExporter`](monitoring-statsdExporter.md) | 26 | 4 | 2 |
 | [`collector.alloy`](collector-alloy.md) | 10 | 4 | 2 |
 | [`networking.wireguard`](networking-wireguard.md) | 6 | 1 | 0 |
 | [`networking.unifi`](networking-unifi.md) | 16 | 2 | 0 |
@@ -56,6 +59,8 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`webservers.apache`](webservers-apache.md) | 15 | 2 | 2 |
 | [`frameworks.django`](frameworks-django.md) | 15 | 3 | 2 |
 | [`frameworks.rails`](frameworks-rails.md) | 11 | 3 | 2 |
+| [`frameworks.wagtail`](frameworks-wagtail.md) | 65 | 3 | 0 |
+| [`frameworks.wordpress`](frameworks-wordpress.md) | 36 | 3 | 0 |
 | [`cicd.argocd`](cicd-argocd.md) | 26 | 6 | 2 |
 | [`cicd.backstage`](cicd-backstage.md) | 0 | 0 | 0 |
 | [`services.alloy`](services-alloy.md) | 89 | 4 | 2 |
@@ -67,15 +72,9 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`services.tempo`](services-tempo.md) | 88 | 4 | 2 |
 | [`services.pyroscope`](services-pyroscope.md) | 87 | 4 | 2 |
 | [`services.redisTest`](services-redisTest.md) | 85 | 4 | 2 |
-| [`services.demoGoDev`](services-demoGoDev.md) | 90 | 4 | 2 |
-| [`services.demoGoProd`](services-demoGoProd.md) | 90 | 4 | 2 |
-| [`services.demoGoWorkshop`](services-demoGoWorkshop.md) | 90 | 4 | 2 |
-| [`services.demoPythonDev`](services-demoPythonDev.md) | 85 | 4 | 2 |
-| [`services.demoPythonProd`](services-demoPythonProd.md) | 85 | 4 | 2 |
-| [`services.demoPythonWorkshop`](services-demoPythonWorkshop.md) | 85 | 4 | 2 |
-| [`services.sreBack`](services-sreBack.md) | 87 | 4 | 2 |
-| [`services.sreFront`](services-sreFront.md) | 87 | 4 | 2 |
-| [`services.sreReader`](services-sreReader.md) | 87 | 4 | 2 |
+| [`services.demoGo`](services-demoGo.md) | 90 | 4 | 2 |
+| [`services.demoPython`](services-demoPython.md) | 85 | 4 | 2 |
+| [`services.demoJvm`](services-demoJvm.md) | 87 | 4 | 2 |
 | [`services.backstage`](services-backstage.md) | 85 | 4 | 2 |
 | [`services.alertmanager`](services-alertmanager.md) | 113 | 6 | 2 |
 | [`services.alertHandler`](services-alertHandler.md) | 97 | 5 | 2 |

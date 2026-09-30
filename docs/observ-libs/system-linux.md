@@ -1,4 +1,4 @@
-# Linux Server  (`g.libs.system.linux`)
+# Linux node  (`g.libs.system.linux`)
 
 Dashboard uid `compute-linux-overview` · 96 signals · 26 alerts · 7 recording rules.
 

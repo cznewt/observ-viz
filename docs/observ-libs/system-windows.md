@@ -1,4 +1,4 @@
-# Windows Server  (`g.libs.system.windows`)
+# Windows node  (`g.libs.system.windows`)
 
 Dashboard uid `compute-windows-overview` · 58 signals · 6 alerts · 4 recording rules.
 
