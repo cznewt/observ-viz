@@ -860,24 +860,26 @@ local appsTable(c) =
 
 
       // explicit drill line at the top of each repeated cluster row (the stat
-      // data links only surface when you click the value itself): four link
-      // buttons - the cluster detail board, its Applications and Alerts tabs
-      // (dtab = the tab title's slug), and the nodes board. Grafana's text
-      // sanitizer keeps inline styles on <a>; no flexbox, which it may strip.
+      // data links only surface when you click the value itself): just four
+      // compact link buttons on a transparent, title-less panel - the row
+      // title already names the cluster - to the cluster detail board, its
+      // Applications and Alerts tabs (dtab = the tab title's slug), and the
+      // nodes board. Grafana's text sanitizer keeps inline styles on <a>; no
+      // flexbox, which it may strip.
       local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all';
       local button(label, url) =
-        '<a href="' + url + '" style="display:inline-block; margin-left:8px; padding:2px 14px; '
+        '<a href="' + url + '" style="display:inline-block; margin-right:6px; padding:0 12px; '
         + 'border:1px solid rgba(128,128,140,0.45); border-radius:4px; background:rgba(128,128,140,0.12); '
-        + 'font-size:13px; font-weight:500; line-height:22px; text-decoration:none; vertical-align:middle">' + label + '</a>';
+        + 'font-size:12px; font-weight:500; line-height:20px; text-decoration:none">' + label + '</a>';
       local clusterDrill =
         panel.text.new('')
-        + panel.text.withOptions({ mode: 'markdown', content:
-          '<h4 style="margin:0">$cluster '
-          + button('Details', detail)
-          + button('Workload', detail + '&dtab=applications')
-          + button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster')
-          + button('Alerts', detail + '&dtab=alerts')
-          + '</h4>' });
+        + panel.text.withTransparent(true)
+        + panel.text.withOptions({ mode: 'markdown', content: std.join(' ', [
+          button('Details', detail),
+          button('Workload', detail + '&dtab=applications'),
+          button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster'),
+          button('Alerts', detail + '&dtab=alerts'),
+        ]) });
       // capacity stats are plain values: no threshold colour on value or sparkline
       local plain(p) =
         p
@@ -920,15 +922,18 @@ local appsTable(c) =
 
       // one row per selected cluster (repeat over the multi cluster var):
       // summary stats on top, per-node bar gauges underneath.
+      // the button line: the smallest grid height that fits it (h=1 leaves ~12 px
+      // inside the panel padding and clips the buttons)
+      local drillH = 2;
       local clusterRow =
         layout.rows.row('$cluster', layout.grid.new() + layout.grid.withItems([
-          grid.item('clusterDrill', 0, 0, 24, 3),
-          grid.item('nodes', 0, 3, 4, 4),
-          grid.item('cpus', 4, 3, 4, 4),
-          grid.item('cpuPct', 8, 3, 4, 4),
-          grid.item('mem', 12, 3, 4, 4),
-          grid.item('memPct', 16, 3, 4, 4),
-          grid.item('alertsStat', 20, 3, 4, 4),
+          grid.item('clusterDrill', 0, 0, 24, drillH),
+          grid.item('nodes', 0, drillH, 4, 4),
+          grid.item('cpus', 4, drillH, 4, 4),
+          grid.item('cpuPct', 8, drillH, 4, 4),
+          grid.item('mem', 12, drillH, 4, 4),
+          grid.item('memPct', 16, drillH, 4, 4),
+          grid.item('alertsStat', 20, drillH, 4, 4),
         ]))
         + { spec+: { repeat: { mode: 'variable', value: 'cluster' } } };
       // one row per selected node — variables evaluate globally, so a true
