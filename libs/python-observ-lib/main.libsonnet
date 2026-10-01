@@ -96,7 +96,8 @@ local pack = import 'libs/common-lib/pack.libsonnet';
         ),
         alert.rule.new(
           'PythonHighMemory',
-          'process_resident_memory_bytes' + rsBrace + ' > 1e9',
+          // process_* comes from every client library: keep the Python processes
+          '(process_resident_memory_bytes' + rsBrace + ' > 1e9) and on (job, instance) python_info',
           '15m',
           'warning',
           {},

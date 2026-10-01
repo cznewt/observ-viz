@@ -14,7 +14,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`runtimes.php`](runtimes-php.md) | 13 | 4 | 1 |
 | [`runtimes.ruby`](runtimes-ruby.md) | 18 | 5 | 1 |
 | [`runtimes.beam`](runtimes-beam.md) | 24 | 4 | 2 |
-| [`system.linux`](system-linux.md) | 96 | 26 | 7 |
+| [`system.linux`](system-linux.md) | 96 | 28 | 7 |
 | [`system.docker`](system-docker.md) | 7 | 4 | 2 |
 | [`system.windows`](system-windows.md) | 58 | 6 | 4 |
 | [`system.systemd`](system-systemd.md) | 13 | 3 | 2 |

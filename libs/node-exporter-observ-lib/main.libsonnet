@@ -92,7 +92,9 @@ local panel = import 'custom/panel.libsonnet';
       alert.rule.group('node-exporter-collector', [
         alert.rule.new(
           'NodeExporterCollectorFailing',
-          'node_scrape_collector_success' + rsBrace + ' == 0',
+          // only a regression: a collector for absent hardware (fibrechannel, tapestats,
+          // nfsd, ...) never succeeds and is not worth an alert
+          'node_scrape_collector_success' + rsBrace + ' == 0 and on (cluster, job, instance, collector) max_over_time(node_scrape_collector_success' + rsBrace + '[1d] offset 1h) == 1',
           '15m',
           'warning',
           {},

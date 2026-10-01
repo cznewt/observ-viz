@@ -1,6 +1,6 @@
 # Linux node  (`g.libs.system.linux`)
 
-Dashboard uid `compute-linux-overview` · 96 signals · 26 alerts · 7 recording rules.
+Dashboard uid `compute-linux-overview` · 96 signals · 28 alerts · 7 recording rules.
 
 ## Signals
 
@@ -122,6 +122,8 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 | Alert | Severity | For | Runbook |
 |-------|----------|-----|---------|
+| `NodeHardwareTemperatureHigh` | warning | 10m | — |
+| `NodeHardwareTemperatureCritical` | critical | 2m | — |
 | `NodeFilesystemSpaceFillingUp` | warning | 1h | [runbook](https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup) |
 | `NodeFilesystemAlmostOutOfSpace` | warning | 30m | [runbook](https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace) |
 | `NodeFilesystemFilesFillingUp` | warning | 1h | [runbook](https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemfilesfillingup) |

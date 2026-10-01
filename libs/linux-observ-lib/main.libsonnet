@@ -396,6 +396,26 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
     ], [
       // alerting rule group — upstream prometheus node-mixin (group: node-exporter)
       alert.rule.group('node-exporter', [
+        // --- Hardware temperature, against each sensor's own critical limit ---
+        // node_hwmon_temp_crit_celsius is the chip's own threshold (CPU, NVMe,
+        // chipset differ), so one rule covers every sensor; sensors that report
+        // no limit (crit 0 or absent) are left out.
+        alert.rule.new(
+          'NodeHardwareTemperatureHigh',
+          'max by (cluster, instance, chip, sensor) (node_hwmon_temp_celsius%(rb)s) / on (cluster, instance, chip, sensor) group_left max by (cluster, instance, chip, sensor) (node_hwmon_temp_crit_celsius%(rb)s > 0) > 0.9' % { rb: rsBrace },
+          '10m',
+          'warning',
+          {},
+          { summary: 'A hardware sensor runs close to its critical temperature.', description: '{{ $labels.chip }} {{ $labels.sensor }} on {{ $labels.instance }} is at {{ $value | humanizePercentage }} of its critical temperature - check cooling (fans, dust, airflow).' }
+        ),
+        alert.rule.new(
+          'NodeHardwareTemperatureCritical',
+          'max by (cluster, instance, chip, sensor) (node_hwmon_temp_celsius%(rb)s) / on (cluster, instance, chip, sensor) group_left max by (cluster, instance, chip, sensor) (node_hwmon_temp_crit_celsius%(rb)s > 0) > 0.97' % { rb: rsBrace },
+          '2m',
+          'critical',
+          {},
+          { summary: 'A hardware sensor is at its critical temperature.', description: '{{ $labels.chip }} {{ $labels.sensor }} on {{ $labels.instance }} is at {{ $value | humanizePercentage }} of its critical temperature - the hardware throttles or shuts down next.' }
+        ),
         // --- Filesystem space filling up ---
         alert.rule.new(
           'NodeFilesystemSpaceFillingUp',

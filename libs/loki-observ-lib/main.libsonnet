@@ -94,7 +94,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         ),
         alert.rule.new(
           'LokiHighHeapMemory',
-          'go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9',
+          // go_memstats_* comes from every Go service: keep the Loki processes
+          '(go_memstats_heap_inuse_bytes' + rsBrace + ' > 1e9) and on (job, instance) loki_build_info',
           '15m',
           'warning',
           {},

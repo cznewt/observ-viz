@@ -67,6 +67,10 @@ local groupElements(signals, prefix='') = {
       varLabels: ['cluster', 'instance', 'groupname'],
       group: '.*',
       ruleSelector: '',
+      // ProcessGroupGone watches only these groups (a groupname regex): the
+      // daemons a host depends on. Every other group - desktop session
+      // processes, one-off commands - may come and go. '.+' watches all.
+      watchGroups: 'sshd|alloy|/opt/saltstack/|salt-minion|cron|chronyd|systemd-timesyn|systemd-journal|dbus-daemon|rsyslogd|dockerd|containerd|corosync|pmxcfs|pvedaemon|pveproxy|pvestatd|pve-firewall|pve-ha-crm|pve-ha-lrm|pvescheduler|qmeventd|watchdog-mux|smartd|zed|syncthing|mosquitto|vaultwarden|postgres|redis-server|nginx|newt|netbird',
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
@@ -108,7 +112,9 @@ local groupElements(signals, prefix='') = {
         ),
         alert.rule.new(
           'ProcessGroupGone',
-          'namedprocess_namegroup_num_procs' + rsBrace + ' == 0',
+          // only a group that ran without a break for the hour before: transient
+          // commands (apt-get, awk, sh) get a group of their own and drop to 0 when done
+          'namedprocess_namegroup_num_procs{groupname=~"' + cfg.watchGroups + '"' + rsComma + '} == 0 and on (cluster, job, instance, groupname) min_over_time(namedprocess_namegroup_num_procs{groupname=~"' + cfg.watchGroups + '"' + rsComma + '}[1h] offset 15m) > 0',
           '10m',
           'warning',
           {},
