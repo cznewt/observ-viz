@@ -431,16 +431,18 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // what the service reports about its own work: requests it serves, calls
       // it makes, queues it works off, and its telemetry pipeline
       + local instrumentationTabs = {
-        httpServer: { title: 'HTTP server', marker: '(http_server_request_duration_seconds_count or http_requests_total)', prefix: 'hs_', lib: httpServerLib },
+        httpServer: { title: 'HTTP server', marker: 'http_server_request_duration_seconds_count|http_requests_total', prefix: 'hs_', lib: httpServerLib },
         httpClient: { title: 'HTTP client', marker: 'http_client_request_duration_seconds_count', prefix: 'hc_', lib: httpClientLib },
         rpc: { title: 'gRPC', marker: 'grpc_server_started_total', prefix: 'rpc_', lib: rpcLib },
-        messaging: { title: 'Queues', marker: '(celery_worker_up or kafka_consumergroup_lag)', prefix: 'msg_', lib: messagingLib },
+        messaging: { title: 'Queues', marker: 'celery_worker_up|kafka_consumergroup_lag', prefix: 'msg_', lib: messagingLib },
         otelSdk: { title: 'OpenTelemetry SDK', marker: 'otel_sdk_span_live', prefix: 'otel_', lib: otelSdkLib },
       };
       [
         {
           title: instrumentationTabs[i].title,
-          presence: { query: instrumentationTabs[i].marker + '{' + cfg.selector + '}', label: 'instance' },
+          // a marker is a metric-name regex: label_values() takes a series selector,
+          // not an expression like (a or b){...}
+          presence: { query: '{__name__=~"' + instrumentationTabs[i].marker + '"' + (if cfg.selector != '' then ', ' + cfg.selector else '') + '}', label: 'instance' },
           groups: embedGroups(instrumentationTabs[i].prefix, instrumentationTabs[i].lib.new({ datasource: cfg.datasource, selector: cfg.selector, docTabs: false })),
         }
         for i in cfg.instrumentation

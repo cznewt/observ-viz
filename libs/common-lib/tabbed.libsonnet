@@ -133,8 +133,37 @@ local grid = import 'custom/util/grid.libsonnet';
     // every container in a cluster is unreadable; the busiest N is the question.
     local topK = opt('overviewTopK', 0);
     local limited(expr) = if topK > 0 then 'topk(' + topK + ', ' + expr + ')' else expr;
+    // A column's signal is often a whole-service aggregate (max(x), sum by (code)
+    // (rate(y))), which drops the row labels, leaving every row key empty and the
+    // table blank. Add the row labels to each aggregation: `op(` becomes
+    // `op by (<rowLabels>) (`, and an existing `op by (a)` gains them. Function
+    // names that merely end in an op (clamp_max, sum_over_time) and `without`
+    // aggregations are left alone.
+    local aggOps = ['sum', 'max', 'min', 'avg', 'count', 'stddev', 'stdvar', 'group'];
+    local wordChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+    local byRow(expr) =
+      local n = std.length(expr);
+      local skipWs(i) = if i < n && expr[i] == ' ' then skipWs(i + 1) else i;
+      local closeAt(i) = if i >= n || expr[i] == ')' then i else closeAt(i + 1);
+      local edit(op, p) =
+        local j = skipWs(p + std.length(op));
+        if j < n && expr[j] == '(' then [{ at: j, text: ' by (' + std.join(', ', rowLabels) + ') ' }]
+        else if std.substr(expr, j, 2) == 'by' && skipWs(j + 2) < n && expr[skipWs(j + 2)] == '(' then
+          local open = skipWs(j + 2);
+          local close = closeAt(open);
+          local have = [std.stripChars(x, ' ') for x in std.split(std.substr(expr, open + 1, close - open - 1), ',')];
+          local add = [l for l in rowLabels if !std.member(have, l)];
+          if std.length(add) > 0 then [{ at: close, text: ', ' + std.join(', ', add) }] else []
+        else [];
+      local edits = std.sort(std.flattenArrays([
+        edit(op, p)
+        for op in aggOps
+        for p in std.findSubstr(op, expr)
+        if p == 0 || std.findSubstr(expr[p - 1], wordChars) == []
+      ]), function(e) -e.at);
+      std.foldl(function(acc, e) std.substr(acc, 0, e.at) + e.text + std.substr(acc, e.at, std.length(acc) - e.at), edits, expr);
     local joined(expr) =
-      'label_join(' + limited(expr) + ', "' + rowField + '", "/", '
+      'label_join(' + limited(byRow(expr)) + ', "' + rowField + '", "/", '
       + std.join(', ', ['"' + l + '"' for l in rowLabels]) + ')';
     // label_join(<query>, "__row__", "/", "namespace", "pod")
     local rowTarget(key) =
