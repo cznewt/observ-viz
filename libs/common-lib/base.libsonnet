@@ -871,9 +871,9 @@ local appsTable(c) =
       local carry = '&${__url_time_range}&${datasource:queryparam}';
       local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all' + carry;
       local button(label, url) =
-        '<a href="' + url + '" style="display:inline-block; margin-right:6px; padding:0 12px; '
+        '<a href="' + url + '" style="display:inline-block; margin-right:8px; padding:10px 22px; '
         + 'border:1px solid rgba(128,128,140,0.45); border-radius:4px; background:rgba(128,128,140,0.12); '
-        + 'font-size:12px; font-weight:500; line-height:20px; text-decoration:none">' + label + '</a>';
+        + 'font-size:16px; font-weight:500; line-height:22px; text-decoration:none">' + label + '</a>';
       local clusterDrill =
         panel.text.new('')
         + panel.text.withTransparent(true)
