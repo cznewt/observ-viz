@@ -1,0 +1,1155 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A standalone Jsonnet library for generating Grafana dashboard schema v2 resources — slim core, lots of mixins.">
+      
+      
+      
+      
+        <link rel="prev" href="../api/">
+      
+      
+        <link rel="next" href="../libs/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Packs (mixins) - observ-viz</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#packs-mixins" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="observ-viz" class="md-header__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            observ-viz
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Packs (mixins)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="observ-viz" class="md-nav__button md-logo" aria-label="observ-viz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    observ-viz
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & justfiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packs (mixins)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Packs (mixins)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-board" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The board
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The board">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional sections
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a pack
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observ-libs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-libs reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../panels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chart types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference & scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backstage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backstage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples & local Grafana
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../render/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    observ-lib container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runbooks/node/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks (node)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-board" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The board
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The board">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional sections
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-pack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a pack
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="packs-mixins">Packs (mixins)<a class="headerlink" href="#packs-mixins" title="Permanent link">&para;</a></h1>
+<p>A <strong>pack</strong> is an observ-lib-style mixin built from signals. The <code>packs/</code> tree
+mirrors the <a href="https://github.com/cznewt/alloy-resources">alloy-resources</a>
+module catalog — one Alloy module ≈ one observ-viz pack.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">g</span><span class="p">.</span><span class="nv">packs</span><span class="p">.</span><span class="nv">system</span><span class="p">.</span><span class="nv">linux</span><span class="p">.</span><span class="nf">new</span><span class="p">({</span><span class="w"> </span><span class="nv">selector</span><span class="p">:</span><span class="w"> </span><span class="s">'job="node"'</span><span class="w"> </span><span class="p">})</span>
+</code></pre></div>
+<p>returns:</p>
+<div class="highlight"><pre><span></span><code>{
+  signals,                                  // the signal map
+  grafana: { elements, layout, dashboard, groups },
+  prometheus: { alerts },
+  asMonitoringMixin(),                      // { grafanaDashboards+, prometheusAlerts+ }
+}
+</code></pre></div>
+<p><code>new(config)</code> accepts <code>{ uid, dashboardTitle, dashboardTags, datasource,
+selector, varMetric }</code> and produces a self-contained dashboard (with
+<code>datasource</code> + <code>job</code> variables).</p>
+<p>Optional, on every pack built through <code>libs/common-lib/filters.libsonnet</code>:</p>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>varLabels</code></td>
+<td>cascading filter variables, e.g. <code>['namespace', 'pod']</code>; each one is a <code>label_values()</code> query scoped by <code>job</code> and the variables before it, and each is appended to the query selector</td>
+</tr>
+<tr>
+<td><code>legendLabels</code></td>
+<td>series legend built from labels, e.g. <code>['namespace', 'pod']</code> -&gt; <code>{{namespace}} / {{pod}}</code></td>
+</tr>
+<tr>
+<td><code>overviewSignals</code></td>
+<td>the signals a reference board shows as columns of its instances table</td>
+</tr>
+<tr>
+<td><code>description</code>, <code>references</code></td>
+<td>board description and reference links, shown on the Overview tab</td>
+</tr>
+<tr>
+<td><code>tabbed</code></td>
+<td>lay the board out as tabs (see the board spec below) instead of one row per signal group</td>
+</tr>
+<tr>
+<td><code>rowLabels</code>, <code>instanceLabel</code></td>
+<td>what one row of the instances table is, e.g. <code>['namespace', 'pod']</code></td>
+</tr>
+<tr>
+<td><code>folderPath</code></td>
+<td>where the board is filed, as an ancestor chain: <code>[{uid, title}, ...]</code> ending in the folder itself</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-board">The board<a class="headerlink" href="#the-board" title="Permanent link">&para;</a></h2>
+<p>A pack renders one board, and the same board everywhere, so a reader who knows
+one knows them all.</p>
+<p><strong>Header.</strong> <code>datasource</code> and <code>job</code> variables, then one cascading filter variable
+per <code>varLabels</code> entry - each a <code>label_values()</code> query scoped by <code>job</code> and the
+variables before it, and each appended to every query's selector.</p>
+<p><strong>Tabs</strong> (<code>config.tabbed</code>, the default for component packs):</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overview</td>
+<td>what the board is and its reference links side by side, then an instances table: one row per <code>rowLabels</code> identity, a column per <code>overviewSignals</code> entry, each an instant query joined on that identity. A signal group the pack itself calls "Overview" folds in below.</td>
+</tr>
+<tr>
+<td>one per signal group</td>
+<td>that group's signal table (name, unit, description, and the query as written, with the filter variables left as <code>...</code>), then the group's panels</td>
+</tr>
+<tr>
+<td>Runbooks</td>
+<td>the pack's alerting rules and their runbook links, when <code>docTabs</code> is on</td>
+</tr>
+</tbody>
+</table>
+<p>Without <code>tabbed</code> the same content is one <code>RowsLayout</code> row per signal group.</p>
+<h3 id="optional-sections">Optional sections<a class="headerlink" href="#optional-sections" title="Permanent link">&para;</a></h3>
+<p>Not every target has every exporter: a Kubernetes service has cAdvisor and
+kubelet series, the same service on a host has neither, and logs only exist
+where a logs datasource is wired up. Those sections are <strong>optional tabs</strong>, and a
+pack declares them next to its groups:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">pack</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="nv">cfg</span><span class="p">,</span><span class="w"> </span><span class="nv">signals</span><span class="p">,</span><span class="w"> </span><span class="nv">groups</span><span class="p">,</span><span class="w"> </span><span class="nv">alerts</span><span class="p">,</span><span class="w"> </span><span class="nv">rules</span><span class="p">,</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">title</span><span class="p">:</span><span class="w"> </span><span class="s">'Containers'</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">presence</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">label</span><span class="p">:</span><span class="w"> </span><span class="s">'pod'</span><span class="p">,</span><span class="w"> </span><span class="nv">query</span><span class="p">:</span><span class="w"> </span><span class="s">'container_cpu_usage_seconds_total{%(selector)s}'</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="nv">width</span><span class="p">:</span><span class="w"> </span><span class="mf">12</span><span class="p">,</span><span class="w"> </span><span class="nv">height</span><span class="p">:</span><span class="w"> </span><span class="mf">7</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">elements</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="p">])</span>
+</code></pre></div>
+<p>Each entry is gated one of three ways:</p>
+<ul>
+<li><strong><code>presence</code></strong> - the pack adds a hidden <code>has_&lt;tab&gt;</code> variable holding
+  <code>label_values(&lt;query&gt;, &lt;label&gt;)</code>, and the tab renders only when it is not
+  empty. Use this when the tab's own panels would look empty rather than absent
+  (a marker metric decides).</li>
+<li><strong>nothing</strong> - the tab gets <code>showIfData()</code>, Grafana's conditional rendering:
+  it appears only when its own queries return data.</li>
+<li><strong><code>alwaysShow: true</code></strong> - no gate.</li>
+</ul>
+<p>An entry carries either <code>elements</code> (one grid) or <code>groups</code> (rows inside the tab).
+<code>libs/service-observ-lib</code> is the worked example: one board per service with
+Kubernetes / Containers / Docker / systemd / Host process / Go runtime /
+Windows / Logs tabs, each gated this way, so the same pack covers a service in
+Kubernetes and the same service on a host.</p>
+<h2 id="analysis-methods">Analysis methods<a class="headerlink" href="#analysis-methods" title="Permanent link">&para;</a></h2>
+<p><code>libs/analysis-observ-lib</code> holds the methods that own no metrics and read
+someone else's. Each takes a <em>source profile</em>, so one board covers any
+instrumentation with the right shape:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Profile says</th>
+<th>Boards</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analysis.red</code></td>
+<td>request counter, how failures are marked, latency histogram, the dimension to group by</td>
+<td>OpenTelemetry HTTP, Prometheus client, ingress-nginx, Django, Grafana, API server, Tempo service graph</td>
+</tr>
+<tr>
+<td><code>analysis.use</code></td>
+<td>the four resources and how each is measured</td>
+<td>node_exporter, cAdvisor</td>
+</tr>
+<tr>
+<td><code>analysis.anomaly</code></td>
+<td>the series to watch</td>
+<td>process, requests</td>
+</tr>
+<tr>
+<td><code>analysis.golden</code></td>
+<td>the four signals and where each comes from</td>
+<td>Kubernetes API server, Linux node, ingress-nginx, container</td>
+</tr>
+<tr>
+<td><code>analysis.burnRate</code></td>
+<td>recorded burn-rate windows, or an availability and its objective</td>
+<td>Kubernetes API server (kubernetes-mixin rules), Pyrra</td>
+</tr>
+<tr>
+<td><code>analysis.capacity</code></td>
+<td>one quantity that shrinks, or used against total</td>
+<td>filesystems, free node memory, certificates; cluster and node CPU and memory, workload memory</td>
+</tr>
+</tbody>
+</table>
+<p>Golden signals is RED plus the one RED leaves out: saturation, the leading
+signal that latency and errors follow. Burn rate answers whether an SLO is
+worth waking someone for, with the Google SRE workbook's four
+multi-window pairs (14.4 / 6 / 3 / 1, each long window confirmed by a short
+one). Capacity answers two questions, chosen by the source's <code>kind</code>. An
+<code>exhaustion</code> source is one quantity that shrinks, and its "time left" carries a
+trailing <code>&gt; 0</code>, a filter rather than a comparison, so a quantity that is flat or
+growing drops out instead of reading as infinite. A <code>utilisation</code> source is used
+against total, and the board says how full it is, how full it was <code>past</code> ago and
+where the trend puts it in <code>ahead</code> - the capacity planning question, ported from
+the service catalog's capacity-mixin. That mixin's future column repeated the
+present rather than predicting it; here it is a <code>predict_linear</code> over the same
+window the alert uses.</p>
+<p>The same idea appears inside a pack where one thing reports two ways:
+<code>networking.kong</code> takes <code>implementation: 'prometheus' | 'prometheus2' |
+'opentelemetry'</code>. The signals are the same either way; the ones an
+implementation cannot answer (Kong's own shared dictionaries, its datastore,
+the gateway-versus-upstream latency split) are left out rather than left blank.</p>
+<p>RED and anomaly each have three entry points, because a service usually wants a
+fragment rather than a board of its own:</p>
+<div class="highlight"><pre><span></span><code><span class="k">local</span><span class="w"> </span><span class="nv">red</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">g</span><span class="p">.</span><span class="nv">libs</span><span class="p">.</span><span class="nv">analysis</span><span class="p">.</span><span class="nv">red</span><span class="p">;</span>
+<span class="k">local</span><span class="w"> </span><span class="nv">cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">source</span><span class="p">:</span><span class="w"> </span><span class="nv">g</span><span class="p">.</span><span class="nv">libs</span><span class="p">.</span><span class="nv">analysis</span><span class="p">.</span><span class="nv">sources</span><span class="p">.</span><span class="nv">red</span><span class="p">.</span><span class="nv">ingressNginx</span><span class="p">,</span><span class="w"> </span><span class="nv">service</span><span class="p">:</span><span class="w"> </span><span class="s">'ingress'</span><span class="p">,</span>
+<span class="w">              </span><span class="nv">ruleSelector</span><span class="p">:</span><span class="w"> </span><span class="s">'job=~".*ingress.*"'</span><span class="p">,</span><span class="w"> </span><span class="nv">errorRatio</span><span class="p">:</span><span class="w"> </span><span class="mf">0.02</span><span class="p">,</span><span class="w"> </span><span class="nv">latency</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="p">};</span>
+
+<span class="nv">red</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span><span class="w">                  </span><span class="c1">// a board: the three numbers, then a row per route</span>
+<span class="nv">red</span><span class="p">.</span><span class="nf">elements</span><span class="p">(</span><span class="nv">cfg</span><span class="p">,</span><span class="w"> </span><span class="s">'red_'</span><span class="p">)</span><span class="w">     </span><span class="c1">// a fragment: rate, errors, duration</span>
+<span class="nv">red</span><span class="p">.</span><span class="nf">alerts</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span><span class="w">               </span><span class="c1">// the rule group: failures, latency, traffic gone</span>
+</code></pre></div>
+<p>The board's per-route tab is one row repeated over the source's first dimension
+(<code>http_route</code>, <code>ingress</code>, <code>view</code>, ...), so selecting three routes in the
+variable gives three rows of the same three panels. <code>perRoute: false</code> drops it.</p>
+<p>The anomaly method takes the same shape:</p>
+<div class="highlight"><pre><span></span><code><span class="k">local</span><span class="w"> </span><span class="nv">anomaly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">g</span><span class="p">.</span><span class="nv">libs</span><span class="p">.</span><span class="nv">analysis</span><span class="p">.</span><span class="nv">anomaly</span><span class="p">;</span>
+<span class="k">local</span><span class="w"> </span><span class="nv">cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nv">service</span><span class="p">:</span><span class="w"> </span><span class="s">'redis'</span><span class="p">,</span>
+<span class="w">  </span><span class="nv">selector</span><span class="p">:</span><span class="w"> </span><span class="s">'namespace="global-monitor-redis"'</span><span class="p">,</span>
+<span class="w">  </span><span class="nv">ruleSelector</span><span class="p">:</span><span class="w"> </span><span class="s">'namespace="global-monitor-redis"'</span><span class="p">,</span><span class="w">   </span><span class="c1">// rules cannot use $vars</span>
+<span class="w">  </span><span class="nv">baseline</span><span class="p">:</span><span class="w"> </span><span class="s">'1d'</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="p">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nv">'for'</span><span class="p">:</span><span class="w"> </span><span class="s">'15m'</span><span class="p">,</span>
+<span class="w">  </span><span class="nv">series</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nv">key</span><span class="p">:</span><span class="w"> </span><span class="s">'clients'</span><span class="p">,</span><span class="w"> </span><span class="nv">title</span><span class="p">:</span><span class="w"> </span><span class="s">'Connected clients'</span><span class="p">,</span><span class="w"> </span><span class="nv">unit</span><span class="p">:</span><span class="w"> </span><span class="s">'short'</span><span class="p">,</span>
+<span class="w">             </span><span class="nv">expr</span><span class="p">:</span><span class="w"> </span><span class="s">'sum by (pod) (redis_connected_clients{%(queriesSelector)s})'</span><span class="w"> </span><span class="p">}],</span>
+<span class="p">};</span>
+
+<span class="nv">anomaly</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span><span class="w">                 </span><span class="c1">// a board: a tab per series</span>
+<span class="nv">anomaly</span><span class="p">.</span><span class="nf">elements</span><span class="p">(</span><span class="nv">cfg</span><span class="p">,</span><span class="w"> </span><span class="s">'anom_'</span><span class="p">)</span><span class="w">   </span><span class="c1">// a fragment: the element map for someone else's board</span>
+<span class="nv">anomaly</span><span class="p">.</span><span class="nf">alerts</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span><span class="w">              </span><span class="c1">// the rule group: one alert per series</span>
+</code></pre></div>
+<p>Each series is compared with its own past: the baseline is the rolling mean
+over <code>baseline</code>, the band is that mean plus or minus <code>z</code> standard deviations,
+and the alert fires when the z-score stays outside it for <code>for</code>. Nothing is
+compared with a fixed threshold, so the same config works for a service doing
+five requests a second and one doing five thousand.</p>
+<h2 id="catalog">Catalog<a class="headerlink" href="#catalog" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Packs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>databases.kv</code></td>
+<td><code>etcd</code>, <code>memcached</code>, <code>redis</code></td>
+</tr>
+<tr>
+<td><code>databases.sql</code></td>
+<td><code>mysql</code>, <code>postgres</code></td>
+</tr>
+<tr>
+<td><code>databases.timeseries</code></td>
+<td><code>loki</code>, <code>mimir</code>, <code>tempo</code>, <code>pyroscope</code> (the LGTM stack)</td>
+</tr>
+<tr>
+<td><code>collector</code></td>
+<td><code>alloy</code></td>
+</tr>
+<tr>
+<td><code>system</code></td>
+<td><code>linux</code> (node-exporter), <code>docker</code> (cAdvisor), <code>windows</code></td>
+</tr>
+<tr>
+<td><code>kubernetes</code></td>
+<td><code>pod</code>, <code>cadvisor</code></td>
+</tr>
+<tr>
+<td><code>runtimes</code></td>
+<td><code>golang</code>, <code>jvm</code>, <code>python</code>, <code>dotnet</code>, <code>nodejs</code></td>
+</tr>
+<tr>
+<td><code>infra</code></td>
+<td><code>prometheus</code></td>
+</tr>
+<tr>
+<td><em>cross-cutting</em></td>
+<td><code>alerts</code> (alerts-observ-lib), <code>logs</code> (logs-lib) — signals + annotations + reusable panels, built on common-lib</td>
+</tr>
+</tbody>
+</table>
+<h2 id="adding-a-pack">Adding a pack<a class="headerlink" href="#adding-a-pack" title="Permanent link">&para;</a></h2>
+<p>A pack is ~60 lines: define signals, group them, call <code>pack.build</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">local</span><span class="w"> </span><span class="nv">pack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="s">'packs/_pack.libsonnet'</span><span class="p">;</span>
+<span class="k">local</span><span class="w"> </span><span class="nv">signal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="w"> </span><span class="s">'signal/main.libsonnet'</span><span class="p">;</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nf">new</span><span class="p">(</span><span class="nv">config</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">    </span><span class="k">local</span><span class="w"> </span><span class="nv">cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">uid</span><span class="p">:</span><span class="w"> </span><span class="s">'observ-viz-foo'</span><span class="p">,</span><span class="w"> </span><span class="nv">dashboardTitle</span><span class="p">:</span><span class="w"> </span><span class="s">'Foo'</span><span class="p">,</span>
+<span class="w">                  </span><span class="nv">dashboardTags</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">'foo'</span><span class="p">],</span><span class="w"> </span><span class="nv">datasource</span><span class="p">:</span><span class="w"> </span><span class="s">'${datasource}'</span><span class="p">,</span>
+<span class="w">                  </span><span class="nv">selector</span><span class="p">:</span><span class="w"> </span><span class="s">'job=~"$job"'</span><span class="p">,</span><span class="w"> </span><span class="nv">varMetric</span><span class="p">:</span><span class="w"> </span><span class="s">'foo_up'</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nv">config</span><span class="p">;</span>
+<span class="w">    </span><span class="k">local</span><span class="w"> </span><span class="nf">sig</span><span class="p">(</span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="nv">expr</span><span class="p">,</span><span class="w"> </span><span class="nv">unit</span><span class="p">)</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="nv">signal</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="s">'prometheus'</span><span class="p">,</span><span class="w"> </span><span class="nv">cfg</span><span class="p">.</span><span class="nv">datasource</span><span class="p">,</span><span class="w"> </span><span class="nv">expr</span><span class="p">,</span><span class="w"> </span><span class="nv">unit</span><span class="p">).</span><span class="nf">filteringSelector</span><span class="p">(</span><span class="nv">cfg</span><span class="p">.</span><span class="nv">selector</span><span class="p">);</span>
+<span class="w">    </span><span class="k">local</span><span class="w"> </span><span class="nv">signals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nv">qps</span><span class="p">:</span><span class="w"> </span><span class="nf">sig</span><span class="p">(</span><span class="s">'Requests'</span><span class="p">,</span><span class="w"> </span><span class="s">'sum(rate(foo_requests_total{%(queriesSelector)s}[$__rate_interval]))'</span><span class="p">,</span><span class="w"> </span><span class="s">'reqps'</span><span class="p">),</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="w">    </span><span class="nv">pack</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="nv">cfg</span><span class="p">,</span><span class="w"> </span><span class="nv">signals</span><span class="p">,</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nv">title</span><span class="p">:</span><span class="w"> </span><span class="s">'Traffic'</span><span class="p">,</span><span class="w"> </span><span class="nv">width</span><span class="p">:</span><span class="w"> </span><span class="mf">12</span><span class="p">,</span><span class="w"> </span><span class="nv">height</span><span class="p">:</span><span class="w"> </span><span class="mf">8</span><span class="p">,</span><span class="w"> </span><span class="nv">elements</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nv">qps</span><span class="p">:</span><span class="w"> </span><span class="nv">signals</span><span class="p">.</span><span class="nv">qps</span><span class="p">.</span><span class="nf">asTimeSeries</span><span class="p">(</span><span class="s">'Requests/s'</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">]),</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Generic <code>g.query.base(kind, spec)</code> means a pack can target any datasource, and
+<code>g.panel.base(kind, title)</code> any panel — no library change needed.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
