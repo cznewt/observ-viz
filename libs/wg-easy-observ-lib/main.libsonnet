@@ -28,6 +28,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varMetric: 'wireguard_configured_peers',
       varLabels: ['cluster', 'instance'],
       ruleSelector: '',
+      // WireguardPeerHandshakeStale only for peers matching this (e.g. always-on
+      // servers, not laptops and phones); '' = every peer
+      stalePeerSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -122,7 +125,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       alert.rule.group('wg-easy', [
         alert.rule.new(
           'WireguardPeerHandshakeStale',
-          'wireguard_latest_handshake_seconds' + rsBrace + ' > 600',
+          local sel = std.join(', ', std.filter(function(x) x != '', [cfg.ruleSelector, cfg.stalePeerSelector]));
+          'wireguard_latest_handshake_seconds' + (if sel != '' then '{' + sel + '}' else '') + ' > 600',
           '10m',
           'warning',
           {},

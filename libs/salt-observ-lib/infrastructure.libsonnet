@@ -30,6 +30,9 @@ local jobsPack = import 'libs/salt-observ-lib/main.libsonnet';
       lokiDatasource: true,  // the Jobs tab's events panel reads ${loki_datasource}
       primaryTabTitle: 'Minions',
       ruleSelector: '',
+      // SaltMinionOffline only for minions matching this (e.g. 'id!~".*-roam-.*"' to
+      // skip laptops that are simply switched off); '' = every minion
+      offlineSelector: '',
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       links: [
         { title: 'Job view (states / return / trace)', type: 'link', icon: 'doc', url: '/d/salt-job-view', keepTime: true, targetBlank: false, asDropdown: false, includeVars: false, tooltip: 'Per-job drill-down: states, full return, Tempo trace', tags: [] },
@@ -129,7 +132,8 @@ local jobsPack = import 'libs/salt-observ-lib/main.libsonnet';
       alert.rule.group('salt-infrastructure', [
         alert.rule.new(
           'SaltMinionOffline',
-          'max by (cluster, id) (salt_minion_online' + rsBrace + ') == 0',
+          local sel = std.join(', ', std.filter(function(x) x != '', [cfg.ruleSelector, cfg.offlineSelector]));
+          'max by (cluster, id) (salt_minion_online' + (if sel != '' then '{' + sel + '}' else '') + ') == 0',
           '30m',
           'warning',
           {},

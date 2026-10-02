@@ -22,6 +22,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varLabels: ['namespace'],  // $namespace dropdown (label_values scoped by $job)
       // static label filter for the alerting/recording rules (no dashboard vars).
       ruleSelector: '',
+      // ContainerHighMemory: containers WITHOUT a memory limit above this many bytes
+      // (limited containers are KubePodMemoryNearLimit's job)
+      unlimitedMemoryBytes: 4e9,
       docTabs: true,  // add Signals + Runbooks reference tabs (built from this pack)
       // deploy target: Components / Kubernetes (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
@@ -135,11 +138,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         ),
         alert.rule.new(
           'ContainerHighMemory',
-          'sum by (pod, container) (container_memory_working_set_bytes{container!=""' + rsComma + '}) > 1e9',
+          '(sum by (cluster, namespace, pod, container) (container_memory_working_set_bytes{container!=""' + rsComma + '}) > ' + cfg.unlimitedMemoryBytes + ') unless on (namespace, pod, container) (max by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory"}) > 0)',
           '15m',
           'warning',
           {},
-          { summary: 'Container memory working set on pod {{ $labels.pod }} is above 1GB.' }
+          { summary: 'Container {{ $labels.container }} in {{ $labels.namespace }}/{{ $labels.pod }} has no memory limit and uses {{ $value | humanize1024 }}B.' }
         ),
         alert.rule.new(
           'ContainerHighCpu',
