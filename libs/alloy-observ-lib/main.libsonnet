@@ -3,7 +3,9 @@
 // elements. Usage:
 //   g.libs.collector.alloy.new({ selector: 'job="alloy"' }).grafana.dashboard
 //   g.libs.collector.alloy.new({...}).grafana.elements   // reuse in a board
+local dashboard = import 'custom/dashboard.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
@@ -56,7 +58,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       uptime: sig('Uptime', 'time() - alloy_resources_process_start_time_seconds{%(queriesSelector)s}', 's', desc='Time since the Alloy process started.'),
     };
 
-    pack.build(cfg, signals, [
+    // one marker per process at the moment it started (restart, rollout, OOM kill)
+    local annList = [
+      annotations.restart.newAt('Alloy starts', annotations.base.target(cfg.datasource, '1000 * max by (cluster, job, instance, namespace, pod) (alloy_resources_process_start_time_seconds{' + cfg.selector + '})'), ['job', 'instance'], '{{instance}} started'),
+    ];
+
+    local built = pack.build(cfg, signals, [
       {
         title: 'Components',
         width: 6,
@@ -130,5 +137,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         alert.rule.record('instance:alloy_cpu_usage:rate5m', 'rate(alloy_resources_process_cpu_seconds_total' + rsBrace + '[5m])'),
         alert.rule.record('instance:alloy_samples_appended:rate5m', 'rate(prometheus_remote_write_wal_samples_appended_total' + rsBrace + '[5m])'),
       ]),
-    ]),
+    ]);
+    built {
+      grafana+: { dashboard: super.dashboard + dashboard.withAnnotationsMixin(annList) },
+    },
 }

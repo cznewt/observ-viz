@@ -2,7 +2,9 @@
 // Grafana Mimir self-monitoring. Mimir exposes cortex_* metrics. Usage:
 //   g.libs.lgtm.mimir.new({ selector: 'job="mimir"' }).grafana.dashboard
 //   g.libs.lgtm.mimir.new({...}).grafana.elements   // reuse in a board
+local dashboard = import 'custom/dashboard.libsonnet';
 local alert = import 'libs/common-lib/alert/main.libsonnet';
+local annotations = import 'libs/common-lib/annotations/main.libsonnet';
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
 
@@ -47,7 +49,12 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the Mimir process.'),
     };
 
-    pack.build(cfg, signals, [
+    // one marker per process at the moment it started (restart, rollout, OOM kill)
+    local annList = [
+      annotations.restart.newAt('Mimir starts', annotations.restart.processStart(cfg.datasource, cfg.selector), ['job', 'instance'], '{{instance}} started'),
+    ];
+
+    local built = pack.build(cfg, signals, [
       {
         title: 'Writes',
         width: 12,
@@ -117,5 +124,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         alert.rule.record('instance:cortex_received_samples:rate5m', 'sum(rate(cortex_distributor_received_samples_total' + rsBrace + '[5m]))'),
         alert.rule.record('instance:cortex_queries:rate5m', 'sum(rate(cortex_query_frontend_queries_total' + rsBrace + '[5m]))'),
       ]),
-    ]),
+    ]);
+    built {
+      grafana+: { dashboard: super.dashboard + dashboard.withAnnotationsMixin(annList) },
+    },
 }
