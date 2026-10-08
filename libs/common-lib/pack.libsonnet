@@ -36,7 +36,8 @@ local variable =
       // flatten every group's (and optional/doc tab's) elements into one elements map.
       // a tab either holds one grid (`elements`) or rows of grids (`groups`).
       local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,
-      local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList, {}),
+      local overviewExtra = if std.objectHas(config, 'overviewExtraGroups') then config.overviewExtraGroups else [],
+      local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList + overviewExtra, {}),
       // `config.tabbed` swaps the rows layout for the shared tabbed board:
       // an Overview tab (description, references, instances table) and one tab
       // per signal group, each opening with that group's signal table.

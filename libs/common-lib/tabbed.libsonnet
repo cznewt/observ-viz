@@ -22,6 +22,8 @@ local grid = import 'custom/util/grid.libsonnet';
     local opt(key, default) = if std.objectHas(cfg, key) then cfg[key] else default;
 
     local showInstances = opt('overviewInstances', true);
+    // config.overviewExtraGroups: more rows at the bottom of the Overview tab,
+    // [{ title, width, height, elements }] (a composer's cross-cutting panels).
     local cap(s) = std.asciiUpper(std.substr(s, 0, 1)) + std.substr(s, 1, std.length(s));
     local slug(s) = std.asciiLower(std.strReplace(std.strReplace(s, ' ', '_'), '-', '_'));
     // escape table-breaking pipes (PromQL regex uses |).
@@ -269,7 +271,9 @@ local grid = import 'custom/util/grid.libsonnet';
             layout.grid.item('__about', 0, 0, 12, 7),
             layout.grid.item('__references', 12, 0, 12, 7),
           ] + (if showInstances then [layout.grid.item('__instances', 0, 7, 24, 10)] else [])),
-        ] + (if std.length(ownOverview) > 0 then groupRows(ownOverview[0]) else []))
+        ] + (if std.length(ownOverview) > 0 then groupRows(ownOverview[0]) else [])
+          + [layout.rows.row(grp.title, layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)))
+             for grp in opt('overviewExtraGroups', [])])
       );
     // a group may repeat itself per value of a variable (`grp.repeat`): the
     // signal table stays put and the panels come back once per value.

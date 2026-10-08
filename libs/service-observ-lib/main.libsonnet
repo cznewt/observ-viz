@@ -237,6 +237,12 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       win_uptime: hsig('Process uptime', 'time() - min by (instance) (windows_process_start_time{process=~"' + wproc + '", %(queriesSelector)s})', 's', desc='Time since the oldest matching Windows process started.'),
       // ===== Logs (Loki) =====
       logs_pod: lsig('Pod logs', 'cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"', desc='Log lines of the selected pods, from Loki.'),
+      logs_volume: signal.new('Log lines by level', 'loki', '${loki_datasource}', 'sum by (detected_level) (count_over_time({%(queriesSelector)s} [$__auto]))', 'short')
+                   .filteringSelector('cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"').withLegendFormat('{{detected_level}}')
+                   .withDescription('Log lines of the selected pods per interval, by the level Loki detects. A jump in error or warn lines is often the first sign of trouble.'),
+      logs_errors: signal.new('Error lines by pod', 'loki', '${loki_datasource}', 'sum by (pod) (count_over_time({%(queriesSelector)s} | detected_level=~"error|fatal|critical" [$__auto]))', 'short')
+                   .filteringSelector('cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"').withLegendFormat('{{pod}}')
+                   .withDescription('Error, fatal and critical log lines per pod and interval. One pod far above the others points at that pod, all of them at the service.'),
       logs_journal: lsig('Journal', 'instance=~"$host", unit=~"' + unit + '"', desc='Journal lines of the systemd unit on the selected hosts, from Loki.'),
     };
 
@@ -292,19 +298,20 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local platformAlerts = if cfg.platformRules then std.flattenArrays([rename(p.alerts) for p in platformPacks]) else [];
     local platformRules = if cfg.platformRules then std.flattenArrays([rename(p.rules) for p in platformPacks]) else [];
 
-    // ----- annotations (viewer toggles): firing alerts by severity on; starts,
-    // restarts and rollouts off until wanted; kubernetes events -----
+    // ----- annotations (viewer toggles): firing alerts by severity, pod starts,
+    // container restarts, rollouts and warning events on; process, container
+    // and service starts off until wanted -----
     local annList = annotations.alert.bySeverity(cfg.datasource, cfg.selector) + [
       // exact start times: the process, the pod (with its node), its containers
       annotations.restart.newAt('Process starts', annotations.restart.processStart(cfg.datasource, cfg.selector), ['instance', 'pod'], '{{job}} {{instance}} started')
       + annotations.base.asToggle(false),
       annotations.restart.newAt('Pod starts', annotations.restart.kubePodStart(cfg.datasource, cfg.kubeSelector), ['namespace', 'node'], '{{pod}} started on {{node}}')
-      + annotations.base.asToggle(false),
+      + annotations.base.asToggle(true),
       annotations.restart.newAt('Container starts', annotations.restart.kubeContainerStart(cfg.datasource, cfg.kubeSelector), ['namespace', 'pod'], '{{pod}} / {{container}} started')
       + annotations.base.asToggle(false),
       annotations.restart.new('Container restarts', annotations.restart.kubeContainer(cfg.datasource, cfg.kubeSelector), ['pod', 'container'])
       + annotations.base.withTitleFormat('{{pod}} / {{container}} restarted')
-      + annotations.base.asToggle(false),
+      + annotations.base.asToggle(true),
       // the systemd unit went active on a host (start, restart, host back up)
       annotations.restart.new('Service starts', annotations.restart.systemdUnitActivated(cfg.datasource, cfg.hostSelector + ', name=~"' + unit + '"'), ['instance', 'name'])
       + annotations.base.withTitleFormat('{{name}} started on {{instance}}')
@@ -566,7 +573,28 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       + variable.query.withLabelValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,
     ];
 
-    local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs };
+    // the Overview tab ends with the log volume, so a glance shows whether the
+    // service is getting noisier.
+    local logLevelColors = { critical: 'dark-red', fatal: 'dark-red', 'error': 'red', warn: 'orange', info: 'green', debug: 'blue', unknown: 'text' };
+    local logsOverview = if cfg.logs then [{
+      title: 'Logs',
+      width: 12,
+      height: 7,
+      elements: {
+        o91_logs_volume: signals.logs_volume.asTimeSeries()
+                         + panel.timeSeries.standardOptions.withMin(0)
+                         + panel.timeSeries.custom.withDrawStyle('bars')
+                         + panel.timeSeries.custom.withFillOpacity(60)
+                         + panel.timeSeries.custom.stacking.withMode('normal')
+                         + panel.timeSeries.standardOptions.withOverrides([
+                           { matcher: { id: 'byName', options: level }, properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: color } }] }
+                           for level in std.objectFields(logLevelColors)
+                           for color in [logLevelColors[level]]
+                         ]),
+        o92_logs_errors: signals.logs_errors.asTimeSeries(),
+      },
+    }] else [];
+    local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs, overviewExtraGroups: logsOverview };
     local built = pack.build(pcfg, wb.signals + signals + platformSignals, wb.grafana.groups, wb.prometheus.alerts + platformAlerts, wb.prometheus.rules + platformRules, tabs);
     built {
       whitebox: wb,
