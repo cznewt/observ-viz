@@ -34,6 +34,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       varMulti: false,
       podBoardUid: 'observ-viz-kube-pod',  // per-row drill target
       ruleSelector: '',  // static label filter for the alerting/recording rules
+      nodesMissingSelector: '',  // nodes KubeNodesMissing counts, e.g. 'node=~".*worker.*"'
+      nodesMissingRatio: 0.75,  // KubeNodesMissing fires below this share of the nodes seen 1-2h ago
       docTabs: true,
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
@@ -106,7 +108,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       ]),
     ];
 
-    // ---- alerts (kubernetes-mixin kubernetes-apps / resources subset) ----
+    // ---- alerts (kubernetes-mixin kubernetes-apps / resources subset, plus node health) ----
+    local pressure = 'kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure", status="true"' + rsComma + '}';
+    local nodeSel = std.join(', ', std.filter(function(x) x != '', [cfg.nodesMissingSelector, cfg.ruleSelector]));
+    local nodeCount = 'count by (cluster) (group by (cluster, node) (kube_node_info' + (if nodeSel != '' then '{' + nodeSel + '}' else '') + '))';
+    local nodeBaseline = 'max_over_time(' + nodeCount + '[1h:5m] offset 1h)';
     local alerts = [
       alert.rule.group('kubernetes-apps', [
         alert.rule.new('KubePodCrashLooping',
@@ -157,6 +163,26 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
                        'warning',
                        {},
                        { summary: 'PersistentVolume is filling up.', description: 'PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is expected to fill up within four days.' }),
+      ]),
+      alert.rule.group('kubernetes-nodes', [
+        alert.rule.new('KubeNodePressure',
+                       'sum by (cluster, node, condition) (' + pressure + ') > 0 and on (cluster, node) sum by (cluster, node) (kube_node_spec_unschedulable' + rsBrace + ') == 0',
+                       '5m',
+                       'warning',
+                       {},
+                       { summary: 'Node is under resource pressure.', description: '{{ $labels.node }} reports {{ $labels.condition }}.' }),
+        alert.rule.new('KubeClusterPressure',
+                       'count by (cluster, condition) (sum by (cluster, node, condition) (' + pressure + ') > 0) > 1',
+                       '5m',
+                       'critical',
+                       {},
+                       { summary: 'Several nodes are under the same resource pressure.', description: '{{ $value }} nodes in {{ $labels.cluster }} report {{ $labels.condition }}.' }),
+        alert.rule.new('KubeNodesMissing',
+                       '(' + nodeCount + ' or ' + nodeBaseline + ' * 0) / ' + nodeBaseline + ' < ' + cfg.nodesMissingRatio,
+                       '5m',
+                       'critical',
+                       {},
+                       { summary: 'Nodes have left the cluster.', description: '{{ $labels.cluster }} has {{ $value | humanizePercentage }} of the nodes it had 1-2 hours ago.' }),
       ]),
     ];
 
@@ -313,6 +339,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           ovCpuAlloc: numStat('CPU allocatable', 'sum(kube_node_status_allocatable{resource="cpu", ' + s + '})', 'short'),
           ovCpuCommit: pctStat('CPU requests commitment', '100 * sum(namespace_cpu:kube_pod_container_resource_requests:sum{' + s + '}) / sum(kube_node_status_allocatable{resource="cpu", ' + s + '})'),
           ovMemCommit: pctStat('Memory requests commitment', '100 * sum(namespace_memory:kube_pod_container_resource_requests:sum{' + s + '}) / sum(kube_node_status_allocatable{resource="memory", ' + s + '})'),
+          // utilisation, on a second row (elements lay out in key order)
+          ovUtilCpu: pctStat('CPU utilisation', '100 * sum(rate(container_cpu_usage_seconds_total{container!="", container!="POD", ' + s + '}[$__rate_interval])) / sum(kube_node_status_allocatable{resource="cpu", ' + s + '})'),
+          ovUtilLoad: pctStat('Load per core', '100 * sum(node_load5{' + s + '}) / count(node_cpu_seconds_total{mode="idle", ' + s + '})'),
+          ovUtilMem: pctStat('Memory utilisation', '100 * sum(container_memory_working_set_bytes{container!="", container!="POD", ' + s + '}) / sum(kube_node_status_allocatable{resource="memory", ' + s + '})'),
+          ovUtilRootFs: pctStat('Root filesystem usage', '100 * (1 - sum(node_filesystem_avail_bytes{mountpoint="/", fstype!="", ' + s + '}) / sum(node_filesystem_size_bytes{mountpoint="/", fstype!="", ' + s + '}))'),
         },
       },
       { title: 'Namespaces', width: 24, height: 10, elements: { namespaces: namespacesTable } },

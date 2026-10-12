@@ -16,7 +16,7 @@ OUTDIR = os.path.join(ROOT, "docs", "observ-libs")
 GROUPS = {
     "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.process", "runtimes.nodejs", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam"],
     "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter", "system.proxmox"],
-    "Kubernetes": ["kubernetes.pod", "kubernetes.cadvisor", "kubernetes.coredns", "kubernetes.certManager"],
+    "Kubernetes": ["kubernetes.cluster", "kubernetes.pod", "kubernetes.cadvisor", "kubernetes.coredns", "kubernetes.certManager"],
     "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd", "databases.document.mongodb", "databases.search.elasticsearch"],
     "Monitoring": ["monitoring.kubeStateMetrics", "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter", "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter"],
     "Collector": ["collector.alloy"],
