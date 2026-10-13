@@ -36,7 +36,7 @@ the v2 builder. Reach them at `g.libs.<group>.<name>`.
 | `g.libs.…` | Dashboard | Signals | Panels |
 |---|---|---|---|
 | `kubernetes.pod` | Kubernetes pod | 29 | 47 |
-| `kubernetes.cadvisor` | Container resources | 24 | 32 |
+| `kubernetes.cadvisor` | Container resources | 28 | 32 |
 
 ## Databases
 

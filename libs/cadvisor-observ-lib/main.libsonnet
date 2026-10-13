@@ -29,6 +29,9 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // deploy target: Components / Kubernetes (nested Grafana folders; loader creates both).
       // the shared tabbed board: Overview + a tab per signal group
       tabbed: true,
+      // the Overview's instances table: one row per node, so its columns are
+      // node totals (the ov_ signals) rather than the per-container signals
+      overviewSignals: ['ov_containers', 'ov_cpu', 'ov_throttled', 'ov_memory'],
       folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
     } + config;
     local rsBrace = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -67,6 +70,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       // --- Disk detail ---
       diskReadIops: sig('Disk read IOPS', 'sum by (pod)(rate(container_fs_reads_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', desc='Read operations per pod per second.'),
       diskWriteIops: sig('Disk write IOPS', 'sum by (pod)(rate(container_fs_writes_total{%(queriesSelector)s}[$__rate_interval]))', 'iops', desc='Write operations per pod per second.'),
+      // --- Overview: plain aggregations, which the instances table groups by instance ---
+      ov_containers: sig('Containers', 'count(container_memory_working_set_bytes{%(queriesSelector)s,container!=""})', 'short', desc='Containers running on the node.'),
+      ov_cpu: sig('CPU usage', 'sum(rate(container_cpu_usage_seconds_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'short', desc='CPU cores used by all containers on the node.'),
+      ov_throttled: sig('CPU throttled ratio', 'sum(rate(container_cpu_cfs_throttled_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval])) / sum(rate(container_cpu_cfs_periods_total{%(queriesSelector)s,container!=""}[$__rate_interval]))', 'percentunit', desc='Share of CFS periods, across the CPU-limited containers on the node, in which a container was throttled.'),
+      ov_memory: sig('Memory working set', 'sum(container_memory_working_set_bytes{%(queriesSelector)s,container!=""})', 'bytes', desc='Working-set memory of all containers on the node.'),
     };
 
     pack.build(cfg, signals, [

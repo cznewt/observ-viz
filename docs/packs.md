@@ -29,7 +29,7 @@ Optional, on every pack built through `libs/common-lib/filters.libsonnet`:
 | --- | --- |
 | `varLabels` | cascading filter variables, e.g. `['namespace', 'pod']`; each one is a `label_values()` query scoped by `job` and the variables before it, and each is appended to the query selector |
 | `legendLabels` | series legend built from labels, e.g. `['namespace', 'pod']` -> `{{namespace}} / {{pod}}` |
-| `overviewSignals` | the signals a reference board shows as columns of its instances table |
+| `overviewSignals` | the signals a reference board shows as columns of its instances table. Each must return one series per row, so write them as plain aggregations (`sum(...)`, which the table groups by the row labels); a signal grouped by finer labels (`by (pod)`, `by (code)`) shows one of its series per row. `kubernetes.cadvisor`'s `ov_` signals are the pattern, and `tests/packs.py` checks it |
 | `description`, `references` | board description and reference links, shown on the Overview tab |
 | `tabbed` | lay the board out as tabs (see the board spec below) instead of one row per signal group |
 | `rowLabels`, `instanceLabel` | what one row of the instances table is, e.g. `['namespace', 'pod']` |
