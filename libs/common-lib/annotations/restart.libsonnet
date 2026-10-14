@@ -8,7 +8,7 @@ local sel(selector) = if selector != '' then '{' + selector + '}' else '';
 base {
   new(title, target, instanceLabels=[]):
     super.new(title, target)
-    + { spec+: { iconColor: colors.palette.warning, hide: false } }
+    + { spec+: { iconColor: colors.annotation.restart, hide: false } }
     + base.withTagKeys(instanceLabels),
 
   // any Prometheus client library: its start time moved.
@@ -39,6 +39,7 @@ base {
   // at the moment it started, not at the step that noticed it. Use newAt().
   newAt(title, target, instanceLabels=[], titleFormat='')::
     self.new(title, target, instanceLabels)
+    + { spec+: { iconColor: colors.annotation.start } }
     + base.withValueForTime(true)
     + (if titleFormat != '' then base.withTitleFormat(titleFormat) else {}),
   // kube-state-metrics: a pod was created and started, with the node it runs on.

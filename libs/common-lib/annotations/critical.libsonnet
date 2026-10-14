@@ -4,5 +4,5 @@ local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 base {
   new(title, target):
     super.new(title, target)
-    + { spec+: { iconColor: colors.palette.critical } },
+    + { spec+: { iconColor: colors.annotation.critical } },
 }

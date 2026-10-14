@@ -5,6 +5,6 @@ local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 base {
   new(title, target, instanceLabels=[]):
     super.new(title, target)
-    + { spec+: { iconColor: colors.palette.warning, hide: true, legacyOptions+: { useValueForTime: true } } }
+    + { spec+: { iconColor: colors.annotation.restart, hide: true, legacyOptions+: { useValueForTime: true } } }
     + base.withTagKeys(instanceLabels),
 }

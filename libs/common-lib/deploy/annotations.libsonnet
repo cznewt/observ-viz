@@ -3,6 +3,7 @@
 // query is a DataQuery wrapper { kind:'DataQuery', group:<ds>, datasource:{name} }.
 local annotation = import 'custom/annotation.libsonnet';
 
+local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 local promAnnotation(title, datasource, expr, iconColor) =
   annotation.new(title)
   + {
@@ -22,9 +23,9 @@ local promAnnotation(title, datasource, expr, iconColor) =
 {
   // deploys: marks process restarts (a common deploy proxy).
   deploys(datasource='${datasource}', selector='', title='Deploys'):
-    promAnnotation(title, datasource, 'changes(process_start_time_seconds{' + selector + '}[$__interval]) > 0', 'green'),
+    promAnnotation(title, datasource, 'changes(process_start_time_seconds{' + selector + '}[$__interval]) > 0', colors.annotation.change),
 
   // versionChanges: marks build/version label changes from a *_build_info metric.
   versionChanges(datasource='${datasource}', metric='build_info', selector='', title='Version changes'):
-    promAnnotation(title, datasource, 'changes(' + metric + '{' + selector + '}[$__interval]) > 0', 'blue'),
+    promAnnotation(title, datasource, 'changes(' + metric + '{' + selector + '}[$__interval]) > 0', colors.annotation.change),
 }

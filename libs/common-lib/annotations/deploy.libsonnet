@@ -9,7 +9,7 @@ local sel(selector) = if selector != '' then '{' + selector + '}' else '';
 base {
   new(title, target, instanceLabels=[]):
     super.new(title, target)
-    + { spec+: { iconColor: colors.palette.info, hide: false } }
+    + { spec+: { iconColor: colors.annotation.change, hide: false } }
     + base.withTagKeys(instanceLabels),
 
   // kube-state-metrics: the controller observed a new spec.

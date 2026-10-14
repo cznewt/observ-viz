@@ -43,6 +43,7 @@
 // Ready presets: g.libs.services.{alloy,grafana,mimir}.
 local pack = import 'libs/common-lib/pack.libsonnet';
 local signal = import 'libs/common-lib/signal/main.libsonnet';
+local colors = import 'libs/common-lib/tokens/colors.libsonnet';
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
 local panel = import 'custom/panel.libsonnet';
 local query = import 'custom/query.libsonnet';
@@ -315,12 +316,13 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       // the systemd unit went active on a host (start, restart, host back up)
       annotations.restart.new('Service starts', annotations.restart.systemdUnitActivated(cfg.datasource, cfg.hostSelector + ', name=~"' + unit + '"'), ['instance', 'name'])
       + annotations.base.withTitleFormat('{{name}} started on {{instance}}')
+      + { spec+: { iconColor: colors.annotation.start } }
       + annotations.base.asToggle(false),
       // rollouts: the controller observed a new spec for this workload
       annotations.deploy.new('Deploys', annotations.deploy.kubeDeployment(cfg.datasource, cfg.workloadSelector + ', deployment=~"' + cfg.kubernetes.workload + '"'), ['deployment']),
     ] + (if cfg.logs then [
            annotations.warning.new('Kube events (warning)', annotations.base.target('${loki_datasource}', kubeEvents(', level="Warning"'), 'loki')),
-           annotations.info.new('Kube events (all)', annotations.base.target('${loki_datasource}', kubeEvents(''), 'loki')) + { spec+: { enable: false } },
+           annotations.info.new('Kube events (all)', annotations.base.target('${loki_datasource}', kubeEvents(''), 'loki')) + { spec+: { enable: false, iconColor: colors.annotation.event } },
          ] else []);
 
     // ----- optional tabs (each gated on a presence marker) -----
