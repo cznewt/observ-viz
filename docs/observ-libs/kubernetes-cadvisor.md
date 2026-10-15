@@ -1,6 +1,6 @@
 # Container resources  (`g.libs.kubernetes.cadvisor`)
 
-Dashboard uid `observ-viz-cadvisor` · 24 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-cadvisor` · 28 signals · 4 alerts · 2 recording rules.
 
 ## Signals
 
@@ -31,6 +31,10 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `netTxErrors` | pps | `sum by (pod)(rate(container_network_transmit_errors_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
 | `netTxPackets` | pps | `sum by (pod)(rate(container_network_transmit_packets_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
 | `oomEvents` | short | `sum by (pod)(rate(container_oom_events_total{namespace=~"$namespace"}[$__rate_interval]))` | — |
+| `ov_containers` | short | `count(container_memory_working_set_bytes{namespace=~"$namespace",container!=""})` | — |
+| `ov_cpu` | short | `sum(rate(container_cpu_usage_seconds_total{namespace=~"$namespace",container!=""}[$__rate_interval]))` | — |
+| `ov_memory` | bytes | `sum(container_memory_working_set_bytes{namespace=~"$namespace",container!=""})` | — |
+| `ov_throttled` | percentunit | `sum(rate(container_cpu_cfs_throttled_periods_total{namespace=~"$namespace",container!=""}[$__rate_interval])) / sum(rate(container_cpu_cfs_periods_total{namespace=~"$namespace",container!=""}[$__rate_interval]))` | — |
 | `specMemLimit` | bytes | `sum by (pod,container)(container_spec_memory_limit_bytes{namespace=~"$namespace",container!=""})` | — |
 
 ## Dashboard

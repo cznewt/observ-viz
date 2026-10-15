@@ -1,7 +1,13 @@
 // observ-viz service composer (hand-written).
-// One board for "a service, wherever it runs": the service's own (whitebox)
-// observ-lib in front, then platform tabs that appear only where that
-// platform's metrics exist —
+// One board for "a service, wherever it runs". The Overview tab opens on the
+// generic picture every service shares: a Pods table (one row per pod: node,
+// phase, ready / total containers, restarts, age, CPU, memory and memory vs
+// limit), a Resources row (CPU and memory vs requests / limits, network, disk
+// IO) and the Logs rows (lines by level, error lines by pod, the pod log
+// lines) - each only where the Kubernetes / Containers markers have values -
+// then the service's own (whitebox) instances table and Overview group. Then
+// the whitebox's signal-group tabs, then platform tabs that appear only where
+// that platform's metrics exist —
 //   Kubernetes    kube-state-metrics pod/workload status vs. requests/limits
 //   Containers    cAdvisor per-container resources (kube)
 //   Docker        cAdvisor containers on a docker host (system.docker elements)
@@ -147,7 +153,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       dashboardTitle: def('dashboardTitle', cap(app)),
       primaryTabTitle: def('primaryTabTitle', cap(app)),
       dashboardTags: def('dashboardTags', ['service', app, 'app-level']),
-      description: def('description', cap(app) + ' as a service, wherever it runs: its own metrics first, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.'),
+      description: def('description', cap(app) + ' as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.'),
       // per-platform identity of this service (regexes, PromQL-anchored).
       kubernetes: plat('kubernetes', { enabled: true, workload: app + '.*' }),
       // ingress-nginx labels its series with the backend Service name.
@@ -221,6 +227,13 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       kube_dsDesired: wsig('DaemonSet desired', 'kube_daemonset_status_desired_number_scheduled{%(queriesSelector)s, daemonset=~"' + wl + '"}', 'short', '{{daemonset}} desired', desc='Nodes that should run the DaemonSet pod (dashed) versus nodes where it is ready.'),
       kube_dsReady: wsig('DaemonSet ready', 'kube_daemonset_status_number_ready{%(queriesSelector)s, daemonset=~"' + wl + '"}', 'short', '{{daemonset}} ready', desc='Nodes where the DaemonSet pod is ready.'),
       kube_pvcUsage: wsig('PVC usage', 'kubelet_volume_stats_used_bytes{%(queriesSelector)s} / kubelet_volume_stats_capacity_bytes{%(queriesSelector)s}', 'percentunit', '{{persistentvolumeclaim}}', desc='Used share of every PersistentVolumeClaim in the namespace, from kubelet volume stats. Not tied to a pod: the whole namespace is shown.'),
+      // pod network and disk IO (cAdvisor). Network is counted on the pod
+      // sandbox, a series without a container label: a scrape that drops those
+      // (k8s-monitoring cadvisor dropEmptyContainerLabels) leaves it empty.
+      kube_netRx: ksig('Network received', 'sum by (pod) (rate(container_network_receive_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{pod}} received', desc='Bytes per second the pod receives over all its interfaces (cAdvisor). Dashed is what it sends. Needs the pod-level network series, which a scrape dropping container-less cAdvisor series removes.'),
+      kube_netTx: ksig('Network transmitted', 'sum by (pod) (rate(container_network_transmit_bytes_total{%(queriesSelector)s}[$__rate_interval]))', 'Bps', '{{pod}} transmitted', desc='Bytes per second the pod sends over all its interfaces (cAdvisor).'),
+      kube_diskRead: ksig('Disk read', 'sum by (pod) (rate(container_fs_reads_bytes_total{%(queriesSelector)s, container!=""}[$__rate_interval]))', 'Bps', '{{pod}} read', desc='Bytes per second the pod containers read from disk (cAdvisor). Dashed is what they write.'),
+      kube_diskWrite: ksig('Disk write', 'sum by (pod) (rate(container_fs_writes_bytes_total{%(queriesSelector)s, container!=""}[$__rate_interval]))', 'Bps', '{{pod}} write', desc='Bytes per second the pod containers write to disk (cAdvisor).'),
       // ===== Process (the app's own process_* client metrics) =====
       proc_cpu: jsig('Process CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the process, from its own /metrics (process_cpu_seconds_total).'),
       proc_rss: jsig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', cfg.legend + ' rss', desc='Resident set size reported by the process itself. The dashed line is the virtual address space size.'),
@@ -575,28 +588,101 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       + variable.query.withLabelValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,
     ];
 
-    // the Overview tab ends with the log volume, so a glance shows whether the
-    // service is getting noisier.
+    // ----- the Overview tab: which pods run (Pods), what they use (Resources),
+    // what they say (Logs), then the app's own instances table and Overview
+    // group. The kube rows render only while the Kubernetes / Containers tab
+    // markers have values, so a host deployment opens on its own metrics. -----
+    local pcol(name, expr, unit) =
+      signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.kubeSelector);
+    local podKey = 'cluster, namespace, pod';
+    // one instant query per column, refIds A.. in this order; A and B are
+    // there for their node / phase labels and their values are hidden.
+    local podCols = [
+      pcol('Node', 'max by (' + podKey + ', node) (kube_pod_info{%(queriesSelector)s})', 'short'),
+      pcol('Phase', 'max by (' + podKey + ', phase) (kube_pod_status_phase{%(queriesSelector)s} == 1)', 'short'),
+      pcol('Ready', 'sum by (' + podKey + ') (kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
+      pcol('Containers', 'count by (' + podKey + ') (kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
+      pcol('Restarts', 'sum by (' + podKey + ') (kube_pod_container_status_restarts_total{%(queriesSelector)s})', 'short'),
+      pcol('Age', 'time() - max by (' + podKey + ') (kube_pod_start_time{%(queriesSelector)s})', 'dtdurations'),
+      pcol('CPU', 'sum by (' + podKey + ') (rate(container_cpu_usage_seconds_total{%(queriesSelector)s, container!=""}[$__rate_interval]))', 'short'),
+      pcol('Memory', 'sum by (' + podKey + ') (container_memory_working_set_bytes{%(queriesSelector)s, container!=""})', 'bytes'),
+      pcol('Memory / limit', 'sum by (' + podKey + ') (container_memory_working_set_bytes{%(queriesSelector)s, container!=""}) / sum by (' + podKey + ') (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})', 'percentunit'),
+    ];
+    local ref(i) = std.char(std.codepoint('A') + i);
+    local valueCols = std.range(2, std.length(podCols) - 1);
+    local colOverride(name, props) = { matcher: { id: 'byName', options: name }, properties: props };
+    local colorText = { id: 'custom.cellOptions', value: { type: 'color-text' } };
+    local steps(s) = { id: 'thresholds', value: { mode: 'absolute', steps: s } };
+    local podsTable =
+      panel.table.new('Pods')
+      + panel.table.withDescription('One row per pod of this service, like kubectl get pods: the node it runs on, its phase, ready and total containers, restarts, age, CPU cores and working-set memory (cAdvisor), and memory as a share of its limit (empty without a limit). Instant queries merged on cluster / namespace / pod.')
+      + panel.table.withTargets([podCols[i].asTableTarget() + { spec+: { refId: ref(i) } } for i in std.range(0, std.length(podCols) - 1)])
+      + panel.table.withTransformations([
+        { id: 'merge', options: {} },
+        { id: 'organize', options: {
+          excludeByName: { Time: true, 'Value #A': true, 'Value #B': true },
+          renameByName: { cluster: 'Cluster', namespace: 'Namespace', pod: 'Pod', node: 'Node', phase: 'Phase' }
+                        + { ['Value #' + ref(i)]: podCols[i]._name for i in valueCols },
+          indexByName: { cluster: 0, namespace: 1, pod: 2, node: 3, phase: 4 }
+                       + { ['Value #' + ref(i)]: 3 + i for i in valueCols },
+        } },
+      ])
+      + panel.table.withOverrides(
+        [colOverride(podCols[i]._name, [{ id: 'unit', value: podCols[i]._unit }]) for i in valueCols]
+        + [
+          colOverride('Phase', [colorText, { id: 'mappings', value: stateMappings({
+            Running: { color: 'green', index: 0 },
+            Pending: { color: 'orange', index: 1 },
+            Succeeded: { color: 'blue', index: 2 },
+            Failed: { color: 'red', index: 3 },
+            Unknown: { color: 'text', index: 4 },
+          }) }]),
+          colOverride('Restarts', [colorText, steps([{ color: 'green', value: null }, { color: 'orange', value: 1 }])]),
+          colOverride('Memory / limit', [colorText, steps([{ color: 'green', value: null }, { color: 'orange', value: 0.8 }, { color: 'red', value: 0.9 }])]),
+          colOverride('CPU', [{ id: 'decimals', value: 3 }]),
+        ]
+      );
     local logLevelColors = { critical: 'dark-red', fatal: 'dark-red', 'error': 'red', warn: 'orange', info: 'green', debug: 'blue', unknown: 'text' };
-    local logsOverview = if cfg.logs then [{
-      title: 'Logs',
-      width: 12,
-      height: 7,
-      elements: {
-        o91_logs_volume: signals.logs_volume.asTimeSeries()
-                         + panel.timeSeries.standardOptions.withMin(0)
-                         + panel.timeSeries.custom.withDrawStyle('bars')
-                         + panel.timeSeries.custom.withFillOpacity(60)
-                         + panel.timeSeries.custom.stacking.withMode('normal')
-                         + panel.timeSeries.standardOptions.withOverrides([
-                           { matcher: { id: 'byName', options: level }, properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: color } }] }
-                           for level in std.objectFields(logLevelColors)
-                           for color in [logLevelColors[level]]
-                         ]),
-        o92_logs_errors: signals.logs_errors.asTimeSeries(),
-      },
-    }] else [];
-    local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs, overviewExtraGroups: logsOverview };
+    // the log rows read pod streams: on a host the empty $pod would match every
+    // pod-less stream in Loki, so they follow the Kubernetes marker too.
+    local kubeGate = if cfg.kubernetes.enabled then { when: 'has_kubernetes' } else {};
+    local leadGroups =
+      (if cfg.kubernetes.enabled then [
+         { title: 'Pods', when: 'has_kubernetes', width: 24, height: 8, elements: { ovp01_pods: podsTable } },
+         { title: 'Resources', when: 'has_containers', width: 12, height: 7, elements: {
+           ovr11_cpu: signals.kube_cpu.asTimeSeries('CPU: usage vs requests / limits')
+                      + panel.withTargetsMixin([signals.kube_cpuRequests.asTarget(), signals.kube_cpuLimits.asTarget()])
+                      + dashed('/ (requests|limits)$/'),
+           ovr12_mem: signals.kube_mem.asTimeSeries('Memory: working set vs requests / limits')
+                      + panel.withTargetsMixin([signals.kube_memRequests.asTarget(), signals.kube_memLimits.asTarget()])
+                      + dashed('/ (requests|limits)$/'),
+           ovr13_net: signals.kube_netRx.asTimeSeries('Network: received / transmitted')
+                      + panel.withTargetsMixin([signals.kube_netTx.asTarget()])
+                      + dashed('/ transmitted$/'),
+           ovr14_disk: signals.kube_diskRead.asTimeSeries('Disk: read / write')
+                       + panel.withTargetsMixin([signals.kube_diskWrite.asTarget()])
+                       + dashed('/ write$/'),
+         } },
+       ] else [])
+      + (if cfg.logs then [
+           { title: 'Logs', width: 12, height: 7, elements: {
+             ovl21_volume: signals.logs_volume.asTimeSeries()
+                           + panel.timeSeries.standardOptions.withMin(0)
+                           + panel.timeSeries.custom.withDrawStyle('bars')
+                           + panel.timeSeries.custom.withFillOpacity(60)
+                           + panel.timeSeries.custom.stacking.withMode('normal')
+                           + panel.timeSeries.standardOptions.withOverrides([
+                             { matcher: { id: 'byName', options: level }, properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: color } }] }
+                             for level in std.objectFields(logLevelColors)
+                             for color in [logLevelColors[level]]
+                           ]),
+             ovl22_errors: signals.logs_errors.asTimeSeries(),
+           } } + kubeGate,
+           { title: 'Pod logs', hideHeader: true, width: 24, height: 10, elements: {
+             ovl31_pod: panel.logs.new('Pod logs') + panel.withDescription(signals.logs_pod._description) + panel.logs.withTargets([signals.logs_pod.asTarget()]),
+           } } + kubeGate,
+         ] else []);
+    local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs, overviewLeadGroups: leadGroups, overviewInstancesTitle: cfg.primaryTabTitle };
     local built = pack.build(pcfg, wb.signals + signals + platformSignals, wb.grafana.groups, wb.prometheus.alerts + platformAlerts, wb.prometheus.rules + platformRules, tabs);
     built {
       whitebox: wb,

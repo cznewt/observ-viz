@@ -36,11 +36,14 @@ local variable =
       // flatten every group's (and optional/doc tab's) elements into one elements map.
       // a tab either holds one grid (`elements`) or rows of grids (`groups`).
       local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,
+      local overviewLead = if std.objectHas(config, 'overviewLeadGroups') then config.overviewLeadGroups else [],
       local overviewExtra = if std.objectHas(config, 'overviewExtraGroups') then config.overviewExtraGroups else [],
-      local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList + overviewExtra, {}),
+      local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList + overviewLead + overviewExtra, {}),
       // `config.tabbed` swaps the rows layout for the shared tabbed board:
-      // an Overview tab (description, references, instances table) and one tab
-      // per signal group, each opening with that group's signal table.
+      // an Overview tab (lead rows, instances table, the pack's own Overview
+      // group, extra rows) and one tab per signal group, each opening with that
+      // group's signal table. The description and references ride on the
+      // dashboard itself (description + link bar), not in panels.
       local tabbedOn = std.objectHas(config, 'tabbed') && config.tabbed,
       local tabbedBoard = tabbed.build(config, signals, groups, baseElements),
       elements: if tabbedOn then tabbedBoard.elements else baseElements,
@@ -174,7 +177,7 @@ local variable =
         if tabbedOn then
           layout.tabs.new()
           + layout.tabs.withTabs(
-            [tabbedBoard.overviewTab] + tabbedBoard.groupTabs
+            (if tabbedBoard.overviewTab != null then [tabbedBoard.overviewTab] else []) + tabbedBoard.groupTabs
             + [layout.tabs.tab(t.title, tabLayout(t)) + tabGate(t) for t in optionalTabs]
             // the Signals doc tab would repeat what every group tab already shows
             + [layout.tabs.tab(t.title, gridOf(t)) + docsGate for t in docTabList if t.title != 'Signals']
@@ -223,12 +226,36 @@ local variable =
         // optional Grafana folder placement (config.folderUid [+ folderTitle,
         // folderParentUid/folderParentTitle for nesting]) — loader creates them.
         local opt(k) = if std.objectHas(config, k) then config[k] else null;
+        // a tabbed board shows no About/References panels: what it is goes into
+        // the dashboard description, and each config.references entry becomes a
+        // link-bar link whose tooltip is the reference's description.
+        local description =
+          if std.objectHas(config, 'description') then config.description
+          else if tabbedOn then 'Runtime signals for every instance matching the selected job.'
+          else null;
+        local refLinks =
+          if tabbedOn && std.objectHas(config, 'references') then [
+            {
+              title: r.title,
+              type: 'link',
+              icon: 'external link',
+              tooltip: if std.objectHas(r, 'description') then r.description else '',
+              url: r.url,
+              tags: [],
+              asDropdown: false,
+              targetBlank: true,
+              includeVars: false,
+              keepTime: false,
+            }
+            for r in config.references
+          ] else [];
+        // dashboard-level links: config.links ([]DashboardLink specs), then the references
+        local links = (if std.objectHas(config, 'links') then config.links else []) + refLinks;
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
-        + (if std.objectHas(config, 'description') then dashboard.withDescription(config.description) else {})
-        // optional dashboard-level links (config.links: []DashboardLink specs)
-        + (if std.objectHas(config, 'links') then dashboard.withLinks(config.links) else {})
+        + (if description != null then dashboard.withDescription(description) else {})
+        + (if std.length(links) > 0 then dashboard.withLinks(links) else {})
         // folderPath is the general form: an ancestor chain ending in the
         // folder itself, for a tree deeper than parent/child.
         + (if std.objectHas(config, 'folderPath') then dashboard.withFolderPath(config.folderPath)

@@ -16,9 +16,9 @@ All non-panel reference boards **come from the pack mixins** — each is a pack'
 output rendered as a **tabbed board** on top of the pack's own dashboard, so its
 variables (`job` plus any cascading `varLabels` filters) carry over:
 
-* an *Overview* tab: what the board is and its reference links side by side,
-  then an **Instances table** — one row per instance, joined from an instant
-  query per column (`config.overviewSignals`);
+* an *Overview* tab with an **Instances table** — one row per instance, joined
+  from an instant query per column (`config.overviewSignals`); what the board
+  is lives in the dashboard description and its references in the link bar;
 * one tab per signal group, opening with that group's **signal table**
   (name / unit / description / query) above the group's panels.
 

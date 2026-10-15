@@ -30,9 +30,10 @@ Optional, on every pack built through `libs/common-lib/filters.libsonnet`:
 | `varLabels` | cascading filter variables, e.g. `['namespace', 'pod']`; each one is a `label_values()` query scoped by `job` and the variables before it, and each is appended to the query selector |
 | `legendLabels` | series legend built from labels, e.g. `['namespace', 'pod']` -> `{{namespace}} / {{pod}}` |
 | `overviewSignals` | the signals a reference board shows as columns of its instances table. Each must return one series per row, so write them as plain aggregations (`sum(...)`, which the table groups by the row labels); a signal grouped by finer labels (`by (pod)`, `by (code)`) shows one of its series per row. `kubernetes.cadvisor`'s `ov_` signals are the pattern, and `tests/packs.py` checks it |
-| `description`, `references` | board description and reference links, shown on the Overview tab |
+| `description`, `references` | the dashboard description, and on a tabbed board one link-bar link per reference (`{title, url, description?}`, the description as its tooltip) |
 | `tabbed` | lay the board out as tabs (see the board spec below) instead of one row per signal group |
 | `rowLabels`, `instanceLabel` | what one row of the instances table is, e.g. `['namespace', 'pod']` |
+| `overviewLeadGroups`, `overviewExtraGroups` | a composer's own rows at the top / bottom of the Overview tab: `[{title, width, height, elements, hideHeader?, when?}]`; `when` names a hidden presence variable (`has_kubernetes`) the row waits for. `overviewInstancesTitle` titles the instances row under lead rows |
 | `folderPath` | where the board is filed, as an ancestor chain: `[{uid, title}, ...]` ending in the folder itself |
 
 ## The board
@@ -48,7 +49,7 @@ variables before it, and each appended to every query's selector.
 
 | Tab | Holds |
 | --- | --- |
-| Overview | what the board is and its reference links side by side, then an instances table: one row per `rowLabels` identity, a column per `overviewSignals` entry, each an instant query joined on that identity. A signal group the pack itself calls "Overview" folds in below. |
+| Overview | a composer's lead rows (`overviewLeadGroups`; the service board's Pods, Resources and Logs), then an instances table: one row per `rowLabels` identity, a column per `overviewSignals` entry, each an instant query joined on that identity. A signal group the pack itself calls "Overview" folds in below, then `overviewExtraGroups`. What the board is and its references are no panels: they are the dashboard description and links in the link bar. |
 | one per signal group | that group's signal table (name, unit, description, and the query as written, with the filter variables left as `...`), then the group's panels |
 | Runbooks | the pack's alerting rules and their runbook links, when `docTabs` is on |
 

@@ -1,14 +1,19 @@
 // observ-viz tabbed board layout (hand-written).
 // The board contract every pack can opt into with `config.tabbed`:
 //
-//   Overview tab  what the board is (half width) + reference links (half),
-//                 then one row per instance built from config.overviewSignals.
-//                 A group the pack itself calls "Overview" folds in here.
+//   Overview tab  config.overviewLeadGroups first (a composer's own rows, the
+//                 service board's Pods / Resources / Logs, say), then one row
+//                 per instance built from config.overviewSignals, then a group
+//                 the pack itself calls "Overview", then
+//                 config.overviewExtraGroups. What the board is and its
+//                 references are not panels here: pack.build puts them in the
+//                 dashboard description and the link bar.
 //   group tabs    one per signal group: that group's signal table
 //                 (name / unit / description / query), then its panels.
 //
-// Config keys read here: dashboardTitle, description, references,
-// overviewSignals, rowLabels, instanceLabel, varLabels.
+// Config keys read here: overviewLeadGroups, overviewExtraGroups,
+// overviewInstances, overviewInstancesTitle, overviewSignals,
+// overviewSparklines, overviewTopK, rowLabels, instanceLabel.
 // imports the veneers directly, not g.libsonnet: pack.libsonnet pulls this in,
 // and g would be an import cycle.
 local element = import 'custom/element.libsonnet';
@@ -82,26 +87,7 @@ local grid = import 'custom/util/grid.libsonnet';
         else '_No signal-backed panels in this group._' });
     local sigHeight(grp) = 3 + std.length(sigKeys(grp));
 
-    // --- Overview: about + references (half each), then the instances table --
-    local varLabels = opt('varLabels', []);
-    local filterLine =
-      if std.length(varLabels) > 0
-      then '\n\nFilter with the **Job**' + std.join('', [' / **' + cap(l) + '**' for l in varLabels]) + ' variables above.'
-      else '';
-    local about =
-      panel.text.new('')
-      + panel.text.withOptions({ mode: 'markdown', content:
-        opt('description', 'Runtime signals for every instance matching the selected job.') + filterLine });
-    local refItem(r) =
-      '- [' + r.title + '](' + r.url + ')'
-      + (if std.objectHas(r, 'description') then ' - ' + r.description else '');
-    local references =
-      local refs = opt('references', []);
-      panel.text.new('References')
-      + panel.text.withOptions({ mode: 'markdown', content:
-        if std.length(refs) > 0 then std.join('\n', [refItem(r) for r in refs])
-        else '_No references configured._' });
-
+    // --- Overview: the instances table ------------------------------------
     // One row per instance: an instant query per column, joined on a single
     // identity column that label_join() builds from config.rowLabels
     // (namespace/pod, say), so the table is that column plus the signals.
@@ -235,8 +221,6 @@ local grid = import 'custom/util/grid.libsonnet';
 
     local elements =
       packElements
-      + element.panel('__about', about)
-      + element.panel('__references', references)
       + (if showInstances then element.panel('__instances', instances) else {})
       + { ['__sig_' + slug(grp.title)]: sigPanel(grp) for grp in groups };
 
@@ -259,22 +243,38 @@ local grid = import 'custom/util/grid.libsonnet';
     // Fold it into this tab rather than opening a second one with the same name.
     local isOverview(grp) = std.asciiLower(grp.title) == 'overview';
     local ownOverview = std.filter(isOverview, groups);
+    local gridRow(grp) =
+      layout.rows.row(grp.title, layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)));
+    // config.overviewLeadGroups: rows at the top of the Overview tab,
+    // [{ title, width, height, elements, hideHeader?, when? }]. `when` names a
+    // hidden presence variable (has_kubernetes, say): the row renders only
+    // while that variable has a value, like the optional tab it belongs to.
+    local leadRow(grp) =
+      gridRow(grp)
+      + (if std.objectHas(grp, 'hideHeader') && grp.hideHeader then { spec+: { hideHeader: true } } else {})
+      + (if std.objectHas(grp, 'when')
+         then layout.withConditionalRendering(layout.conditional.group([layout.conditional.variable(grp.when, '', 'notEquals')]))
+         else {});
+    local leadRows = [leadRow(grp) for grp in opt('overviewLeadGroups', [])];
     // config.overviewInstances: false drops the instances table. A board whose
     // own Overview group already answers "what is out there" - the cluster and
     // multi-cluster boards, with their Clusters and Namespaces tables - does not
-    // need a second table of scrape targets on top.
+    // need a second table of scrape targets on top. Under lead rows the table
+    // gets a header of its own (config.overviewInstancesTitle); alone it opens
+    // the tab without one.
+    local instancesItem = [layout.grid.item('__instances', 0, 0, 24, 10)];
+    local instancesRows =
+      if !showInstances then []
+      else if std.length(leadRows) > 0 then [layout.rows.row(opt('overviewInstancesTitle', 'Instances'), layout.grid.new() + layout.grid.withItems(instancesItem))]
+      else [bodyRow('Overview', instancesItem)];
+    local overviewRows =
+      leadRows + instancesRows
+      + (if std.length(ownOverview) > 0 then groupRows(ownOverview[0]) else [])
+      + [gridRow(grp) for grp in opt('overviewExtraGroups', [])];
+    // nothing to show (no instances table, no lead, own or extra rows): no tab.
     local overviewTab =
-      layout.tabs.tab(
-        'Overview',
-        layout.rows.new() + layout.rows.withRows([
-          bodyRow('Overview', [
-            layout.grid.item('__about', 0, 0, 12, 7),
-            layout.grid.item('__references', 12, 0, 12, 7),
-          ] + (if showInstances then [layout.grid.item('__instances', 0, 7, 24, 10)] else [])),
-        ] + (if std.length(ownOverview) > 0 then groupRows(ownOverview[0]) else [])
-          + [layout.rows.row(grp.title, layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)))
-             for grp in opt('overviewExtraGroups', [])])
-      );
+      if std.length(overviewRows) == 0 then null
+      else layout.tabs.tab('Overview', layout.rows.new() + layout.rows.withRows(overviewRows));
     // a group may repeat itself per value of a variable (`grp.repeat`): the
     // signal table stays put and the panels come back once per value.
     local repeatedTab(grp) =
