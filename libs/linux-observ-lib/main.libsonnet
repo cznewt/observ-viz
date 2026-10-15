@@ -944,7 +944,7 @@ local syncthingLib = import 'libs/syncthing-observ-lib/main.libsonnet';
         height: 7,
         // any node carrying the textfile collectors (deb) or batocera's pacman
         // exporter. `or` so one probe covers both fleets.
-        presence: { query: 'apt_upgrades_pending{instance=~"$instance"} or pacman_updates_pending{instance=~"$instance"} or apt_keyring_expiry_timestamp_seconds{instance=~"$instance"}', label: 'instance' },
+        presence: { query: '{__name__=~"apt_upgrades_pending|pacman_updates_pending|apt_keyring_expiry_timestamp_seconds", instance=~"$instance"}', label: 'instance' },
         elements: {
           updPending: signals.updatesPending.asStat('Updates pending')
                       + panel.stat.withThresholds([{ color: 'green', value: null }, { color: 'yellow', value: 1 }, { color: 'orange', value: 25 }]),
