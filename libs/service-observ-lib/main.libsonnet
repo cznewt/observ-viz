@@ -178,6 +178,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       docTabs: false,
     } + cfg.whiteboxConfig);
     local wbVarMetric = if std.objectHas(wb.config, 'varMetric') then wb.config.varMetric else 'up';
+    // the whitebox's own tabs: a platform tab never repeats one of these titles
+    // (Grafana flags two tabs of one title, and the rows would show twice)
+    local wbTitles = [grp.title for grp in wb.grafana.groups];
 
     // ----- signal helpers per scope -----
     // ingress-nginx series carry the backend Service name, not the pod.
@@ -474,6 +477,9 @@ local stateMappings(m) = [{ type: 'value', options: m }];
         beam: { title: 'BEAM runtime', marker: 'erlang_vm_processes', prefix: 'beam_', lib: beamLib },
       };
       local wanted = if cfg.golang then cfg.runtimes else [r for r in cfg.runtimes if r != 'go'];
+      // a whitebox that is itself a runtime pack (the demo apps) already shows
+      // those rows as its own tabs: no second copy, and no two tabs of one title
+      local wbUid = std.get(wb.config, 'uid', '');
       [
         {
           title: runtimeTabs[r].title,
@@ -482,6 +488,8 @@ local stateMappings(m) = [{ type: 'value', options: m }];
         }
         for r in wanted
         if std.objectHas(runtimeTabs, r)
+           && std.get(runtimeTabs[r].lib.new({}).config, 'uid', '') != wbUid
+           && !std.member(wbTitles, runtimeTabs[r].title)
       ]
       + (if cfg.windows.enabled then [{
            title: 'Windows',
@@ -599,7 +607,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       gates: if cfg.kubernetes.enabled then { pods: 'has_kubernetes', resources: 'has_containers', logs: 'has_kubernetes' } else {},
     });
     local pcfg = cfg { varMetric: wbVarMetric, varLabels: [], lokiDatasource: cfg.logs, overviewLeadGroups: leadGroups, overviewInstancesTitle: cfg.primaryTabTitle };
-    local built = pack.build(pcfg, wb.signals + signals + platformSignals, wb.grafana.groups, wb.prometheus.alerts + platformAlerts, wb.prometheus.rules + platformRules, tabs);
+    local built = pack.build(pcfg, wb.signals + signals + platformSignals, wb.grafana.groups, wb.prometheus.alerts + platformAlerts, wb.prometheus.rules + platformRules, [t for t in tabs if !std.member(wbTitles, t.title)]);
     built {
       whitebox: wb,
       grafana+: { dashboard: super.dashboard + dashboard.withVariablesMixin(extraVars) + dashboard.withAnnotationsMixin(annList) },
