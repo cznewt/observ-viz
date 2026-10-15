@@ -92,4 +92,5 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`services.argocd`](services-argocd.md) | 105 | 6 | 2 |
 | [`demos.demoApp`](demos-demoApp.md) | 21 | 6 | 8 |
 | [`alerts`](alerts.md) | 4 | 0 | 0 |
+| [`logs`](logs.md) | 3 queries | 0 | 0 |
 | [`backstage`](backstage.md) | 0 | 0 | 0 |

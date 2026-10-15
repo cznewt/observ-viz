@@ -43,11 +43,15 @@ def lib_data(p):
         "local sig(k)= l.signals[k];"
         "{"
         " title: l.config.dashboardTitle, uid: l.config.uid,"
-        " signals: [{ n:k,"
+        " signals: if !std.objectHas(l,'signals') then [] else [{ n:k,"
         "   u: (local d=sig(k).asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; if std.objectHas(d,'unit') then d.unit else ''),"
         "   e: sig(k).asTarget().spec.query.spec.expr,"
         "   re: sig(k).asRecordingRule('_', '', '5m').expr } for k in std.objectFields(l.signals)],"
+        # libs without signals (logs) expose their panel queries instead
+        " queries: if std.objectHas(l,'signals') || !std.objectHas(l,'queries') then [] else"
+        "   [{ n:k, e: std.get(std.get(std.get(std.get(l.queries[k],'spec',{}),'query',{}),'spec',{}),'expr','') } for k in std.objectFields(l.queries)],"
         " groups: [{ t:g.title, els:std.objectFields(g.elements) } for g in (if std.objectHas(l.grafana,'groups') then l.grafana.groups else [])],"
+        " panels: if std.objectHas(l.grafana,'groups') || !std.objectHas(l.grafana,'panels') then [] else std.objectFields(l.grafana.panels),"
         " alerts: [{ n:r.alert, sev:(if std.objectHas(r.labels,'severity') then r.labels.severity else ''),"
         "   f:r['for'], e:r.expr, url:(if std.objectHas(r.annotations,'runbook_url') then r.annotations.runbook_url else '') }"
         "   for grp in (if std.objectHas(l,'prometheus') then l.prometheus.alerts else []) for r in grp.rules],"
@@ -61,20 +65,33 @@ def fence(e):
     return "`" + e.replace("\n", " ").replace("|", "\\|") + "`"
 
 
+def counted(d):
+    """'N signals', or 'N queries' for a lib that has panel queries instead."""
+    return f"{len(d['queries'])} queries" if d["queries"] else f"{len(d['signals'])} signals"
+
+
 def page(p, d):
     L = [f"# {d['title']}  (`g.libs.{p}`)", "",
-         f"Dashboard uid `{d['uid']}` · {len(d['signals'])} signals · {len(d['alerts'])} alerts · {len(d['records'])} recording rules"
+         f"Dashboard uid `{d['uid']}` · {counted(d)} · {len(d['alerts'])} alerts · {len(d['records'])} recording rules"
          f" · [every tab rendered](../dashboards/{d['uid']}.md).", ""]
     recorded_by = {r["e"]: r["n"] for r in d["records"]}
-    L += ["## Signals", "",
-          "Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).", "",
-          "| Signal | Unit | Query | Recorded as |", "|--------|------|-------|-------------|"]
-    for s in d["signals"]:
-        rec = recorded_by.get(s.get("re"))
-        L.append(f"| `{s['n']}` | {s['u'] or '—'} | {fence(s['e'])} | {('`' + rec + '`') if rec else '—'} |")
+    if d["signals"] or not d["queries"]:
+        L += ["## Signals", "",
+              "Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).", "",
+              "| Signal | Unit | Query | Recorded as |", "|--------|------|-------|-------------|"]
+        for s in d["signals"]:
+            rec = recorded_by.get(s.get("re"))
+            L.append(f"| `{s['n']}` | {s['u'] or '—'} | {fence(s['e'])} | {('`' + rec + '`') if rec else '—'} |")
+    if d["queries"]:
+        L += ["## Queries", "", "The panel queries the library builds (`.queries`).", "",
+              "| Query | Expression |", "|-------|------------|"]
+        for q in d["queries"]:
+            L.append(f"| `{q['n']}` | {fence(q['e'])} |")
     L += ["", "## Dashboard", ""]
     for g in d["groups"]:
         L.append(f"- **{g['t']}** — " + ", ".join(f"`{e}`" for e in g["els"]))
+    if d["panels"]:
+        L.append("- **Panels** (`.grafana.panels`) — " + ", ".join(f"`{e}`" for e in d["panels"]))
     if d["alerts"]:
         L += ["", "## Alerts", "", "| Alert | Severity | For | Runbook |", "|-------|----------|-----|---------|"]
         seen = set()
@@ -111,7 +128,7 @@ def main():
            "Detailed reference per observ-lib — signals, dashboard groups, alerts, recording rules.", "",
            "| Lib | Signals | Alerts | Rules |", "|-----|---------|--------|-------|"]
     for p, slug, d in written:
-        idx.append(f"| [`{p}`]({slug}.md) | {len(d['signals'])} | {len(d['alerts'])} | {len(d['records'])} |")
+        idx.append(f"| [`{p}`]({slug}.md) | {counted(d) if d['queries'] else len(d['signals'])} | {len(d['alerts'])} | {len(d['records'])} |")
     idx.append("")
     with open(os.path.join(OUTDIR, "index.md"), "w") as fh:
         fh.write("\n".join(idx))

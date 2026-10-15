@@ -15,3 +15,4 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 
 ## Dashboard
 
+- **Panels** (`.grafana.panels`) — `alertsOverview`, `critical`, `firing`, `firingTable`, `timeline`, `warning`
