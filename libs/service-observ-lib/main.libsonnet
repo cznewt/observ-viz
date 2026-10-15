@@ -1,8 +1,7 @@
 // observ-viz service composer (hand-written).
 // One board for "a service, wherever it runs". The Overview tab opens on the
 // generic picture every service shares: a Pods table (one row per pod: node,
-// phase, ready / total containers, restarts, age, CPU, memory and memory vs
-// limit), a Resources row (CPU and memory vs requests / limits, network, disk
+// phase, restarts, age, CPU, memory and memory vs limit), a Resources row (CPU and memory vs requests / limits, network, disk
 // IO) and the Logs rows (lines by level, error lines by pod, the pod log
 // lines) - each only where the Kubernetes / Containers markers have values -
 // then the service's own (whitebox) instances table and Overview group. Then
@@ -600,8 +599,6 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local podCols = [
       pcol('Node', 'max by (' + podKey + ', node) (kube_pod_info{%(queriesSelector)s})', 'short'),
       pcol('Phase', 'max by (' + podKey + ', phase) (kube_pod_status_phase{%(queriesSelector)s} == 1)', 'short'),
-      pcol('Ready', 'sum by (' + podKey + ') (kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
-      pcol('Containers', 'count by (' + podKey + ') (kube_pod_container_status_ready{%(queriesSelector)s})', 'short'),
       pcol('Restarts', 'sum by (' + podKey + ') (kube_pod_container_status_restarts_total{%(queriesSelector)s})', 'short'),
       pcol('Age', 'time() - max by (' + podKey + ') (kube_pod_start_time{%(queriesSelector)s})', 'dtdurations'),
       pcol('CPU', 'sum by (' + podKey + ') (rate(container_cpu_usage_seconds_total{%(queriesSelector)s, container!=""}[$__rate_interval]))', 'short'),
@@ -615,7 +612,7 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local steps(s) = { id: 'thresholds', value: { mode: 'absolute', steps: s } };
     local podsTable =
       panel.table.new('Pods')
-      + panel.table.withDescription('One row per pod of this service, like kubectl get pods: the node it runs on, its phase, ready and total containers, restarts, age, CPU cores and working-set memory (cAdvisor), and memory as a share of its limit (empty without a limit). Instant queries merged on cluster / namespace / pod.')
+      + panel.table.withDescription('One row per pod of this service, like kubectl get pods: the node it runs on, its phase, restarts, age, CPU cores and working-set memory (cAdvisor), and memory as a share of its limit (empty without a limit). Instant queries merged on cluster / namespace / pod.')
       + panel.table.withTargets([podCols[i].asTableTarget() + { spec+: { refId: ref(i) } } for i in std.range(0, std.length(podCols) - 1)])
       + panel.table.withTransformations([
         { id: 'merge', options: {} },
