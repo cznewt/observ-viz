@@ -57,13 +57,18 @@ def slugify(s):
     return re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-') or 'tab'
 
 
+# the refresh picker's run button reads "Cancel" while queries run (match the
+# button itself: legends and tables can carry the word too)
+RUNNING = 'button[data-testid="data-testid RefreshPicker run button"][aria-label="Cancel"]'
+
+
 def loaded(page, seconds, quiet=4):
     """Wait until no query has run for `quiet` seconds: the refresh picker shows
     "Cancel" while queries run, and a tab's queries start a second or two after
     the click. False when that does not happen within `seconds`."""
     calm = 0.0
     for _ in range(int(seconds * 2)):
-        if page.locator('button:has-text("Cancel")').count() == 0:
+        if page.locator(RUNNING).count() == 0:
             calm += 0.5
             if calm >= quiet:
                 return True
