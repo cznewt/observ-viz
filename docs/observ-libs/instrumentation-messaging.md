@@ -1,6 +1,6 @@
 # Queues and background work  (`g.libs.instrumentation.messaging`)
 
-Dashboard uid `observ-viz-messaging` · 14 signals · 5 alerts · 2 recording rules.
+Dashboard uid `observ-viz-messaging` · 14 signals · 5 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-messaging.md).
 
 ## Signals
 

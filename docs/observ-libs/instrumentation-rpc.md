@@ -1,6 +1,6 @@
 # gRPC  (`g.libs.instrumentation.rpc`)
 
-Dashboard uid `observ-viz-rpc` · 14 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-rpc` · 14 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-rpc.md).
 
 ## Signals
 

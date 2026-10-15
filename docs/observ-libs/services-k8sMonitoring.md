@@ -1,6 +1,6 @@
 # k8s-monitoring (Alloy) service  (`g.libs.services.k8sMonitoring`)
 
-Dashboard uid `observ-viz-svc-k8s-monitoring` · 89 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-k8s-monitoring` · 89 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-k8s-monitoring.md).
 
 ## Signals
 

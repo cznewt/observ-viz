@@ -1,6 +1,6 @@
 # kube-state-metrics  (`g.libs.monitoring.kubeStateMetrics`)
 
-Dashboard uid `observ-viz-kube-state-metrics` · 9 signals · 4 alerts · 0 recording rules.
+Dashboard uid `observ-viz-kube-state-metrics` · 9 signals · 4 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-kube-state-metrics.md).
 
 ## Signals
 

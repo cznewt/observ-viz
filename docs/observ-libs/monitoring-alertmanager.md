@@ -1,6 +1,6 @@
 # Alertmanager  (`g.libs.monitoring.alertmanager`)
 
-Dashboard uid `observ-viz-alertmanager` · 34 signals · 6 alerts · 2 recording rules.
+Dashboard uid `observ-viz-alertmanager` · 34 signals · 6 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-alertmanager.md).
 
 ## Signals
 

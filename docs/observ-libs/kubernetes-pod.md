@@ -1,6 +1,6 @@
 # Kubernetes pod  (`g.libs.kubernetes.pod`)
 
-Dashboard uid `observ-viz-kube-pod` · 29 signals · 2 alerts · 2 recording rules.
+Dashboard uid `observ-viz-kube-pod` · 29 signals · 2 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-kube-pod.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # BEAM runtime  (`g.libs.runtimes.beam`)
 
-Dashboard uid `observ-viz-beam` · 24 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-beam` · 24 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-beam.md).
 
 ## Signals
 

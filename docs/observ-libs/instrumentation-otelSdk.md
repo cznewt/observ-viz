@@ -1,6 +1,6 @@
 # OpenTelemetry SDK  (`g.libs.instrumentation.otelSdk`)
 
-Dashboard uid `observ-viz-otel-sdk` · 15 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-otel-sdk` · 15 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-otel-sdk.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # JVM runtime  (`g.libs.runtimes.jvm`)
 
-Dashboard uid `observ-viz-jvm` · 8 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-jvm` · 8 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-jvm.md).
 
 ## Signals
 

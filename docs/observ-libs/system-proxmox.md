@@ -1,6 +1,6 @@
 # Proxmox VE  (`g.libs.system.proxmox`)
 
-Dashboard uid `observ-viz-proxmox` · 15 signals · 3 alerts · 0 recording rules.
+Dashboard uid `observ-viz-proxmox` · 15 signals · 3 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-proxmox.md).
 
 ## Signals
 

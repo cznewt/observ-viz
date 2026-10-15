@@ -1,6 +1,6 @@
 # .NET runtime  (`g.libs.runtimes.dotnet`)
 
-Dashboard uid `observ-viz-dotnet` · 8 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-dotnet` · 8 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-dotnet.md).
 
 ## Signals
 

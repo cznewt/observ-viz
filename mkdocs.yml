@@ -23,6 +23,8 @@ nav:
   - observ-libs: libs.md
   - observ-libs reference: observ-libs/index.md
   - Chart types: panels.md
+  - Visualizations: visualizations/index.md
+  - Dashboards: dashboards/index.md
   - Reference & scenarios: reference.md
   - Backstage: backstage.md
   - Examples & local Grafana: examples.md

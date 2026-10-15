@@ -1,6 +1,6 @@
 # Memcached  (`g.libs.databases.kv.memcached`)
 
-Dashboard uid `observ-viz-memcached` · 10 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-memcached` · 10 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-memcached.md).
 
 ## Signals
 

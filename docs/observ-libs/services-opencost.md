@@ -1,6 +1,6 @@
 # OpenCost service  (`g.libs.services.opencost`)
 
-Dashboard uid `observ-viz-svc-opencost` · 100 signals · 3 alerts · 3 recording rules.
+Dashboard uid `observ-viz-svc-opencost` · 100 signals · 3 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-svc-opencost.md).
 
 ## Signals
 

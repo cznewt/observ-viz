@@ -1,6 +1,6 @@
 # Pushgateway  (`g.libs.monitoring.pushgateway`)
 
-Dashboard uid `observ-viz-pushgateway` · 23 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-pushgateway` · 23 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-pushgateway.md).
 
 ## Signals
 

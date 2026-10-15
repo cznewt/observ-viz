@@ -1,6 +1,6 @@
 # PostgreSQL  (`g.libs.databases.sql.postgres`)
 
-Dashboard uid `observ-viz-postgres` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-postgres` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-postgres.md).
 
 ## Signals
 

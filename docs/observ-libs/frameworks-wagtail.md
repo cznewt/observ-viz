@@ -1,6 +1,6 @@
 # Wagtail  (`g.libs.frameworks.wagtail`)
 
-Dashboard uid `observ-viz-wagtail` · 65 signals · 3 alerts · 0 recording rules.
+Dashboard uid `observ-viz-wagtail` · 65 signals · 3 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-wagtail.md).
 
 ## Signals
 

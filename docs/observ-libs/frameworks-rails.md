@@ -1,6 +1,6 @@
 # Rails  (`g.libs.frameworks.rails`)
 
-Dashboard uid `observ-viz-rails` · 11 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-rails` · 11 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-rails.md).
 
 ## Signals
 

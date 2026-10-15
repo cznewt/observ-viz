@@ -1,6 +1,6 @@
 # Loki  (`g.libs.monitoring.loki`)
 
-Dashboard uid `observ-viz-loki` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-loki` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-loki.md).
 
 ## Signals
 

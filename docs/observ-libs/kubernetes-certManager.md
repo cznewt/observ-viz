@@ -1,6 +1,6 @@
 # cert-manager  (`g.libs.kubernetes.certManager`)
 
-Dashboard uid `observ-viz-cert-manager` · 13 signals · 5 alerts · 0 recording rules.
+Dashboard uid `observ-viz-cert-manager` · 13 signals · 5 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-cert-manager.md).
 
 ## Signals
 

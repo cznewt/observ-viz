@@ -1,6 +1,6 @@
 # Linux node  (`g.libs.system.linux`)
 
-Dashboard uid `compute-linux-overview` · 96 signals · 28 alerts · 7 recording rules.
+Dashboard uid `compute-linux-overview` · 96 signals · 28 alerts · 7 recording rules · [every tab rendered](../dashboards/compute-linux-overview.md).
 
 ## Signals
 

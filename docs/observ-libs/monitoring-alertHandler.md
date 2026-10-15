@@ -1,6 +1,6 @@
 # Alert handler  (`g.libs.monitoring.alertHandler`)
 
-Dashboard uid `observ-viz-alert-handler` · 18 signals · 5 alerts · 2 recording rules.
+Dashboard uid `observ-viz-alert-handler` · 18 signals · 5 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-alert-handler.md).
 
 ## Signals
 

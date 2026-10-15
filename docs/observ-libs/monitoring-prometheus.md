@@ -1,6 +1,6 @@
 # Prometheus  (`g.libs.monitoring.prometheus`)
 
-Dashboard uid `observ-viz-prometheus` · 7 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-prometheus` · 7 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-prometheus.md).
 
 ## Signals
 

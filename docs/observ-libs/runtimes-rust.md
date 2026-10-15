@@ -1,6 +1,6 @@
 # Rust runtime  (`g.libs.runtimes.rust`)
 
-Dashboard uid `observ-viz-rust` · 11 signals · 3 alerts · 1 recording rules.
+Dashboard uid `observ-viz-rust` · 11 signals · 3 alerts · 1 recording rules · [every tab rendered](../dashboards/observ-viz-rust.md).
 
 ## Signals
 

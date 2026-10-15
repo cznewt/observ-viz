@@ -1,6 +1,6 @@
 # PHP runtime  (`g.libs.runtimes.php`)
 
-Dashboard uid `observ-viz-php` · 13 signals · 4 alerts · 1 recording rules.
+Dashboard uid `observ-viz-php` · 13 signals · 4 alerts · 1 recording rules · [every tab rendered](../dashboards/observ-viz-php.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Syncthing  (`g.libs.applications.syncthing`)
 
-Dashboard uid `observ-viz-syncthing` · 16 signals · 1 alerts · 0 recording rules.
+Dashboard uid `observ-viz-syncthing` · 16 signals · 1 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-syncthing.md).
 
 ## Signals
 

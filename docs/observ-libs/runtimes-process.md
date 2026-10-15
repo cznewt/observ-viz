@@ -1,6 +1,6 @@
 # Process (base instrumentation)  (`g.libs.runtimes.process`)
 
-Dashboard uid `observ-viz-process` · 14 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-process` · 14 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-process.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # etcd  (`g.libs.databases.kv.etcd`)
 
-Dashboard uid `observ-viz-etcd` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-etcd` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-etcd.md).
 
 ## Signals
 

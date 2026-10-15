@@ -1,6 +1,6 @@
 # Node.js runtime  (`g.libs.runtimes.nodejs`)
 
-Dashboard uid `observ-viz-nodejs` · 8 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-nodejs` · 8 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-nodejs.md).
 
 ## Signals
 

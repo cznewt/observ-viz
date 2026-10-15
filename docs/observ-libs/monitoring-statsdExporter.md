@@ -1,6 +1,6 @@
 # StatsD exporter  (`g.libs.monitoring.statsdExporter`)
 
-Dashboard uid `observ-viz-statsd-exporter` · 26 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-statsd-exporter` · 26 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-statsd-exporter.md).
 
 ## Signals
 

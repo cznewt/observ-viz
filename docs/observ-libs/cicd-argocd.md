@@ -1,6 +1,6 @@
 # Argo CD  (`g.libs.cicd.argocd`)
 
-Dashboard uid `observ-viz-argocd` · 26 signals · 6 alerts · 2 recording rules.
+Dashboard uid `observ-viz-argocd` · 26 signals · 6 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-argocd.md).
 
 ## Signals
 

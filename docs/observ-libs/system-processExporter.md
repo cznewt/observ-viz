@@ -1,6 +1,6 @@
 # Process groups  (`g.libs.system.processExporter`)
 
-Dashboard uid `observ-viz-process-exporter` · 15 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-process-exporter` · 15 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-process-exporter.md).
 
 ## Signals
 

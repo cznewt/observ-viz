@@ -31,5 +31,11 @@ jobs:
         run: |
           python3 scripts/gen-panel-docs.py
           python3 scripts/gen-libs-docs.py
+      - name: fetch the dashboard screenshots (docs-shots branch, see `just docs-shots`)
+        run: |
+          mkdir -p docs/shots
+          if git fetch --depth 1 origin docs-shots; then git archive FETCH_HEAD | tar -x -C docs/shots; else echo "no docs-shots branch yet"; fi
+      - name: generate the gallery pages (Dashboards, Visualizations)
+        run: python3 scripts/gen-shot-pages.py
       - name: deploy to gh-pages
         run: mkdocs gh-deploy --force

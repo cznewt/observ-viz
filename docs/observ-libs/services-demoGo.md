@@ -1,6 +1,6 @@
 # Demo Go  (`g.libs.services.demoGo`)
 
-Dashboard uid `observ-viz-svc-demo-go` · 90 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-demo-go` · 90 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-demo-go.md).
 
 ## Signals
 

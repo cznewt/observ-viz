@@ -54,6 +54,40 @@ docs-libs:
 docs-collectors:
     python3 scripts/gen-collector-docs.py
 
+# screenshot every tab of the observ-viz boards on a live Grafana (Playwright in
+# docker) into OUT: SHOTS_GRAFANA_TOKEN (+ SHOTS_GRAFANA_URL, default monlab);
+# ARGS e.g. `--jobs 3` (parallel browsers) or `--uids a,b` (only those boards)
+docs-shots OUT='build/shots' *ARGS:
+    mkdir -p {{OUT}}
+    docker run --rm --user $(id -u):$(id -g) -e HOME=/tmp \
+      -e SHOTS_GRAFANA_URL -e SHOTS_GRAFANA_TOKEN \
+      -v "$PWD":/repo:ro -v "$(realpath {{OUT}})":/out \
+      mcr.microsoft.com/playwright/python:v1.47.0-jammy \
+      bash -c 'pip install -q --user playwright==1.47.0 pillow && python3 /repo/scripts/shots.py /out {{ARGS}}'
+
+# publish OUT as the orphan docs-shots branch (only the latest shots, no
+# history), then rebuild the docs site
+docs-shots-publish OUT='build/shots':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    remote=$(git remote get-url origin)
+    name=$(git config user.name); email=$(git config user.email)
+    tmp=$(mktemp -d)
+    cp -r {{OUT}}/. "$tmp"
+    cd "$tmp" && git init -q -b docs-shots && git add -A
+    git -c user.name="$name" -c user.email="$email" commit -q -m "dashboard screenshots $(date -u +%F)"
+    git push -q -f "$remote" docs-shots
+    cd - >/dev/null && rm -rf "$tmp"
+    gh workflow run docs.yml --ref main
+
+# unpack the published shots into docs/shots and build the gallery pages (local preview)
+docs-shots-fetch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf docs/shots && mkdir -p docs/shots
+    git fetch -q --depth 1 origin docs-shots && git archive FETCH_HEAD | tar -x -C docs/shots
+    python3 scripts/gen-shot-pages.py
+
 # full local test suite
 test: compile packs panels schema vars gen-check
 

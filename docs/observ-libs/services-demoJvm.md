@@ -1,6 +1,6 @@
 # Demo JVM  (`g.libs.services.demoJvm`)
 
-Dashboard uid `observ-viz-svc-demo-jvm` · 87 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-demo-jvm` · 87 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-demo-jvm.md).
 
 ## Signals
 

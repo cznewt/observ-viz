@@ -1,6 +1,6 @@
 # Online store (demo app)  (`g.libs.demos.demoApp`)
 
-Dashboard uid `observ-viz-demo-app` · 21 signals · 6 alerts · 8 recording rules.
+Dashboard uid `observ-viz-demo-app` · 21 signals · 6 alerts · 8 recording rules · [every tab rendered](../dashboards/observ-viz-demo-app.md).
 
 ## Signals
 

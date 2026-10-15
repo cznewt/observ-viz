@@ -1,6 +1,6 @@
 # MongoDB  (`g.libs.databases.document.mongodb`)
 
-Dashboard uid `observ-viz-mongodb` · 38 signals · 7 alerts · 0 recording rules.
+Dashboard uid `observ-viz-mongodb` · 38 signals · 7 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-mongodb.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Wireguard Controller  (`g.libs.networking.wireguard`)
 
-Dashboard uid `network-wireguard--wg-easy` · 6 signals · 1 alerts · 0 recording rules.
+Dashboard uid `network-wireguard--wg-easy` · 6 signals · 1 alerts · 0 recording rules · [every tab rendered](../dashboards/network-wireguard--wg-easy.md).
 
 ## Signals
 

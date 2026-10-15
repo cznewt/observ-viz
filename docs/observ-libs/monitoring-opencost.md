@@ -1,6 +1,6 @@
 # OpenCost  (`g.libs.monitoring.opencost`)
 
-Dashboard uid `observ-viz-opencost` · 21 signals · 3 alerts · 3 recording rules.
+Dashboard uid `observ-viz-opencost` · 21 signals · 3 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-opencost.md).
 
 ## Signals
 

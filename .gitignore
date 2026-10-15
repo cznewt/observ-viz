@@ -11,3 +11,8 @@ __pycache__/
 .venv/
 .pytest_cache/
 site/
+# the docs gallery: screenshots from the docs-shots branch + the pages built
+# from them (scripts/gen-shot-pages.py, at docs build time)
+docs/shots/
+docs/dashboards/
+docs/visualizations/

@@ -1,6 +1,6 @@
 # Redis  (`g.libs.databases.kv.redis`)
 
-Dashboard uid `observ-viz-redis` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-redis` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-redis.md).
 
 ## Signals
 

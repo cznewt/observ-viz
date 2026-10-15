@@ -1,6 +1,6 @@
 # Vault  (`g.libs.cicd.vault`)
 
-Dashboard uid `observ-viz-vault` · 24 signals · 3 alerts · 0 recording rules.
+Dashboard uid `observ-viz-vault` · 24 signals · 3 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-vault.md).
 
 ## Signals
 

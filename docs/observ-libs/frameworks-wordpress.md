@@ -1,6 +1,6 @@
 # WordPress  (`g.libs.frameworks.wordpress`)
 
-Dashboard uid `observ-viz-wordpress` · 36 signals · 3 alerts · 0 recording rules.
+Dashboard uid `observ-viz-wordpress` · 36 signals · 3 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-wordpress.md).
 
 ## Signals
 

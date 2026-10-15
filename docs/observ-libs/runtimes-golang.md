@@ -1,6 +1,6 @@
 # Go runtime  (`g.libs.runtimes.golang`)
 
-Dashboard uid `observ-viz-golang` · 11 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-golang` · 11 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-golang.md).
 
 ## Signals
 

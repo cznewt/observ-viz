@@ -1,6 +1,6 @@
 # Traefik  (`g.libs.networking.traefik`)
 
-Dashboard uid `observ-viz-traefik` · 28 signals · 5 alerts · 3 recording rules.
+Dashboard uid `observ-viz-traefik` · 28 signals · 5 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-traefik.md).
 
 ## Signals
 

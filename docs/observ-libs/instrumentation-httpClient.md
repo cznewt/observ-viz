@@ -1,6 +1,6 @@
 # HTTP client  (`g.libs.instrumentation.httpClient`)
 
-Dashboard uid `observ-viz-http-client` · 13 signals · 2 alerts · 2 recording rules.
+Dashboard uid `observ-viz-http-client` · 13 signals · 2 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-http-client.md).
 
 ## Signals
 

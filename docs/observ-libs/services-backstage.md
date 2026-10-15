@@ -1,6 +1,6 @@
 # Backstage service (Postgres)  (`g.libs.services.backstage`)
 
-Dashboard uid `observ-viz-svc-backstage` · 85 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-backstage` · 85 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-backstage.md).
 
 ## Signals
 

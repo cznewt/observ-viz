@@ -1,6 +1,6 @@
 # Apache HTTP Server  (`g.libs.webservers.apache`)
 
-Dashboard uid `observ-viz-apache` · 15 signals · 2 alerts · 2 recording rules.
+Dashboard uid `observ-viz-apache` · 15 signals · 2 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-apache.md).
 
 ## Signals
 

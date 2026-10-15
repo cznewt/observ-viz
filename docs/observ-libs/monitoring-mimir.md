@@ -1,6 +1,6 @@
 # Mimir  (`g.libs.monitoring.mimir`)
 
-Dashboard uid `observ-viz-mimir` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-mimir` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-mimir.md).
 
 ## Signals
 

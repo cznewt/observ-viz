@@ -1,6 +1,6 @@
 # Argo CD service  (`g.libs.services.argocd`)
 
-Dashboard uid `observ-viz-svc-argo-cd` · 105 signals · 6 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-argo-cd` · 105 signals · 6 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-argo-cd.md).
 
 ## Signals
 

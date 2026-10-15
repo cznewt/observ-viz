@@ -1,6 +1,6 @@
 # Kubernetes cluster  (`g.libs.kubernetes.cluster`)
 
-Dashboard uid `kube-cluster` · 7 signals · 55 alerts · 24 recording rules.
+Dashboard uid `kube-cluster` · 7 signals · 55 alerts · 24 recording rules · [every tab rendered](../dashboards/kube-cluster.md).
 
 ## Signals
 

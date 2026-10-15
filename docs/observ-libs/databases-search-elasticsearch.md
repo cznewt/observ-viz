@@ -1,6 +1,6 @@
 # Elasticsearch  (`g.libs.databases.search.elasticsearch`)
 
-Dashboard uid `observ-viz-elasticsearch` · 28 signals · 7 alerts · 0 recording rules.
+Dashboard uid `observ-viz-elasticsearch` · 28 signals · 7 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-elasticsearch.md).
 
 ## Signals
 

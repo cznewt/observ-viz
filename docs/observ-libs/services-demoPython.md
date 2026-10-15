@@ -1,6 +1,6 @@
 # Demo Python  (`g.libs.services.demoPython`)
 
-Dashboard uid `observ-viz-svc-demo-python` · 85 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-demo-python` · 85 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-demo-python.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Windows node  (`g.libs.system.windows`)
 
-Dashboard uid `compute-windows-overview` · 58 signals · 6 alerts · 4 recording rules.
+Dashboard uid `compute-windows-overview` · 58 signals · 6 alerts · 4 recording rules · [every tab rendered](../dashboards/compute-windows-overview.md).
 
 ## Signals
 

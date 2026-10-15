@@ -1,6 +1,6 @@
 # Alloy  (`g.libs.collector.alloy`)
 
-Dashboard uid `observ-viz-alloy` · 10 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-alloy` · 10 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-alloy.md).
 
 ## Signals
 

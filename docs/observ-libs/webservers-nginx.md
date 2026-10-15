@@ -1,6 +1,6 @@
 # NGINX  (`g.libs.webservers.nginx`)
 
-Dashboard uid `observ-viz-nginx` · 45 signals · 7 alerts · 4 recording rules.
+Dashboard uid `observ-viz-nginx` · 45 signals · 7 alerts · 4 recording rules · [every tab rendered](../dashboards/observ-viz-nginx.md).
 
 ## Signals
 

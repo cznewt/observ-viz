@@ -1,6 +1,6 @@
 # Loki  (`g.libs.services.loki`)
 
-Dashboard uid `observ-viz-svc-loki` · 85 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-loki` · 85 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-loki.md).
 
 ## Signals
 

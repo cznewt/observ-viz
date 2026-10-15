@@ -1,6 +1,6 @@
 # HTTP server  (`g.libs.instrumentation.httpServer`)
 
-Dashboard uid `observ-viz-http-server` · 13 signals · 3 alerts · 3 recording rules.
+Dashboard uid `observ-viz-http-server` · 13 signals · 3 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-http-server.md).
 
 ## Signals
 

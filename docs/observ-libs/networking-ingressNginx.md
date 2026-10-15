@@ -1,6 +1,6 @@
 # Ingress NGINX  (`g.libs.networking.ingressNginx`)
 
-Dashboard uid `observ-viz-ingress-nginx` · 27 signals · 5 alerts · 3 recording rules.
+Dashboard uid `observ-viz-ingress-nginx` · 27 signals · 5 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-ingress-nginx.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Grafana  (`g.libs.services.grafana`)
 
-Dashboard uid `observ-viz-svc-grafana` · 123 signals · 5 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-grafana` · 123 signals · 5 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-grafana.md).
 
 ## Signals
 

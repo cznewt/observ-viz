@@ -1,6 +1,6 @@
 # Ruby runtime  (`g.libs.runtimes.ruby`)
 
-Dashboard uid `observ-viz-ruby` · 18 signals · 5 alerts · 1 recording rules.
+Dashboard uid `observ-viz-ruby` · 18 signals · 5 alerts · 1 recording rules · [every tab rendered](../dashboards/observ-viz-ruby.md).
 
 ## Signals
 

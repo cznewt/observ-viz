@@ -1,6 +1,6 @@
 # Grafana (test) service  (`g.libs.services.grafanaTest`)
 
-Dashboard uid `observ-viz-svc-grafana-test` · 123 signals · 5 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-grafana-test` · 123 signals · 5 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-grafana-test.md).
 
 ## Signals
 

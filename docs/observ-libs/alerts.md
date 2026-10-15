@@ -1,6 +1,6 @@
 # Alerts overview  (`g.libs.alerts`)
 
-Dashboard uid `observ-viz-alerts` · 4 signals · 0 alerts · 0 recording rules.
+Dashboard uid `observ-viz-alerts` · 4 signals · 0 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-alerts.md).
 
 ## Signals
 

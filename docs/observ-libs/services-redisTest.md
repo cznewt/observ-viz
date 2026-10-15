@@ -1,6 +1,6 @@
 # Redis (test) service  (`g.libs.services.redisTest`)
 
-Dashboard uid `observ-viz-svc-redis-test` · 85 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-redis-test` · 85 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-redis-test.md).
 
 ## Signals
 

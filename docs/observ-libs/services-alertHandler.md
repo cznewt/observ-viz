@@ -1,6 +1,6 @@
 # Alert-handler  (`g.libs.services.alertHandler`)
 
-Dashboard uid `observ-viz-svc-alert-handler` · 97 signals · 5 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-alert-handler` · 97 signals · 5 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-alert-handler.md).
 
 ## Signals
 

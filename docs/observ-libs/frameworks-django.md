@@ -1,6 +1,6 @@
 # Django  (`g.libs.frameworks.django`)
 
-Dashboard uid `observ-viz-django` · 15 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-django` · 15 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-django.md).
 
 ## Signals
 

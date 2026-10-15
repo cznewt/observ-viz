@@ -1,6 +1,6 @@
 # systemd units  (`g.libs.system.systemd`)
 
-Dashboard uid `observ-viz-systemd` · 13 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-systemd` · 13 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-systemd.md).
 
 ## Signals
 

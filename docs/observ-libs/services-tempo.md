@@ -1,6 +1,6 @@
 # Tempo  (`g.libs.services.tempo`)
 
-Dashboard uid `observ-viz-svc-tempo` · 88 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-tempo` · 88 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-tempo.md).
 
 ## Signals
 

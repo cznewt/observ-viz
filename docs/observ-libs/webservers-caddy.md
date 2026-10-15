@@ -1,6 +1,6 @@
 # Caddy  (`g.libs.webservers.caddy`)
 
-Dashboard uid `observ-viz-caddy` · 11 signals · 2 alerts · 1 recording rules.
+Dashboard uid `observ-viz-caddy` · 11 signals · 2 alerts · 1 recording rules · [every tab rendered](../dashboards/observ-viz-caddy.md).
 
 ## Signals
 

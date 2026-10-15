@@ -1,6 +1,6 @@
 # Pyroscope  (`g.libs.services.pyroscope`)
 
-Dashboard uid `observ-viz-svc-pyroscope` · 87 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-pyroscope` · 87 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-pyroscope.md).
 
 ## Signals
 

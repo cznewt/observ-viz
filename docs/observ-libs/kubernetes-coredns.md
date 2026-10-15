@@ -1,6 +1,6 @@
 # CoreDNS  (`g.libs.kubernetes.coredns`)
 
-Dashboard uid `observ-viz-coredns` · 24 signals · 5 alerts · 0 recording rules.
+Dashboard uid `observ-viz-coredns` · 24 signals · 5 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-coredns.md).
 
 ## Signals
 

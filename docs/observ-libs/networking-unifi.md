@@ -1,6 +1,6 @@
 # Unifi Controller  (`g.libs.networking.unifi`)
 
-Dashboard uid `network-unifi-control` · 16 signals · 2 alerts · 0 recording rules.
+Dashboard uid `network-unifi-control` · 16 signals · 2 alerts · 0 recording rules · [every tab rendered](../dashboards/network-unifi-control.md).
 
 ## Signals
 

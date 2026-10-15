@@ -1,6 +1,6 @@
 # Python runtime  (`g.libs.runtimes.python`)
 
-Dashboard uid `observ-viz-python` · 6 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-python` · 6 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-python.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Container resources  (`g.libs.kubernetes.cadvisor`)
 
-Dashboard uid `observ-viz-cadvisor` · 28 signals · 4 alerts · 2 recording rules.
+Dashboard uid `observ-viz-cadvisor` · 28 signals · 4 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-cadvisor.md).
 
 ## Signals
 

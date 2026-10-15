@@ -1,6 +1,6 @@
 # Backstage  (`g.libs.cicd.backstage`)
 
-Dashboard uid `observ-viz-backstage` · 0 signals · 0 alerts · 0 recording rules.
+Dashboard uid `observ-viz-backstage` · 0 signals · 0 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-backstage.md).
 
 ## Signals
 

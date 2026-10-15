@@ -1,6 +1,6 @@
 # Pangolin  (`g.libs.networking.pangolin`)
 
-Dashboard uid `observ-viz-pangolin` · 31 signals · 2 alerts · 0 recording rules.
+Dashboard uid `observ-viz-pangolin` · 31 signals · 2 alerts · 0 recording rules · [every tab rendered](../dashboards/observ-viz-pangolin.md).
 
 ## Signals
 

@@ -1,6 +1,6 @@
 # Anomaly-exporter  (`g.libs.services.anomalyExporter`)
 
-Dashboard uid `observ-viz-svc-anomaly-exporter` · 97 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-anomaly-exporter` · 97 signals · 3 alerts · 2 recording rules · [every tab rendered](../dashboards/observ-viz-svc-anomaly-exporter.md).
 
 ## Signals
 

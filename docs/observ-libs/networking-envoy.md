@@ -1,6 +1,6 @@
 # Envoy  (`g.libs.networking.envoy`)
 
-Dashboard uid `observ-viz-envoy` · 30 signals · 4 alerts · 3 recording rules.
+Dashboard uid `observ-viz-envoy` · 30 signals · 4 alerts · 3 recording rules · [every tab rendered](../dashboards/observ-viz-envoy.md).
 
 ## Signals
 

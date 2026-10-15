@@ -63,7 +63,8 @@ def fence(e):
 
 def page(p, d):
     L = [f"# {d['title']}  (`g.libs.{p}`)", "",
-         f"Dashboard uid `{d['uid']}` · {len(d['signals'])} signals · {len(d['alerts'])} alerts · {len(d['records'])} recording rules.", ""]
+         f"Dashboard uid `{d['uid']}` · {len(d['signals'])} signals · {len(d['alerts'])} alerts · {len(d['records'])} recording rules"
+         f" · [every tab rendered](../dashboards/{d['uid']}.md).", ""]
     recorded_by = {r["e"]: r["n"] for r in d["records"]}
     L += ["## Signals", "",
           "Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).", "",
