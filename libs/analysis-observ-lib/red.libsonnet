@@ -76,7 +76,10 @@ local exprs(cfg, sel, rate) = {
   success: '(' + self.total + ') - (' + self.errors + ')',
   // clamp_min so a route with no traffic reads 0, not NaN
   errorRatio: '(' + self.errors + ') / clamp_min(' + self.total + ', 1e-9)',
-  quantile(q):: 'histogram_quantile(' + q + ', sum by (le, ' + by + ') (rate(' + src.bucket + inSel() + '[' + rate + '])))',
+  // a source's bucketSelector narrows the latency histogram only (requests
+  // whose duration is a session, not a response, e.g. API server watches)
+  quantile(q):: 'histogram_quantile(' + q + ', sum by (le, ' + by + ') (rate(' + src.bucket
+                + inSel(if std.objectHas(src, 'bucketSelector') then ', ' + src.bucketSelector else '') + '[' + rate + '])))',
 };
 
 {

@@ -63,6 +63,9 @@
       // comes from the histogram.
       counter: 'apiserver_request_total',
       bucket: 'apiserver_request_duration_seconds_bucket',
+      // a WATCH (or exec/attach/port-forward CONNECT) lasts as long as the
+      // session - up to its 60s timeout - and would pin p99 there
+      bucketSelector: 'verb!~"WATCH|CONNECT"',
       errorSelector: 'code=~"5.."',
       groupBy: ['resource'],
       description: 'Every call to the API server, by resource and verb.',
