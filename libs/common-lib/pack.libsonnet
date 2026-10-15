@@ -7,6 +7,7 @@ local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (impor
 local layout = import 'custom/layout.libsonnet';
 local grid = import 'custom/util/grid.libsonnet';
 local panel = import 'custom/panel.libsonnet';
+local podrows = import 'libs/common-lib/podrows.libsonnet';
 local tabbed = import 'libs/common-lib/tabbed.libsonnet';
 local utils = import 'libs/common-lib/utils.libsonnet';
 local variable =
@@ -36,7 +37,26 @@ local variable =
       // flatten every group's (and optional/doc tab's) elements into one elements map.
       // a tab either holds one grid (`elements`) or rows of grids (`groups`).
       local tabElements(t) = if std.objectHas(t, 'groups') then std.foldl(function(a, grp) a + grp.elements, t.groups, {}) else t.elements,
-      local overviewLead = if std.objectHas(config, 'overviewLeadGroups') then config.overviewLeadGroups else [],
+      // every tabbed pack board scoped by job opens its Overview on the shared
+      // pod rows (podrows.libsonnet) for the pods behind the selected job -
+      // hidden job_cluster / job_namespace / job_pod variables off the pack's
+      // identity metric (varMetric), each row gated on has_pods, so boards whose
+      // targets are hosts never show them. A composer bringing its own lead rows
+      // (g.libs.service) and a pack with overviewPods: false (the cluster and pod
+      // boards) are left alone.
+      local podsOn = tabbedOn
+                     && (if std.objectHas(config, 'groupVar') then config.groupVar else 'job') == 'job'
+                     && !std.objectHas(config, 'overviewLeadGroups')
+                     && (if std.objectHas(config, 'overviewPods') then config.overviewPods else true),
+      local podLead = if podsOn then podrows.groups({
+        datasource: if std.objectHas(config, 'datasource') then config.datasource else '${datasource}',
+        lokiDatasource: '${loki_datasource}',
+        kubeSelector: 'cluster=~"$job_cluster", namespace=~"$job_namespace", pod=~"$job_pod"',
+        pods: true,
+        logs: true,
+        gates: { pods: 'has_pods', resources: 'has_pods', logs: 'has_pods' },
+      }) else [],
+      local overviewLead = if std.objectHas(config, 'overviewLeadGroups') then config.overviewLeadGroups else podLead,
       local overviewExtra = if std.objectHas(config, 'overviewExtraGroups') then config.overviewExtraGroups else [],
       local baseElements = std.foldl(function(acc, t) acc + tabElements(t), groups + optionalTabs + docTabList + overviewLead + overviewExtra, {}),
       // `config.tabbed` swaps the rows layout for the shared tabbed board:
@@ -45,15 +65,27 @@ local variable =
       // group's signal table. The description and references ride on the
       // dashboard itself (description + link bar), not in panels.
       local tabbedOn = std.objectHas(config, 'tabbed') && config.tabbed,
-      local tabbedBoard = tabbed.build(config, signals, groups, baseElements),
+      // under the pod rows the instances table is titled after the board
+      local tabbedConfig =
+        if podsOn then config {
+          overviewLeadGroups: podLead,
+          overviewInstancesTitle: if std.objectHas(config, 'overviewInstancesTitle') then config.overviewInstancesTitle else config.dashboardTitle,
+        } else config,
+      local tabbedBoard = tabbed.build(tabbedConfig, signals, groups, baseElements),
       elements: if tabbedOn then tabbedBoard.elements else baseElements,
 
       local gridOf(grp) =
         layout.grid.new()
         + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)),
+      // a row inside an optional tab may wait for a hidden presence variable
+      // (`when: 'has_systemd'`), like a whole tab does with `presence`.
+      local rowWhen(grp) =
+        if std.objectHas(grp, 'when')
+        then layout.withConditionalRendering(layout.conditional.group([layout.conditional.variable(grp.when, '', 'notEquals')]))
+        else {},
       local tabLayout(t) =
         if std.objectHas(t, 'groups') then
-          layout.rows.new() + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) for grp in t.groups])
+          layout.rows.new() + layout.rows.withRows([layout.rows.row(grp.title, gridOf(grp)) + rowWhen(grp) for grp in t.groups])
         else gridOf(t),
       local rowsLayout =
         layout.rows.new()
@@ -251,6 +283,22 @@ local variable =
           ] else [];
         // dashboard-level links: config.links ([]DashboardLink specs), then the references
         local links = (if std.objectHas(config, 'links') then config.links else []) + refLinks;
+        // the pods behind the selected job, for the shared pod rows: has_pods gates
+        // them, job_cluster / job_namespace / job_pod scope their queries (hidden).
+        // scoped by the pack's identity metric, not `up`: a scrape that gives
+        // every app one job name (monlab's annotation autodiscovery) would
+        // otherwise put every pod on every board.
+        local podUp = varMetric + '{job=~"$job", pod!=""}';
+        local podVars = if podsOn then [
+          variable.query.new('has_pods') + variable.query.withLabelValues('pod', podUp) + variable.query.withHide('hideVariable'),
+        ] + [
+          variable.query.new('job_' + l) + variable.query.withLabelValues(l, podUp) + variable.query.withHide('hideVariable')
+          + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent
+          for l in ['cluster', 'namespace', 'pod']
+        ] else [];
+        local extraVars = if std.objectHas(config, 'extraVariables') then config.extraVariables else [];
+        local declares(name) = std.length([v for v in extraVars if std.objectHas(v, 'spec') && std.objectHas(v.spec, 'name') && v.spec.name == name]) > 0;
+        local wantLoki = ((std.objectHas(config, 'lokiDatasource') && config.lokiDatasource) || podsOn) && !declares('loki_datasource');
         dashboard.new(config.dashboardTitle)
         + dashboard.withUid(config.uid)
         + dashboard.withTags(config.dashboardTags)
@@ -280,10 +328,10 @@ local variable =
           )
           + multiMods
           for i in std.range(0, std.length(varLabels) - 1)
-        ] + (if std.objectHas(config, 'extraVariables') then config.extraVariables else [])
-        + (if std.objectHas(config, 'lokiDatasource') && config.lokiDatasource then [
+        ] + extraVars
+        + (if wantLoki then [
                variable.datasource.new('loki_datasource', 'loki') + variable.datasource.withLabel('Loki'),
-             ] else []) + presenceVars + (if docsOn then [signalsVar] else []))
+             ] else []) + presenceVars + podVars + (if docsOn then [signalsVar] else []))
         + dashboard.withElements(this.grafana.elements)
         + dashboard.withLayout(this.grafana.layout),
 

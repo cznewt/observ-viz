@@ -41,6 +41,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       tabbed: true,
       // the Namespaces tab already tables what runs here
       overviewInstances: false,
+      // a cluster board, not a workload: no per-pod rows on its Overview
+      overviewPods: false,
       // Platform / Kubernetes, beside the pod and container boards
       folderPath: (import 'libs/common-lib/folders.libsonnet').kubernetes,
     } + config;

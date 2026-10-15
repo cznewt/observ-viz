@@ -1,6 +1,6 @@
 # Anomaly-exporter  (`g.libs.services.anomalyExporter`)
 
-Dashboard uid `observ-viz-svc-anomaly-exporter` · 103 signals · 3 alerts · 2 recording rules.
+Dashboard uid `observ-viz-svc-anomaly-exporter` · 97 signals · 3 alerts · 2 recording rules.
 
 ## Signals
 
@@ -49,15 +49,11 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `kube_cpuRequests` | short | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="cpu"})` | — |
 | `kube_deployAvailable` | short | `kube_deployment_status_replicas_available{cluster=~"$cluster", namespace=~"$namespace", deployment=~"anomaly-exporter.*"}` | — |
 | `kube_deployDesired` | short | `kube_deployment_spec_replicas{cluster=~"$cluster", namespace=~"$namespace", deployment=~"anomaly-exporter.*"}` | — |
-| `kube_diskRead` | Bps | `sum by (pod) (rate(container_fs_reads_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))` | — |
-| `kube_diskWrite` | Bps | `sum by (pod) (rate(container_fs_writes_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""}[$__rate_interval]))` | — |
 | `kube_dsDesired` | short | `kube_daemonset_status_desired_number_scheduled{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"anomaly-exporter.*"}` | — |
 | `kube_dsReady` | short | `kube_daemonset_status_number_ready{cluster=~"$cluster", namespace=~"$namespace", daemonset=~"anomaly-exporter.*"}` | — |
 | `kube_mem` | bytes | `sum by (pod) (container_memory_working_set_bytes{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", container!=""})` | — |
 | `kube_memLimits` | bytes | `sum by (pod) (kube_pod_container_resource_limits{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
 | `kube_memRequests` | bytes | `sum by (pod) (kube_pod_container_resource_requests{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", resource="memory"})` | — |
-| `kube_netRx` | Bps | `sum by (pod) (rate(container_network_receive_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[$__rate_interval]))` | — |
-| `kube_netTx` | Bps | `sum by (pod) (rate(container_network_transmit_bytes_total{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}[$__rate_interval]))` | — |
 | `kube_notRunning` | short | `sum(kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod", phase!="Running"} == 1) or vector(0)` | — |
 | `kube_phase` | short | `sum by (phase) (kube_pod_status_phase{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
 | `kube_pods` | short | `count(kube_pod_info{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
@@ -71,10 +67,8 @@ Each signal's dashboard query (metric/expr) and the recording rule it produces (
 | `kube_waiting` | short | `sum by (pod, reason) (kube_pod_container_status_waiting_reason{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} == 1)` | — |
 | `kube_waitingTotal` | short | `sum(kube_pod_container_status_waiting{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
 | `kube_youngest` | dtdurations | `min(time() - kube_pod_start_time{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"})` | — |
-| `logs_errors` | short | `sum by (pod) (count_over_time({cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} \| detected_level=~"error\|fatal\|critical" [$__auto]))` | — |
 | `logs_journal` | short | `{instance=~"$host", unit=~"anomaly-exporter.service"}` | — |
 | `logs_pod` | short | `{cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"}` | — |
-| `logs_volume` | short | `sum by (detected_level) (count_over_time({cluster=~"$cluster", namespace=~"$namespace", pod=~"$pod"} [$__auto]))` | — |
 | `modules` | short | `count(count by (module) (anomaly_exporter_probes_total{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"}))` | — |
 | `probeLatency` | s | `max by (probe, module) (anomaly_probe_duration_seconds{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |
 | `probeSuccess` | short | `min by (probe, module) (anomaly_probe_success{job=~"$job", cluster=~"$cluster", namespace=~"$namespace\|", pod=~"$pod\|"})` | — |

@@ -1,8 +1,9 @@
 // observ-viz tabbed board layout (hand-written).
 // The board contract every pack can opt into with `config.tabbed`:
 //
-//   Overview tab  config.overviewLeadGroups first (a composer's own rows, the
-//                 service board's Pods / Resources / Logs, say), then one row
+//   Overview tab  config.overviewLeadGroups first (the shared pod rows of
+//                 podrows.libsonnet - pack.build sets them for the pods behind
+//                 the selected job, a service board for its own pods), then one row
 //                 per instance built from config.overviewSignals, then a group
 //                 the pack itself calls "Overview", then
 //                 config.overviewExtraGroups. What the board is and its

@@ -48,6 +48,9 @@ local variable =
       // kube-state-metrics pod), so the Pods table replaces it - unless a
       // caller asks for one with its own overviewSignals
       overviewInstances: std.objectHas(config, 'overviewSignals'),
+      // this board is the pod view itself (its own namespace / pod filters):
+      // no generic pod rows, which off kube_pod_info would list every pod
+      overviewPods: false,
     } + config;
     local podSel = cfg.selector + (if cfg.podFilter then (if cfg.selector != '' then ', ' else '') + 'pod=~"${pod:pipe}"' else '');
     local podVar =
