@@ -20,7 +20,7 @@ Detailed reference per observ-lib — signals, dashboard groups, alerts, recordi
 | [`system.systemd`](system-systemd.md) | 13 | 3 | 2 |
 | [`system.processExporter`](system-processExporter.md) | 15 | 3 | 2 |
 | [`system.proxmox`](system-proxmox.md) | 15 | 3 | 0 |
-| [`kubernetes.cluster`](kubernetes-cluster.md) | 7 | 11 | 9 |
+| [`kubernetes.cluster`](kubernetes-cluster.md) | 7 | 55 | 24 |
 | [`kubernetes.pod`](kubernetes-pod.md) | 29 | 2 | 2 |
 | [`kubernetes.cadvisor`](kubernetes-cadvisor.md) | 28 | 4 | 2 |
 | [`kubernetes.coredns`](kubernetes-coredns.md) | 24 | 5 | 0 |

@@ -116,7 +116,7 @@
       prefix: 'apiserver_request:burnrate',
       windows: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
       groupBy: ['verb'],
-      description: 'The kubernetes-mixin records these seven windows for the API server\'s own SLO, split by read and write.',
+      description: 'The kube-apiserver-burnrate.rules of kubernetes.cluster (or of the kubernetes-mixin) record these seven windows for the API server\'s own SLO, split by read and write.',
     },
     pyrra: {
       title: 'Pyrra SLOs',

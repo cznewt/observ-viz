@@ -102,7 +102,7 @@ instrumentation with the right shape:
 | `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
 | `analysis.anomaly` | the series to watch | process, requests |
 | `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, container |
-| `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (kubernetes-mixin rules), Pyrra |
+| `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (the `kubernetes.cluster` or kubernetes-mixin burn-rate rules), Pyrra |
 | `analysis.capacity` | one quantity that shrinks, or used against total | filesystems, free node memory, certificates; cluster and node CPU and memory, workload memory |
 
 Golden signals is RED plus the one RED leaves out: saturation, the leading
