@@ -44,6 +44,9 @@ local defaults = {
   past: '7d',
   bands: { under: 0.3, over: 0.7 },
   'for': '1h',
+  // the alert's rate window: the board's $interval is a variable, a rule
+  // cannot read one
+  ruleWindow: '5m',
   severity: 'warning',
   service: 'capacity',
 };
@@ -147,7 +150,7 @@ local resolve(config) =
         alert.rule.group('capacity-' + cfg.service, [
           alert.rule.new(
             name(cfg.service) + 'Full',
-            '(' + u.now + ') > ' + cfg.bands.over + ' and (' + u.soon + ') > ' + cfg.bands.over,
+            std.strReplace('(' + u.now + ') > ' + cfg.bands.over + ' and (' + u.soon + ') > ' + cfg.bands.over, '$interval', cfg.ruleWindow),
             cfg['for'],
             cfg.severity,
             {},
