@@ -3,6 +3,7 @@ import com.sun.net.httpserver.HttpServer;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmInfoMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
@@ -28,6 +29,8 @@ public final class App {
                 new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
         // Default JVM runtime collectors (jvm_*, process_*, system_* metrics).
+        // jvm_info: the identity series the observ-viz JVM boards list instances by
+        new JvmInfoMetrics().bindTo(registry);
         new JvmMemoryMetrics().bindTo(registry);
         new JvmGcMetrics().bindTo(registry);
         new JvmThreadMetrics().bindTo(registry);
