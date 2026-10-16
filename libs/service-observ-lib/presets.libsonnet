@@ -48,8 +48,10 @@ local catalog = [
   { key: 'demoGo', app: 'demo-go', title: 'Demo Go', whitebox: packs.golang, tags: ['demo', 'golang'], workload: 'demo-.*go.*', service: 'demo-.*go.*', folder: 'demos', variant: 'env' },
   { key: 'demoPython', app: 'demo-python', title: 'Demo Python', whitebox: packs.python, tags: ['demo', 'python'], workload: 'demo-.*python.*', service: 'demo-.*python.*', folder: 'demos', variant: 'env' },
   // cznewt/sample-java-app: three JVM services (sre-back / sre-front /
-  // sre-reader) in one namespace; a `service` variable picks among them.
-  { key: 'demoJvm', app: 'demo-jvm', title: 'Demo JVM', whitebox: packs.jvm, tags: ['demo', 'sample', 'jvm'], workload: 'sre-(back|front|reader).*', service: 'sre-(back|front|reader).*', folder: 'demos', variant: 'service', namespace: 'sample-java-app|sre.*' },
+  // sre-reader) in one namespace, or the observ-viz JVM sample
+  // (extra/apps/java, Micrometer) monlab runs in global-monitor-demo; a
+  // `service` variable picks among them.
+  { key: 'demoJvm', app: 'demo-jvm', title: 'Demo JVM', whitebox: packs.jvm, tags: ['demo', 'sample', 'jvm'], workload: 'sre-(back|front|reader).*|observ-viz-sample-jvm.*', service: 'sre-(back|front|reader).*|observ-viz-sample-jvm.*', folder: 'demos', variant: 'service', namespace: 'sample-java-app|sre.*|global-monitor-demo' },
   { key: 'backstage', app: 'backstage', title: 'Backstage service (Postgres)', whitebox: packs.postgres, tags: ['cicd'], workload: 'backstage.*', service: 'backstage.*' },
   { key: 'alertmanager', app: 'alertmanager', whitebox: packs.alertmanager, tags: ['monitoring'], workload: 'alertmanager-server.*', service: 'alertmanager.*', folder: 'alerting' },
   { key: 'alertHandler', app: 'alert-handler', whitebox: packs.alertHandler, tags: ['monitoring'], workload: 'alert-handler.*', service: 'alert-handler.*', folder: 'alerting' },
@@ -103,7 +105,7 @@ local variants = {
   },
   service: {
     extraVariables: [customVar('service', 'Service', 'Sample service (pod-name prefix).',
-                               [['back', 'sre-back'], ['front', 'sre-front'], ['reader', 'sre-reader']])],
+                               [['back', 'sre-back'], ['front', 'sre-front'], ['reader', 'sre-reader'], ['sample', 'observ-viz-sample-jvm']])],
     scope(c): { cluster: '', namespace: c.namespace, pod: '${service}.*' },
   },
 };
