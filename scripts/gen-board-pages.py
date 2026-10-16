@@ -16,6 +16,12 @@ Outputs (gitignored, written at docs build time):
                                       visualizations pages
 Build with `mkdocs build -f mkdocs.gen.yml` (see `just docs`).
 
+Another repository (observ-libs) builds its own tree with the same script:
+--docs its docs folder (boards.json in it), --mkdocs its mkdocs.yml (the
+generated file lands next to it), --site its name for the overview page,
+--lib-prefix how its library paths read. Shots
+of several Grafanas sit in <docs>/shots/<name>/, each with its manifest.json.
+
 One page per board:
 - a library's page is its own board (uid from the library), filed in the
   library's folder; when that board is not rendered but another uid renders the
@@ -27,6 +33,8 @@ One page per board:
 - mixin boards (analysis, chart types, deployment targets, base) get their own
   pages; a deployment-target board links to its library's page
 """
+import argparse
+import glob
 import json
 import os
 import re
@@ -38,6 +46,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, "docs")
 BOARDS = os.path.join(DOCS, "boards")
 SHOTS = os.path.join(DOCS, "shots")
+LIB_PREFIX = "g.libs."
 # top-level sections, in this order; a board in any other root folder becomes a workload
 SECTIONS = ["Analysis", "Platform", "Workloads", "Components", "Reference", "Base"]
 RUNTIMES = ["Reference", "Runtimes"]
@@ -194,9 +203,9 @@ def board_page(b, pages, libs, manifest):
         L += [b["description"], ""]
     rows = []
     if b.get("lib"):
-        rows.append(("Library", f"`g.libs.{b['lib']}`"))
+        rows.append(("Library", f"`{LIB_PREFIX}{b['lib']}`"))
     for w in b.get("builtOn", []):
-        rows.append(("Built on", f"`g.libs.{w}` (its signals, alerts and rules are part of this board's)"))
+        rows.append(("Built on", f"`{LIB_PREFIX}{w}` (its signals, alerts and rules are part of this board's)"))
     rows += [("Board uid", f"`{b['uid']}`"), ("Grafana folder", " / ".join(b["folder"]))]
     if shot and b["shot"] != b["uid"]:
         rows.append(("Screenshots", f"of `{b['shot']}`, the board that renders this library on the docs Grafana"))
@@ -207,8 +216,8 @@ def board_page(b, pages, libs, manifest):
     # the first row is the table header (a markdown table needs one)
     L += [f"| {rows[0][0]} | {rows[0][1]} |", "|---|---|"] + [f"| {k} | {v} |" for k, v in rows[1:]] + [""]
     if shot and shot.get("tabs"):
-        masked = "; log lines are masked" if manifest.get("logsMasked") else ""
-        L += [f"*Rendered from {manifest.get('grafana', '')} on {manifest.get('rendered', '')}: each tab as that Grafana "
+        masked = "; log lines are masked" if shot.get("logsMasked", manifest.get("logsMasked")) else ""
+        L += [f"*Rendered from {shot.get('grafana', manifest.get('grafana', ''))} on {shot.get('rendered', manifest.get('rendered', ''))}: each tab as that Grafana "
               f"draws it with its own data, so a panel without data there shows \"No data\"{masked}.*", ""]
         for t in shot["tabs"]:
             if len(shot["tabs"]) > 1:
@@ -317,11 +326,39 @@ def redirects(pages, folded, aliases, libs):
     return out
 
 
+def manifests():
+    """<docs>/shots/manifest.json, or one per Grafana in <docs>/shots/<name>/:
+    every rendered board, with the Grafana it came from and its tab files
+    relative to <docs>/shots. The first Grafana that has a board wins."""
+    paths = sorted(glob.glob(os.path.join(SHOTS, "manifest.json")) + glob.glob(os.path.join(SHOTS, "*", "manifest.json")))
+    merged = {"boards": {}}
+    for path in paths:
+        m = json.load(open(path))
+        sub = os.path.relpath(os.path.dirname(path), SHOTS)
+        for k in ("grafana", "rendered", "logsMasked"):
+            merged.setdefault(k, m.get(k))
+        for b in m.get("boards", []):
+            if not b.get("tabs") or b["uid"] in merged["boards"]:
+                continue
+            tabs = [dict(t, file=t["file"] if sub == "." else sub + "/" + t["file"]) for t in b["tabs"]]
+            merged["boards"][b["uid"]] = dict(b, tabs=tabs, grafana=m.get("grafana", ""), rendered=m.get("rendered", ""),
+                                              logsMasked=m.get("logsMasked", False))
+    return merged
+
+
 def main():
+    global DOCS, BOARDS, SHOTS, LIB_PREFIX
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--docs", default=DOCS, help="the docs folder: boards.json in, boards/ and shots/ under it")
+    ap.add_argument("--mkdocs", default=os.path.join(ROOT, "mkdocs.yml"), help="the mkdocs.yml the generated one inherits")
+    ap.add_argument("--site", default="observ-viz", help="what the overview page calls the boards' source")
+    ap.add_argument("--lib-prefix", default=LIB_PREFIX, help="how a page writes a library path (observ-viz: g.libs.)")
+    a = ap.parse_args()
+    LIB_PREFIX = a.lib_prefix
+    DOCS = os.path.abspath(a.docs)
+    BOARDS, SHOTS = os.path.join(DOCS, "boards"), os.path.join(DOCS, "shots")
     data = json.load(open(os.path.join(DOCS, "boards.json")))
-    mpath = os.path.join(SHOTS, "manifest.json")
-    manifest = json.load(open(mpath)) if os.path.exists(mpath) else {"boards": []}
-    manifest["boards"] = {b["uid"]: b for b in manifest["boards"] if b.get("tabs")}
+    manifest = manifests()
     pages, folded, aliases = collect(data, manifest["boards"])
     shutil.rmtree(BOARDS, ignore_errors=True)
     for b in pages.values():
@@ -335,19 +372,22 @@ def main():
             fh.write(text + "\n")
     top = [s for s in SECTIONS if (s,) in tree]
     overview = ["# Boards", "",
-                "Every board observ-viz ships, filed in the same folders as in Grafana. Each page shows every tab of the "
+                f"Every board {a.site} ships, filed in the same folders as in Grafana. Each page shows every tab of the "
                 "board as the docs Grafana draws it, then the alerts, recording rules and signals of the library behind it.",
                 "", "| Folder | Boards |", "|--------|--------|"]
     overview += [f"| [{s}]({slug(s)}/index.md) | {count(tree, (s,))} |" for s in top]
     with open(os.path.join(BOARDS, "index.md"), "w") as fh:
         fh.write("\n".join(overview) + "\n")
-    base = yaml.safe_load(open(os.path.join(ROOT, "mkdocs.yml")))
+    # only `nav` is read; a !!python/name tag (a superfences custom fence) is left alone
+    loader = type("Loader", (yaml.SafeLoader,), {})
+    loader.add_multi_constructor("tag:yaml.org,2002:python/", lambda *_: None)
+    base = yaml.load(open(a.mkdocs), Loader=loader)
     gen = {
-        "INHERIT": "mkdocs.yml",
+        "INHERIT": os.path.basename(a.mkdocs),
         "nav": base["nav"] + [{s: nav_for((s,), tree)} for s in top],
         "plugins": ["search", {"redirects": {"redirect_maps": redirects(pages, folded, aliases, data["libs"])}}],
     }
-    with open(os.path.join(ROOT, "mkdocs.gen.yml"), "w") as fh:
+    with open(os.path.join(os.path.dirname(os.path.abspath(a.mkdocs)), "mkdocs.gen.yml"), "w") as fh:
         fh.write("# generated by scripts/gen-board-pages.py - do not edit\n")
         yaml.safe_dump(gen, fh, sort_keys=False, allow_unicode=True)
     rendered = sum(1 for b in pages.values() if b["shot"] in manifest["boards"])

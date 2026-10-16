@@ -4,6 +4,8 @@
 Runs inside the Playwright image - see `just docs-shots`:
   SHOTS_GRAFANA_URL     the Grafana to render (default https://grafana.monlab.newt.cz)
   SHOTS_GRAFANA_TOKEN   a service-account token that can view the boards
+  SHOTS_GRAFANA_PUBLIC  the address the pages name (default the URL; for a
+                        Grafana reached through a port-forward)
   shots.py OUT [--uids a,b] [--width 1600] [--limit N] [--jobs N] [--show-logs]
 
 Boards (default): every board docs/boards.json knows (libraries and mixin boards),
@@ -40,17 +42,17 @@ def api(url, token, path):
     return json.load(urllib.request.urlopen(req, timeout=30))
 
 
-def wanted_boards(url, token, only):
+def wanted_boards(url, token, only, boards_json, listed_only=False):
     found = api(url, token, '/api/search?' + urllib.parse.urlencode({'type': 'dash-db', 'limit': 5000}))
     if only:
         keep = [b for b in found if b['uid'] in only]
     else:
-        data = json.load(open(os.path.join(ROOT, 'docs/boards.json')))
+        data = json.load(open(boards_json))
         doc_uids = set(data['boards']) | {lib['uid'] for lib in data['libs'].values()}
         prefixes = ('observ-viz-', 'base-', 'scn-')
         keep = [b for b in found
-                if b['uid'] in doc_uids or b['uid'].startswith(prefixes) or b['uid'] == 'cluster-detail'
-                or b.get('folderTitle') == 'Panels']
+                if b['uid'] in doc_uids or not listed_only and (
+                    b['uid'].startswith(prefixes) or b['uid'] == 'cluster-detail' or b.get('folderTitle') == 'Panels')]
     folders = {}
     for b in keep:
         b['folderPath'] = folder_path(url, token, b.get('folderUid'), folders)
@@ -208,6 +210,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--uids', default='')
+    ap.add_argument('--boards', default=os.path.join(ROOT, 'docs/boards.json'), help="the boards.json listing the boards to shoot")
+    ap.add_argument('--listed-only', action='store_true', help="only the boards in --boards, not observ-viz's own prefixes")
     ap.add_argument('--width', type=int, default=1600)
     ap.add_argument('--limit', type=int, default=0)
     ap.add_argument('--jobs', type=int, default=1, help='browsers rendering in parallel')
@@ -215,11 +219,11 @@ def main():
     a = ap.parse_args()
     url = os.environ.get('SHOTS_GRAFANA_URL', 'https://grafana.monlab.newt.cz').rstrip('/')
     token = os.environ['SHOTS_GRAFANA_TOKEN']
-    boards = wanted_boards(url, token, set(filter(None, a.uids.split(','))))
+    boards = wanted_boards(url, token, set(filter(None, a.uids.split(','))), a.boards, a.listed_only)
     if a.limit:
         boards = boards[:a.limit]
     os.makedirs(a.out, exist_ok=True)
-    manifest = {'grafana': url, 'rendered': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ'), 'logsMasked': not a.show_logs, 'boards': []}
+    manifest = {'grafana': os.environ.get('SHOTS_GRAFANA_PUBLIC', url).rstrip('/'), 'rendered': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ'), 'logsMasked': not a.show_logs, 'boards': []}
     jobs = max(1, min(a.jobs, len(boards)))
     if jobs == 1:
         manifest['boards'] = render(a.out, url, token, a.width, not a.show_logs, boards)
