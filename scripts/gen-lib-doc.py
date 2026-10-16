@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
-"""Generate a detailed doc page per observ-lib (signals + dashboard groups +
-alerts + recording rules) into docs/observ-libs/, plus an index.
+"""Generate docs/boards.json: every board observ-viz ships, the Grafana folder
+it is filed in, and the library behind it with its signals, alerts and
+recording rules.
 
-  gen-lib-doc.py [lib.dotted.path ...]   # default: all libs in the index
+  gen-lib-doc.py
+
+- libs:   every observ-lib under g.libs (found by walking the index, not a
+          hand-kept list): title, board uid, folder, description, signals (or
+          panel queries), dashboard groups/panels, alerts and recording rules.
+- boards: the boards the reference and base mixins render (analysis, chart
+          types, runtimes, deployment targets, common, base), with their folder.
+
+The docs build (scripts/gen-board-pages.py) turns this, plus the screenshots
+from the docs-shots branch, into one page per board in a navigation tree that
+mirrors the Grafana folders. Run it after changing a library (a few minutes:
+every board is evaluated) and commit docs/boards.json.
 """
 import json
 import os
@@ -11,129 +23,93 @@ import sys
 import _jsonnet
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTDIR = os.path.join(ROOT, "docs", "observ-libs")
-
-GROUPS = {
-    "Runtimes": ["runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.process", "runtimes.nodejs", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam"],
-    "System": ["system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter", "system.proxmox"],
-    "Kubernetes": ["kubernetes.cluster", "kubernetes.pod", "kubernetes.cadvisor", "kubernetes.coredns", "kubernetes.certManager"],
-    "Databases": ["databases.sql.postgres", "databases.sql.mysql", "databases.kv.redis", "databases.kv.memcached", "databases.kv.etcd", "databases.document.mongodb", "databases.search.elasticsearch"],
-    "Monitoring": ["monitoring.kubeStateMetrics", "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope", "monitoring.grafana", "monitoring.alertmanager", "monitoring.alertHandler", "monitoring.opencost", "monitoring.anomalyExporter", "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter"],
-    "Collector": ["collector.alloy"],
-    "Networking": ["networking.wireguard", "networking.unifi", "networking.ingressNginx", "networking.traefik", "networking.envoy", "networking.pangolin"],
-    "Applications": ["applications.syncthing", "applications.minio", "applications.valheim", "applications.minecraft"],
-    "Instrumentation": ["instrumentation.httpServer", "instrumentation.httpClient", "instrumentation.rpc", "instrumentation.messaging", "instrumentation.otelSdk"],
-    "Web servers": ["webservers.nginx", "webservers.caddy", "webservers.apache"],
-    "Frameworks": ["frameworks.django", "frameworks.rails", "frameworks.wagtail", "frameworks.wordpress"],
-    "CI/CD": ["cicd.argocd", "cicd.backstage", "cicd.vault"],
-    "Services": ["services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.redisTest", "services.demoGo", "services.demoPython", "services.demoJvm", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd"],
-    "Demos": ["demos.demoApp"],
-    "Cross-cutting": ["alerts", "logs", "backstage"],
-}
-ALL = [p for v in GROUPS.values() for p in v]
+OUT = os.path.join(ROOT, "docs", "boards.json")
 
 
 def ev(snip):
     return json.loads(_jsonnet.evaluate_snippet("t", snip, jpathdir=[ROOT]))
 
 
+# the folder chain (titles, root first) a board resource carries in its annotations
+FOLDER = """
+local folder(res) =
+  local a = std.get(std.get(res, 'metadata', {}), 'annotations', {});
+  if std.objectHas(a, 'observ-viz.dev/folder-path') then [f.title for f in std.parseJson(a['observ-viz.dev/folder-path'])]
+  else (if std.objectHas(a, 'observ-viz.dev/folder-parent-title') then [a['observ-viz.dev/folder-parent-title']] else [])
+       + (if std.objectHas(a, 'observ-viz.dev/folder-title') then [a['observ-viz.dev/folder-title']] else []);
+"""
+
+
+def lib_paths():
+    return ev("""local libs = (import 'g.libsonnet').libs;
+local walk(o, p) = std.flattenArrays([
+  local v = o[k];
+  if std.isObject(v) then (if std.objectHasAll(v, 'new') && std.isFunction(v.new) then [p + k] else walk(v, p + k + '.')) else []
+  for k in std.objectFields(o)
+]);
+walk(libs, '')""")
+
+
 def lib_data(p):
-    snip = (
-        f"local l=(import 'g.libsonnet').libs.{p}.new({{}});"
-        "local sig(k)= l.signals[k];"
-        "{"
-        " title: l.config.dashboardTitle, uid: l.config.uid,"
-        " signals: if !std.objectHas(l,'signals') then [] else [{ n:k,"
-        "   u: (local d=sig(k).asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; if std.objectHas(d,'unit') then d.unit else ''),"
-        "   e: sig(k).asTarget().spec.query.spec.expr,"
-        "   re: sig(k).asRecordingRule('_', '', '5m').expr } for k in std.objectFields(l.signals)],"
-        # libs without signals (logs) expose their panel queries instead
-        " queries: if std.objectHas(l,'signals') || !std.objectHas(l,'queries') then [] else"
-        "   [{ n:k, e: std.get(std.get(std.get(std.get(l.queries[k],'spec',{}),'query',{}),'spec',{}),'expr','') } for k in std.objectFields(l.queries)],"
-        " groups: [{ t:g.title, els:std.objectFields(g.elements) } for g in (if std.objectHas(l.grafana,'groups') then l.grafana.groups else [])],"
-        " panels: if std.objectHas(l.grafana,'groups') || !std.objectHas(l.grafana,'panels') then [] else std.objectFields(l.grafana.panels),"
-        " alerts: [{ n:r.alert, sev:(if std.objectHas(r.labels,'severity') then r.labels.severity else ''),"
-        "   f:r['for'], e:r.expr, url:(if std.objectHas(r.annotations,'runbook_url') then r.annotations.runbook_url else '') }"
-        "   for grp in (if std.objectHas(l,'prometheus') then l.prometheus.alerts else []) for r in grp.rules],"
-        " records: [{ n:r.record, e:r.expr } for grp in (if std.objectHas(l,'prometheus') && std.objectHas(l.prometheus,'rules') then l.prometheus.rules else []) for r in grp.rules],"
-        "}"
-    )
-    return ev(snip)
+    return ev(FOLDER + f"""
+local l = (import 'g.libsonnet').libs.{p}.new({{}});
+local sig(k) = l.signals[k];
+local res = l.grafana.dashboard;
+local ann(r, k) = std.get(std.get(r, 'annotations', {{}}), k, '');
+{{
+  title: l.config.dashboardTitle,
+  uid: l.config.uid,
+  folder: folder(res),
+  description: std.get(res.spec, 'description', ''),
+  // a service board's whitebox: the component pack it wraps
+  whitebox: if std.objectHas(l, 'whitebox') then std.get(l.whitebox.config, 'uid', '') else '',
+  signals: if !std.objectHas(l, 'signals') then [] else [{{
+    n: k,
+    u: (local d = sig(k).asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; std.get(d, 'unit', '')),
+    e: sig(k).asTarget().spec.query.spec.expr,
+    re: sig(k).asRecordingRule('_', '', '5m').expr,
+  }} for k in std.objectFields(l.signals)],
+  // libs without signals (logs) expose their panel queries instead
+  queries: if std.objectHas(l, 'signals') || !std.objectHas(l, 'queries') then [] else
+    [{{ n: k, e: std.get(std.get(std.get(std.get(l.queries[k], 'spec', {{}}), 'query', {{}}), 'spec', {{}}), 'expr', '') }} for k in std.objectFields(l.queries)],
+  groups: [{{ t: g.title, els: std.objectFields(g.elements) }} for g in std.get(l.grafana, 'groups', [])],
+  panels: if std.objectHas(l.grafana, 'groups') || !std.objectHas(l.grafana, 'panels') then [] else std.objectFields(l.grafana.panels),
+  alerts: [{{ n: r.alert, sev: std.get(r.labels, 'severity', ''), f: r['for'], e: r.expr,
+             s: ann(r, 'summary'), d: ann(r, 'description') }}
+           for grp in (if std.objectHas(l, 'prometheus') then l.prometheus.alerts else []) for r in grp.rules],
+  records: [{{ n: r.record, e: r.expr }}
+            for grp in (if std.objectHas(l, 'prometheus') then std.get(l.prometheus, 'rules', []) else []) for r in grp.rules],
+}}""")
 
 
-def fence(e):
-    return "`" + e.replace("\n", " ").replace("|", "\\|") + "`"
-
-
-def counted(d):
-    """'N signals', or 'N queries' for a lib that has panel queries instead."""
-    return f"{len(d['queries'])} queries" if d["queries"] else f"{len(d['signals'])} signals"
-
-
-def page(p, d):
-    L = [f"# {d['title']}  (`g.libs.{p}`)", "",
-         f"Dashboard uid `{d['uid']}` · {counted(d)} · {len(d['alerts'])} alerts · {len(d['records'])} recording rules"
-         f" · [every tab rendered](../dashboards/{d['uid']}.md).", ""]
-    recorded_by = {r["e"]: r["n"] for r in d["records"]}
-    if d["signals"] or not d["queries"]:
-        L += ["## Signals", "",
-              "Each signal's dashboard query (metric/expr) and the recording rule it produces (if any).", "",
-              "| Signal | Unit | Query | Recorded as |", "|--------|------|-------|-------------|"]
-        for s in d["signals"]:
-            rec = recorded_by.get(s.get("re"))
-            L.append(f"| `{s['n']}` | {s['u'] or '—'} | {fence(s['e'])} | {('`' + rec + '`') if rec else '—'} |")
-    if d["queries"]:
-        L += ["## Queries", "", "The panel queries the library builds (`.queries`).", "",
-              "| Query | Expression |", "|-------|------------|"]
-        for q in d["queries"]:
-            L.append(f"| `{q['n']}` | {fence(q['e'])} |")
-    L += ["", "## Dashboard", ""]
-    for g in d["groups"]:
-        L.append(f"- **{g['t']}** — " + ", ".join(f"`{e}`" for e in g["els"]))
-    if d["panels"]:
-        L.append("- **Panels** (`.grafana.panels`) — " + ", ".join(f"`{e}`" for e in d["panels"]))
-    if d["alerts"]:
-        L += ["", "## Alerts", "", "| Alert | Severity | For | Runbook |", "|-------|----------|-----|---------|"]
-        seen = set()
-        for a in d["alerts"]:
-            if a["n"] in seen:
-                continue
-            seen.add(a["n"])
-            rb = f"[runbook]({a['url']})" if a["url"] else "—"
-            L.append(f"| `{a['n']}` | {a['sev']} | {a['f']} | {rb} |")
-    if d["records"]:
-        L += ["", "## Recording rules", "", "| Record | Expression |", "|--------|------------|"]
-        for r in d["records"]:
-            L.append(f"| `{r['n']}` | {fence(r['e'])} |")
-    L.append("")
-    return "\n".join(L)
+def mixin_boards():
+    """The boards the reference and base mixins render: uid -> title, folder, description."""
+    return ev(FOLDER + """
+local ref = (import 'libs/reference-lib/mixin.libsonnet').grafanaDashboards;
+local base = import 'libs/common-lib/base.libsonnet';
+local baseBoards = base.home.new({}).grafana.dashboards + base.cluster.new({}).grafana.dashboards + base.clusterDetail.new({}).grafana.dashboards;
+local entry(res, src) = { uid: res.metadata.name, title: res.spec.title, folder: folder(res), description: std.get(res.spec, 'description', ''), source: src };
+[entry(ref[k], 'reference') for k in std.objectFields(ref)]
++ [entry(if std.objectHas(baseBoards[k], 'toResource') then baseBoards[k].toResource() else baseBoards[k], 'base') for k in std.objectFields(baseBoards)]""")
 
 
 def main():
-    libs = sys.argv[1:] or ALL
-    os.makedirs(OUTDIR, exist_ok=True)
-    written = []
-    for p in libs:
+    data = {"libs": {}, "boards": {}, "errors": {}}
+    paths = lib_paths()
+    for p in paths:
         try:
-            d = lib_data(p)
-        except Exception as exc:  # noqa: BLE001
-            print(f"  SKIP {p}: {str(exc).splitlines()[0]}")
-            continue
-        slug = p.replace(".", "-")
-        with open(os.path.join(OUTDIR, slug + ".md"), "w") as fh:
-            fh.write(page(p, d))
-        written.append((p, slug, d))
-    # index
-    idx = ["# observ-libs reference", "",
-           "Detailed reference per observ-lib — signals, dashboard groups, alerts, recording rules.", "",
-           "| Lib | Signals | Alerts | Rules |", "|-----|---------|--------|-------|"]
-    for p, slug, d in written:
-        idx.append(f"| [`{p}`]({slug}.md) | {counted(d) if d['queries'] else len(d['signals'])} | {len(d['alerts'])} | {len(d['records'])} |")
-    idx.append("")
-    with open(os.path.join(OUTDIR, "index.md"), "w") as fh:
-        fh.write("\n".join(idx))
-    print(f"wrote {len(written)} lib page(s) + index to docs/observ-libs/")
+            data["libs"][p] = lib_data(p)
+        except Exception as exc:  # noqa: BLE001 - a lib that needs config (the composer) is skipped
+            data["errors"][p] = str(exc).splitlines()[0][:200]
+            print(f"  SKIP {p}: {data['errors'][p]}")
+    for b in mixin_boards():
+        data["boards"][b["uid"]] = {k: v for k, v in b.items() if k != "uid"}
+    with open(OUT, "w") as fh:
+        json.dump(data, fh, indent=1, sort_keys=True)
+        fh.write("\n")
+    print(f"wrote {len(data['libs'])} libraries ({len(data['errors'])} skipped) + {len(data['boards'])} mixin boards to docs/boards.json")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

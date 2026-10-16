@@ -6,7 +6,7 @@ Runs inside the Playwright image - see `just docs-shots`:
   SHOTS_GRAFANA_TOKEN   a service-account token that can view the boards
   shots.py OUT [--uids a,b] [--width 1600] [--limit N] [--jobs N] [--show-logs]
 
-Boards (default): every board a docs/observ-libs page names (`Dashboard uid`),
+Boards (default): every board docs/boards.json knows (libraries and mixin boards),
 the service, base and scenario boards (observ-viz-*, base-*, scn-*,
 cluster-detail) and the chart-type reference boards (folder "Panels") - the
 ones that exist on that Grafana. Upstream mixin boards are left out.
@@ -14,12 +14,12 @@ ones that exist on that Grafana. Upstream mixin boards are left out.
 Writes OUT/<uid>/<NN>-<tab>.webp (one full-height shot per visible tab, or one
 per board without tabs) and OUT/manifest.json:
   {"grafana": url, "rendered": iso-time, "logsMasked": bool,
-   "boards": [{uid, title, folder, tabs: [{title, slug, file, loading?}]}]}
+   "boards": [{uid, title, folder, folderPath, description,
+               tabs: [{title, slug, file, loading?}]}]}
 (`loading`: queries still ran when the shot was taken.)
 """
 import argparse
 import datetime
-import glob
 import io
 import json
 import multiprocessing
@@ -43,14 +43,37 @@ def api(url, token, path):
 def wanted_boards(url, token, only):
     found = api(url, token, '/api/search?' + urllib.parse.urlencode({'type': 'dash-db', 'limit': 5000}))
     if only:
-        return [b for b in found if b['uid'] in only]
-    pages = ' '.join(open(f).read() for f in glob.glob(os.path.join(ROOT, 'docs/observ-libs/*.md')))
-    doc_uids = set(re.findall(r'Dashboard uid `([^`]+)`', pages))
-    prefixes = ('observ-viz-', 'base-', 'scn-')
-    keep = [b for b in found
-            if b['uid'] in doc_uids or b['uid'].startswith(prefixes) or b['uid'] == 'cluster-detail'
-            or b.get('folderTitle') == 'Panels']
+        keep = [b for b in found if b['uid'] in only]
+    else:
+        data = json.load(open(os.path.join(ROOT, 'docs/boards.json')))
+        doc_uids = set(data['boards']) | {lib['uid'] for lib in data['libs'].values()}
+        prefixes = ('observ-viz-', 'base-', 'scn-')
+        keep = [b for b in found
+                if b['uid'] in doc_uids or b['uid'].startswith(prefixes) or b['uid'] == 'cluster-detail'
+                or b.get('folderTitle') == 'Panels']
+    folders = {}
+    for b in keep:
+        b['folderPath'] = folder_path(url, token, b.get('folderUid'), folders)
+        b['description'] = description(url, token, b['uid'])
     return sorted(keep, key=lambda b: (b.get('folderTitle', ''), b['title']))
+
+
+def folder_path(url, token, uid, cache):
+    """The board's folder chain, root first, as Grafana files it."""
+    if not uid:
+        return []
+    if uid not in cache:
+        f = api(url, token, '/api/folders/' + uid)
+        cache[uid] = [p['title'] for p in f.get('parents') or []] + [f['title']]
+    return cache[uid]
+
+
+def description(url, token, uid):
+    try:
+        d = api(url, token, '/apis/dashboard.grafana.app/v2beta1/namespaces/default/dashboards/' + uid)
+        return d.get('spec', {}).get('description', '')
+    except Exception:  # noqa: BLE001 - a v1 board, or no app-platform API
+        return ''
 
 
 def slugify(s):
@@ -152,7 +175,8 @@ def render(out, url, token, width, mask_logs, boards, worker=0, workers=1):
         page = ctx.new_page()
         for n, b in enumerate(boards, 1):
             uid = b['uid']
-            entry = {'uid': uid, 'title': b['title'], 'folder': b.get('folderTitle', ''), 'tabs': []}
+            entry = {'uid': uid, 'title': b['title'], 'folder': b.get('folderTitle', ''),
+                     'folderPath': b.get('folderPath', []), 'description': b.get('description', ''), 'tabs': []}
             os.makedirs(os.path.join(out, uid), exist_ok=True)
             try:
                 page.set_viewport_size({'width': width, 'height': 900})

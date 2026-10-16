@@ -26,8 +26,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: install
-        run: pip install --quiet jsonnet pyyaml requests mkdocs mkdocs-material
-      - name: regenerate generated docs (chart types + observ-libs)
+        run: pip install --quiet jsonnet pyyaml requests mkdocs mkdocs-material mkdocs-redirects
+      - name: regenerate generated docs (chart types + library overview)
         run: |
           python3 scripts/gen-panel-docs.py
           python3 scripts/gen-libs-docs.py
@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p docs/shots
           if git fetch --depth 1 origin docs-shots; then git archive FETCH_HEAD | tar -x -C docs/shots; else echo "no docs-shots branch yet"; fi
-      - name: generate the gallery pages (Dashboards, Visualizations)
-        run: python3 scripts/gen-shot-pages.py
+      - name: generate the board pages (one per board, filed like the Grafana folders)
+        run: python3 scripts/gen-board-pages.py
       - name: deploy to gh-pages
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force -f mkdocs.gen.yml

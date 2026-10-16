@@ -9,28 +9,30 @@ theme:
     scheme: slate
     primary: deep orange
   features:
+    - navigation.tabs
     - navigation.sections
-    - navigation.expand
+    - navigation.indexes
     - content.code.copy
 
 nav:
   - Home: index.md
-  - Capabilities: capabilities.md
-  - Usage & justfiles: usage.md
-  - Concepts: concepts.md
-  - Core API: api.md
-  - Packs (mixins): packs.md
-  - observ-libs: libs.md
-  - observ-libs reference: observ-libs/index.md
-  - Chart types: panels.md
-  - Visualizations: visualizations/index.md
-  - Dashboards: dashboards/index.md
-  - Reference & scenarios: reference.md
-  - Backstage: backstage.md
-  - Examples & local Grafana: examples.md
-  - observ-lib container: render.md
-  - Runbooks (node): runbooks/node.md
-  - Docker image: docker.md
+  - Guide:
+      - Capabilities: capabilities.md
+      - Usage & justfiles: usage.md
+      - Concepts: concepts.md
+      - Core API: api.md
+      - Packs (mixins): packs.md
+      - observ-libs: libs.md
+      - Chart types: panels.md
+      - Reference & scenarios: reference.md
+      - Backstage: backstage.md
+      - Examples & local Grafana: examples.md
+      - observ-lib container: render.md
+      - Runbooks (node): runbooks/node.md
+      - Docker image: docker.md
+  # The boards follow, filed like the Grafana folders (Analysis, Platform,
+  # Workloads, Components, Reference, Base): scripts/gen-board-pages.py writes
+  # them and mkdocs.gen.yml (INHERIT: mkdocs.yml) - build with -f mkdocs.gen.yml.
 
 markdown_extensions:
   - toc:

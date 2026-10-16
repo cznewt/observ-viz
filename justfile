@@ -80,13 +80,18 @@ docs-shots-publish OUT='build/shots':
     cd - >/dev/null && rm -rf "$tmp"
     gh workflow run docs.yml --ref main
 
-# unpack the published shots into docs/shots and build the gallery pages (local preview)
+# unpack the published shots into docs/shots and build the board pages (local preview)
 docs-shots-fetch:
     #!/usr/bin/env bash
     set -euo pipefail
     rm -rf docs/shots && mkdir -p docs/shots
     git fetch -q --depth 1 origin docs-shots && git archive FETCH_HEAD | tar -x -C docs/shots
-    python3 scripts/gen-shot-pages.py
+    python3 scripts/gen-board-pages.py
+
+# regenerate docs/boards.json (every library and mixin board: folder, signals,
+# alerts, rules) after changing a library - a few minutes, commit the result
+docs-boards:
+    python3 scripts/gen-lib-doc.py
 
 # full local test suite
 test: compile packs panels schema vars gen-check
@@ -203,13 +208,16 @@ catalog:
 
 # ── docs ────────────────────────────────────────────────────────────────────
 
-# build the docs site
+# build the docs site (the board pages + navigation come from docs/boards.json
+# and docs/shots: `just docs-shots-fetch` first for the screenshots)
 docs: docs-panels docs-libs docs-collectors
-    python3 -m mkdocs build
+    python3 scripts/gen-board-pages.py
+    python3 -m mkdocs build -f mkdocs.gen.yml
 
 # serve the docs site at http://localhost:8000
 docs-serve:
-    python3 -m mkdocs serve -a 0.0.0.0:8000
+    python3 scripts/gen-board-pages.py
+    python3 -m mkdocs serve -f mkdocs.gen.yml -a 0.0.0.0:8000
 
 # ── housekeeping ────────────────────────────────────────────────────────────
 
