@@ -29,6 +29,6 @@ local scoped(key, pack, namespace, pod='', title=null) =
     // service (JVM) is a variable on the board, scoped by the preset
     scoped('demoGo', s.demoGo, '$env', 'demo-.*go.*', 'Demo Go'),
     scoped('demoPython', s.demoPython, '$env', 'demo-.*python.*', 'Demo Python'),
-    scoped('demoJvm', s.demoJvm, 'sample-java-app|sre.*', '${service}.*', 'Demo JVM'),
+    scoped('demoJvm', s.demoJvm, 'sample-java-app|sre.*|global-monitor-demo', '${service}.*', 'Demo JVM'),
   ],
 }
