@@ -548,7 +548,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         tq('max by (node) (kube_node_status_allocatable{resource="cpu", ' + s + '})'),
         tq('max by (node) (kube_node_status_allocatable{resource="memory", ' + s + '})'),
         rq('label_replace(100 * sum by (instance) (rate(container_cpu_usage_seconds_total{container!="", pod!="", ' + s + '}[$__rate_interval])), "node", "$1", "instance", "(.+)") / on (node) max by (node) (kube_node_status_allocatable{resource="cpu", ' + s + '})'),
-        rq('label_replace(100 * sum by (instance) (container_memory_working_set_bytes{container!="", pod!="", ' + s + '}), "node", "$1", "instance", "(.+)") / on (node) max by (node) (kube_node_status_allocatable{resource="memory", ' + s + '})'),
+        // memory in use on the node (node-exporter: total - available, what `free`
+        // shows): the pods' working set alone leaves out the kubelet, the runtime
+        // and the OS. The pods' share of allocatable is the fallback for a node
+        // without node-exporter.
+        rq('max by (node) (label_replace(100 * (1 - max by (instance) (node_memory_MemAvailable_bytes{' + s + '}) / max by (instance) (node_memory_MemTotal_bytes{' + s + '})), "node", "$1", "instance", "(.+)")) or max by (node) (label_replace(100 * sum by (instance) (container_memory_working_set_bytes{container!="", pod!="", ' + s + '}), "node", "$1", "instance", "(.+)") / on (node) group_left max by (node) (kube_node_status_allocatable{resource="memory", ' + s + '}))'),
       ])
       + panel.table.withTransformations([
         { id: 'timeSeriesTable', options: {} },
@@ -645,7 +649,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
           // utilisation, on a second row (elements lay out in key order)
           ovUtilCpu: pctStat('CPU utilisation', '100 * sum(rate(container_cpu_usage_seconds_total{container!="", container!="POD", ' + s + '}[$__rate_interval])) / sum(kube_node_status_allocatable{resource="cpu", ' + s + '})'),
           ovUtilLoad: pctStat('Load per core', '100 * sum(node_load5{' + s + '}) / count(node_cpu_seconds_total{mode="idle", ' + s + '})'),
-          ovUtilMem: pctStat('Memory utilisation', '100 * sum(container_memory_working_set_bytes{container!="", container!="POD", ' + s + '}) / sum(kube_node_status_allocatable{resource="memory", ' + s + '})'),
+          ovUtilMem: pctStat('Memory utilisation', '100 * (1 - sum(node_memory_MemAvailable_bytes{' + s + '}) / sum(node_memory_MemTotal_bytes{' + s + '})) or 100 * sum(container_memory_working_set_bytes{container!="", container!="POD", ' + s + '}) / sum(kube_node_status_allocatable{resource="memory", ' + s + '})'),
           ovUtilRootFs: pctStat('Root filesystem usage', '100 * (1 - sum(node_filesystem_avail_bytes{mountpoint="/", fstype!="", ' + s + '}) / sum(node_filesystem_size_bytes{mountpoint="/", fstype!="", ' + s + '}))'),
         },
       },
