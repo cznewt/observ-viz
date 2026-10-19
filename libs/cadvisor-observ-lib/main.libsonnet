@@ -162,11 +162,15 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         ),
         alert.rule.new(
           'ContainerNetworkUnavailable',
-          'sum by (pod) (rate(container_network_receive_bytes_total' + rsBrace + '[5m])) == 0',
+          // stopped receiving: nothing in the last 5m after traffic in the hour
+          // before (offset clear of it). An idle pod - an admission webhook
+          // nobody calls - receives nothing for days and is not unavailable.
+          'sum by (namespace, pod) (rate(container_network_receive_bytes_total' + rsBrace + '[5m])) == 0'
+          + ' and sum by (namespace, pod) (rate(container_network_receive_bytes_total' + rsBrace + '[1h] offset 15m)) > 0',
           '5m',
           'critical',
           {},
-          { summary: 'Container network receive on pod {{ $labels.pod }} is unavailable.' }
+          { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} stopped receiving network traffic.' }
         ),
       ]),
     ], [

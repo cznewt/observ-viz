@@ -6770,10 +6770,10 @@
     },
     {
      "d": "",
-     "e": "sum by (pod) (rate(container_network_receive_bytes_total[5m])) == 0",
+     "e": "sum by (namespace, pod) (rate(container_network_receive_bytes_total[5m])) == 0 and sum by (namespace, pod) (rate(container_network_receive_bytes_total[1h] offset 15m)) > 0",
      "f": "5m",
      "n": "ContainerNetworkUnavailable",
-     "s": "Container network receive on pod {{ $labels.pod }} is unavailable.",
+     "s": "Pod {{ $labels.namespace }}/{{ $labels.pod }} stopped receiving network traffic.",
      "sev": "critical"
     }
    ],
