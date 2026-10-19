@@ -6,6 +6,9 @@
 // carry; the equivalents are computed here from cAdvisor + KSM directly
 // (container_cpu_usage_seconds_total / container_memory_working_set_bytes,
 // both in the cAdvisor scrape allowlist, plus kube_node_status_allocatable).
+// Used CPU and memory are the nodes' own (node-exporter: CPU not idle, memory
+// total - available): the pods alone leave out the kubelet, the runtime and the
+// OS. The pods' figures are the fallback for a cluster without node-exporter.
 // Usage:
 //   g.libs.kubernetes.multicluster.new({}).grafana.dashboard
 local panel = import 'custom/panel.libsonnet';
@@ -60,11 +63,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
     local sig(name, expr, unit, legend='{{cluster}}') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(s).withLegendFormat(legend);
 
-    local cpuUsed = 'sum by (cluster) (rate(container_cpu_usage_seconds_total{' + cSel + '}[$__rate_interval]))';
+    local cpuUsed = 'sum by (cluster) (rate(node_cpu_seconds_total{mode!~"idle|iowait|steal", ' + s + '}[$__rate_interval])) or sum by (cluster) (rate(container_cpu_usage_seconds_total{' + cSel + '}[$__rate_interval]))';
     local cpuAlloc = 'sum by (cluster) (kube_node_status_allocatable{resource="cpu", ' + s + '})';
     local cpuReq = 'sum by (cluster) (namespace_cpu:kube_pod_container_resource_requests:sum{' + s + '})';
     local cpuLim = 'sum by (cluster) (namespace_cpu:kube_pod_container_resource_limits:sum{' + s + '})';
-    local memUsed = 'sum by (cluster) (container_memory_working_set_bytes{' + cSel + '})';
+    local memUsed = 'sum by (cluster) (node_memory_MemTotal_bytes{' + s + '} - node_memory_MemAvailable_bytes{' + s + '}) or sum by (cluster) (container_memory_working_set_bytes{' + cSel + '})';
     local memAlloc = 'sum by (cluster) (kube_node_status_allocatable{resource="memory", ' + s + '})';
     local memReq = 'sum by (cluster) (namespace_memory:kube_pod_container_resource_requests:sum{' + s + '})';
     local memLim = 'sum by (cluster) (namespace_memory:kube_pod_container_resource_limits:sum{' + s + '})';
@@ -74,10 +77,10 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       nodes: sig('Nodes', 'count(kube_node_info{%(queriesSelector)s})', 'short', 'nodes'),
       pods: sig('Pods running', 'sum(kube_pod_status_phase{phase="Running", %(queriesSelector)s})', 'short', 'pods'),
       alerts: sig('Alerts firing', 'count(ALERTS{alertstate="firing", %(queriesSelector)s}) or vector(0)', 'short', 'alerts'),
-      cpuUtil: sig('CPU utilisation', '100 * sum(rate(container_cpu_usage_seconds_total{container!="", container!="POD", %(queriesSelector)s}[$__rate_interval])) / sum(kube_node_status_allocatable{resource="cpu", %(queriesSelector)s})', 'percent', 'cpu'),
-      memUtil: sig('Memory utilisation', '100 * sum(container_memory_working_set_bytes{container!="", container!="POD", %(queriesSelector)s}) / sum(kube_node_status_allocatable{resource="memory", %(queriesSelector)s})', 'percent', 'memory'),
-      cpuByCluster: sig('CPU usage', 'sum by (cluster) (rate(container_cpu_usage_seconds_total{container!="", container!="POD", %(queriesSelector)s}[$__rate_interval]))', 'short'),
-      memByCluster: sig('Memory usage', 'sum by (cluster) (container_memory_working_set_bytes{container!="", container!="POD", %(queriesSelector)s})', 'bytes'),
+      cpuUtil: sig('CPU utilisation', '100 * sum(rate(node_cpu_seconds_total{mode!~"idle|iowait|steal", %(queriesSelector)s}[$__rate_interval])) / count(node_cpu_seconds_total{mode="idle", %(queriesSelector)s}) or 100 * sum(rate(container_cpu_usage_seconds_total{container!="", container!="POD", %(queriesSelector)s}[$__rate_interval])) / sum(kube_node_status_allocatable{resource="cpu", %(queriesSelector)s})', 'percent', 'cpu'),
+      memUtil: sig('Memory utilisation', '100 * (1 - sum(node_memory_MemAvailable_bytes{%(queriesSelector)s}) / sum(node_memory_MemTotal_bytes{%(queriesSelector)s})) or 100 * sum(container_memory_working_set_bytes{container!="", container!="POD", %(queriesSelector)s}) / sum(kube_node_status_allocatable{resource="memory", %(queriesSelector)s})', 'percent', 'memory'),
+      cpuByCluster: sig('CPU usage', 'sum by (cluster) (rate(node_cpu_seconds_total{mode!~"idle|iowait|steal", %(queriesSelector)s}[$__rate_interval])) or sum by (cluster) (rate(container_cpu_usage_seconds_total{container!="", container!="POD", %(queriesSelector)s}[$__rate_interval]))', 'short'),
+      memByCluster: sig('Memory usage', 'sum by (cluster) (node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s}) or sum by (cluster) (container_memory_working_set_bytes{container!="", container!="POD", %(queriesSelector)s})', 'bytes'),
       podsByCluster: sig('Pods running', 'sum by (cluster) (kube_pod_status_phase{phase="Running", %(queriesSelector)s})', 'short'),
       restartsByCluster: sig('Container restarts', 'sum by (cluster) (increase(kube_pod_container_status_restarts_total{%(queriesSelector)s}[$__rate_interval]))', 'short'),
     };

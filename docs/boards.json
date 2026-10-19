@@ -8145,27 +8145,27 @@
      "u": "short"
     },
     {
-     "e": "sum by (cluster) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", cluster=~\".+\"}[$__rate_interval]))",
+     "e": "sum by (cluster) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=~\".+\"}[$__rate_interval])) or sum by (cluster) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", cluster=~\".+\"}[$__rate_interval]))",
      "n": "cpuByCluster",
-     "re": "sum by (cluster) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", }[5m]))",
+     "re": "sum by (cluster) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", }[5m])) or sum by (cluster) (rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", }[5m]))",
      "u": "short"
     },
     {
-     "e": "100 * sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", cluster=~\".+\"}[$__rate_interval])) / sum(kube_node_status_allocatable{resource=\"cpu\", cluster=~\".+\"})",
+     "e": "100 * sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=~\".+\"}[$__rate_interval])) / count(node_cpu_seconds_total{mode=\"idle\", cluster=~\".+\"}) or 100 * sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", cluster=~\".+\"}[$__rate_interval])) / sum(kube_node_status_allocatable{resource=\"cpu\", cluster=~\".+\"})",
      "n": "cpuUtil",
-     "re": "100 * sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", }[5m])) / sum(kube_node_status_allocatable{resource=\"cpu\", })",
+     "re": "100 * sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", }[5m])) / count(node_cpu_seconds_total{mode=\"idle\", }) or 100 * sum(rate(container_cpu_usage_seconds_total{container!=\"\", container!=\"POD\", }[5m])) / sum(kube_node_status_allocatable{resource=\"cpu\", })",
      "u": "percent"
     },
     {
-     "e": "sum by (cluster) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\", cluster=~\".+\"})",
+     "e": "sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\".+\"} - node_memory_MemAvailable_bytes{cluster=~\".+\"}) or sum by (cluster) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\", cluster=~\".+\"})",
      "n": "memByCluster",
-     "re": "sum by (cluster) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\", })",
+     "re": "sum by (cluster) (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) or sum by (cluster) (container_memory_working_set_bytes{container!=\"\", container!=\"POD\", })",
      "u": "bytes"
     },
     {
-     "e": "100 * sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\", cluster=~\".+\"}) / sum(kube_node_status_allocatable{resource=\"memory\", cluster=~\".+\"})",
+     "e": "100 * (1 - sum(node_memory_MemAvailable_bytes{cluster=~\".+\"}) / sum(node_memory_MemTotal_bytes{cluster=~\".+\"})) or 100 * sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\", cluster=~\".+\"}) / sum(kube_node_status_allocatable{resource=\"memory\", cluster=~\".+\"})",
      "n": "memUtil",
-     "re": "100 * sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\", }) / sum(kube_node_status_allocatable{resource=\"memory\", })",
+     "re": "100 * (1 - sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)) or 100 * sum(container_memory_working_set_bytes{container!=\"\", container!=\"POD\", }) / sum(kube_node_status_allocatable{resource=\"memory\", })",
      "u": "percent"
     },
     {
