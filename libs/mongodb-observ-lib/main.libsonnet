@@ -31,6 +31,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / instance, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'MongoDB servers from percona/mongodb_exporter: operations, connections and cursors, WiredTiger cache and memory, replica set health and replication, database sizes.',
+      rowLabels: ['cluster', 'instance'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['up', 'ops', 'connectionsPerInstance', 'memberState', 'resident'],
       datasource: '${datasource}',
       selector: 'job=~"$job", cluster=~"$cluster", instance=~"$instance"',
       varMetric: 'mongodb_up',

@@ -28,6 +28,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / namespace, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'cert-manager from its controller metrics: certificate readiness and expiry, ClusterIssuer readiness, ACME client requests and controller sync.',
+      rowLabels: ['cluster', 'namespace'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['certificates', 'ov_notReady', 'ov_expiring', 'soonest'],
       datasource: '${datasource}',
       // controller / ACME series live in cert-manager's namespace; the
       // certificate series carry the Certificate's namespace, filtered by
@@ -54,6 +61,11 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       soonest: sig('Soonest expiry', 'min((certmanager_certificate_expiration_timestamp_seconds{' + ns + '%(queriesSelector)s} - time()) / 86400)', 'd', 'soonest'),
       issuersNotReady: sig('ClusterIssuers not ready', 'count(certmanager_clusterissuer_ready_status{condition!="True", %(queriesSelector)s} == 1) or vector(0)', 'short', 'not ready'),
       challengesPending: sig('Challenges not valid', 'count(certmanager_certificate_challenge_status{status!="valid", ' + ns + '%(queriesSelector)s} == 1) or vector(0)', 'short', 'not valid'),
+      // the instances table's per-namespace counts: sums of 0 / 1 series, so a
+      // namespace with nothing wrong reads 0 (an `or vector(0)` would add a row
+      // with no labels)
+      ov_notReady: sig('Not ready', 'sum(certmanager_certificate_ready_status{condition!="True", ' + ns + '%(queriesSelector)s})', 'short', 'not ready'),
+      ov_expiring: sig('Expiring soon', 'sum((certmanager_certificate_expiration_timestamp_seconds{' + ns + '%(queriesSelector)s} - time()) < bool ' + (cfg.certExpiryDays * 86400) + ')', 'short', 'expiring'),
       // certificates over time
       daysLeft: sig('Days until expiry', '(certmanager_certificate_expiration_timestamp_seconds{' + ns + '%(queriesSelector)s} - time()) / 86400', 'd'),
       readyState: sig('Ready', 'max by (namespace, name) (certmanager_certificate_ready_status{condition="True", ' + ns + '%(queriesSelector)s})', 'short'),

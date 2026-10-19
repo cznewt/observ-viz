@@ -27,6 +27,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / namespace, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'MinIO clusters from the v2 Prometheus metrics: health, nodes and drives, capacity, buckets, S3 API traffic and errors, drive and process health.',
+      rowLabels: ['cluster', 'namespace'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['nodesOnline', 'drivesOffline', 'capacityUsed', 'dataStored', 'objects'],
       datasource: '${datasource}',
       // one MinIO deployment per namespace
       selector: 'job=~"$job", cluster=~"$cluster", namespace=~"$namespace"',

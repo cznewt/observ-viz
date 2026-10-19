@@ -26,6 +26,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / pod, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'kube-state-metrics\' own health from its telemetry endpoint: list and watch outcomes per resource, sharding, and the process.',
+      rowLabels: ['cluster', 'pod'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['shards', 'cpu', 'memory'],
       datasource: '${datasource}',
       selector: 'job=~"$job", cluster=~"$cluster"',
       varMetric: 'kube_state_metrics_build_info',

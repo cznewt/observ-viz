@@ -30,6 +30,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / name, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'Elasticsearch clusters from elasticsearch_exporter: cluster health and shards, documents, and per node the heap, CPU, data disk, circuit breakers, thread pools and transport.',
+      rowLabels: ['cluster', 'name'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['heap', 'cpu', 'disk', 'docsPerNode', 'queryRate'],
       datasource: '${datasource}',
       // `name` is the exporter's node label
       selector: 'job=~"$job", cluster=~"$cluster", name=~"$name"',

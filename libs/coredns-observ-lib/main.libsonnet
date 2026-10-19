@@ -25,6 +25,13 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows, one instances row per
+      // cluster / pod, the Overview group) + a tab per signal group
+      tabbed: true,
+      description: 'CoreDNS from its Prometheus plugin: requests, responses and rcodes, latency, cache, and server health per pod.',
+      rowLabels: ['cluster', 'pod'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['rps', 'servfailRatio', 'nxdomainRatio', 'p99', 'cacheHitRatio'],
       datasource: '${datasource}',
       selector: 'job=~"$job", cluster=~"$cluster", pod=~"$pod"',
       varMetric: 'coredns_build_info',

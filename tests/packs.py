@@ -27,7 +27,7 @@ PACKS = [
     "webservers.nginx", "webservers.caddy", "webservers.apache", "frameworks.django", "frameworks.rails", "frameworks.wagtail", "frameworks.wordpress",
     "cicd.argocd", "cicd.backstage", "cicd.vault",
     "analysis.red", "analysis.use", "analysis.anomaly", "analysis.golden", "analysis.burnRate", "analysis.capacity",
-    "applications.valheim", "applications.minecraft", "applications.minio",
+    "applications.valheim", "applications.minecraft", "applications.minio", "applications.syncthing",
     "networking.pangolin",
     "demos.demoApp",
     "logs",
