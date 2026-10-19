@@ -11,8 +11,9 @@
 //   - players come from `valheim:connections`, a Loki recording rule over the
 //     server log (one sample per ~10 min, labels cluster/namespace/pod/
 //     container), so the players queries bridge the gaps with last_over_time.
-//   - health comes from kube-state-metrics (ready / restarts) and cAdvisor
-//     (CPU / memory), keyed by the same namespace + container.
+//   - health comes from kube-state-metrics (ready / restarts), keyed by the
+//     same namespace + container; the Overview opens on the shared pod rows
+//     (Pods, Resources, Logs) of the server pods.
 // Usage:
 //   g.libs.applications.valheim.new({ namespaceMatcher: 'gedu-valheim' }).grafana.dashboard
 local dashboard = import 'custom/dashboard.libsonnet';
@@ -38,6 +39,16 @@ local variable =
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
+      // the shared tabbed board: Overview (the pod rows of the server pods, one
+      // instances row per namespace / container, the Overview group) + a tab
+      // per signal group
+      tabbed: true,
+      description: 'Valheim dedicated servers on Kubernetes: readiness, the exporter scrape, players from the server log, restarts, and the server log without its noise.',
+      // the server pods, for the shared pod rows
+      podMetric: 'kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", container=~"$server"}',
+      rowLabels: ['namespace', 'container'],
+      // columns of the Overview tab's instances table
+      overviewSignals: ['containerReady', 'exporterUp', 'players', 'restarts'],
       datasource: '${datasource}',
       lokiDatasource: true,
       // the server containers; a regex over the `container` label
@@ -49,7 +60,6 @@ local variable =
       // valheim:connections (Loki ruler); drop cluster here if your ruler omits it
       playersSelector: 'cluster=~"$cluster", namespace=~"$namespace", container=~"$server"',
       logsSelector: 'cluster=~"$cluster", namespace=~"$namespace", container=~"$server"',
-      cadvisorSelector: 'job=~".*cadvisor"',
       ksmSelector: 'job=~".*kube-state-metrics"',
       // log lines hidden from the logs panel: odin's once-a-minute status poll
       // of the (unanswered) query port, the per-10-min connection count the
@@ -104,15 +114,6 @@ local variable =
                          'sum(max by (container) (last_over_time(valheim:connections{%(queriesSelector)s}[15m])))',
                          'players',
                          desc='Connected players across the selected servers.'),
-      // resources
-      cpu: sig('CPU',
-               'sum by (container) (rate(container_cpu_usage_seconds_total{' + cfg.cadvisorSelector + ', %(queriesSelector)s}[$__rate_interval]))',
-               'short',
-               desc='CPU cores used by the server container (cAdvisor).'),
-      memory: sig('Memory',
-                  'sum by (container) (container_memory_working_set_bytes{' + cfg.cadvisorSelector + ', %(queriesSelector)s})',
-                  'bytes',
-                  desc='Working-set memory of the server container (cAdvisor).'),
       // restarts
       restarts: sig('Restarts',
                     'sum by (container) (increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[1h]))',
@@ -156,9 +157,10 @@ local variable =
         + annotations.base.withTitleFormat('{{container}} restarted')
         + annotations.base.asToggle(false),
       ];
+    // CPU, memory and restarts per pod are the Overview's shared pod rows
     local built = pack.build(cfgVars, signals, [
       {
-        title: 'Status',
+        title: 'Overview',
         width: 6,
         height: 5,
         elements: {
@@ -174,17 +176,6 @@ local variable =
         height: 8,
         elements: {
           p1_players: signals.players.asTimeSeries('Connected players per server'),
-        },
-      },
-      {
-        title: 'Resources',
-        width: 12,
-        height: 8,
-        elements: {
-          r1_cpu: signals.cpu.asTimeSeries('CPU (cores)'),
-          r2_memory: signals.memory.asTimeSeries('Memory working set'),
-          r3_restarts: signals.restarts.asTimeSeries('Restarts / 1h'),
-          r4_ready: signals.containerReady.asTimeSeries('Container ready'),
         },
       },
       {

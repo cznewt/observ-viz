@@ -7,7 +7,8 @@
 //
 // What it is built on:
 //   - kube-state-metrics (ready / restarts / CrashLoopBackOff) and cAdvisor
-//     (CPU / memory / network) for the newt containers, per cluster;
+//     (CPU / memory / network) for the newt containers, per cluster; the
+//     Overview opens on the shared pod rows (Pods, Resources, Logs) of the newt pods;
 //   - the Newt logs in Loki (`INFO: 2026/09/30 07:24:18 <message>`), from which
 //     the tunnel events are counted:
 //       connected        "Tunnel connection to server established successfully!"
@@ -53,7 +54,12 @@ local variable =
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
-      primaryTabTitle: 'Overview',
+      // the shared tabbed board: Overview (the pod rows of the newt pods, the
+      // Overview group, then the clusters row, which stands in for the
+      // instances table) + a tab per signal group
+      tabbed: true,
+      description: 'Pangolin tunnels from the Newt side: newt pod readiness and restarts per cluster, tunnel events counted from the Newt logs, and newt_* metrics where Newt exports them.',
+      overviewInstances: false,
       datasource: '${datasource}',
       lokiDatasource: true,
       // the Newt client container; a regex over the `container` label
@@ -85,6 +91,8 @@ local variable =
         + variable.query.withIncludeAll()
         + allCurrent,
       ],
+      // the newt pods, for the shared pod rows
+      podMetric: 'kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", container=~"' + cfg.containerMatcher + '"}',
     };
 
     local legend = '{{cluster}} / {{namespace}}';
@@ -115,11 +123,6 @@ local variable =
 
     local signals = {
       // status (kube-state-metrics)
-      ready: sig('Ready',
-                 'max by (cluster, namespace, pod) (kube_pod_container_status_ready{' + cfg.ksmSelector + ', %(queriesSelector)s})',
-                 'short',
-                 '{{cluster}} / {{namespace}} / {{pod}}',
-                 desc='kube-state-metrics readiness of each newt container. 1 = ready.'),
       readyPerCluster: sig('Ready newt pods',
                            'sum by (cluster) (kube_pod_container_status_ready{' + cfg.ksmSelector + ', %(queriesSelector)s})',
                            'short',
@@ -135,27 +138,11 @@ local variable =
                     'short',
                     'not ready',
                     desc='Newt containers that exist but are not ready.'),
-      restarts: sig('Restarts',
-                    'sum by (cluster, namespace, pod) (increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[1h]))',
-                    'short',
-                    '{{cluster}} / {{namespace}} / {{pod}}',
-                    desc='Container restarts in the trailing hour.'),
       restartsRange: sig('Restarts in range',
                          'sum(increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[$__range]))',
                          'short',
                          'restarts',
                          desc='Container restarts over the selected time range.'),
-      // resources (cAdvisor)
-      cpu: sig('CPU',
-               'sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{' + cfg.cadvisorSelector + ', %(queriesSelector)s}[$__rate_interval]))',
-               'short',
-               '{{cluster}} / {{namespace}} / {{pod}}',
-               desc='CPU cores used by the newt container (cAdvisor). Newt proxies every tunnelled byte in user space, so CPU tracks traffic.'),
-      memory: sig('Memory',
-                  'sum by (cluster, namespace, pod) (container_memory_working_set_bytes{' + cfg.cadvisorSelector + ', %(queriesSelector)s})',
-                  'bytes',
-                  '{{cluster}} / {{namespace}} / {{pod}}',
-                  desc='Working-set memory of the newt container (cAdvisor).'),
       // tunnel events (Loki)
       connects: lsig('Tunnel connects',
                      lcount(ev.connected),
@@ -334,9 +321,23 @@ local variable =
         + annotations.base.asToggle(false),
       ];
 
-    local built = pack.build(cfgVars, signals, [
+    // CPU, memory and restarts per pod are the Overview's shared pod rows; the
+    // clusters row closes the Overview tab
+    local built = pack.build(cfgVars {
+      overviewExtraGroups: [
+        {
+          title: 'Clusters',
+          width: 12,
+          height: 8,
+          elements: {
+            c1_perCluster: signals.readyPerCluster.asTimeSeries('Ready newt pods per cluster'),
+            c2_pods: podTable,
+          },
+        },
+      ],
+    }, signals, [
       {
-        title: 'Status',
+        title: 'Overview',
         width: 4,
         height: 5,
         elements: {
@@ -346,15 +347,6 @@ local variable =
           s4_connects: signals.connectsRange.asStat('Tunnel connects in range'),
           s5_lost: signals.lostRange.asStat('Lost / failed connects in range') + redAbove(1),
           s6_targets: signals.targetErrorsRange.asStat('Target errors in range'),
-        },
-      },
-      {
-        title: 'Clusters',
-        width: 12,
-        height: 8,
-        elements: {
-          c1_perCluster: signals.readyPerCluster.asTimeSeries('Ready newt pods per cluster'),
-          c2_pods: podTable,
         },
       },
     ], [
@@ -421,18 +413,6 @@ local variable =
             },
           },
         ],
-      },
-      {
-        title: 'Resources',
-        alwaysShow: true,
-        width: 12,
-        height: 8,
-        elements: {
-          r1_cpu: signals.cpu.asTimeSeries('CPU (cores)'),
-          r2_memory: signals.memory.asTimeSeries('Memory working set'),
-          r3_restarts: signals.restarts.asTimeSeries('Restarts / 1h'),
-          r4_ready: signals.ready.asTimeSeries('Ready'),
-        },
       },
       {
         title: 'Newt metrics',

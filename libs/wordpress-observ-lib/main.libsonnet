@@ -17,7 +17,9 @@
 //               (mod_status) for throughput, and the ingress-nginx controller
 //               for status codes and latency (stub/mod_status carry neither).
 //   MySQL       mysqld_exporter: the databases.sql.mysql pack's own signals.
-//   Containers  kube-state-metrics + cAdvisor, and Loki for the logs.
+//   Pods        the Overview opens on the shared pod rows of the site's pods
+//               (kube-state-metrics, cAdvisor, Loki); the Logs tab adds the
+//               PHP / web server error lines.
 //
 //   g.libs.frameworks.wordpress.new({ containerMatcher: 'wordpress.*' }).grafana.dashboard
 local panel = import 'custom/panel.libsonnet';
@@ -49,7 +51,6 @@ local variable =
       // ingress-nginx labels the Ingress's namespace `namespace`
       ingressSelector: 'cluster=~"$cluster", namespace=~"$namespace"',
       containerSelector: 'cluster=~"$cluster", namespace=~"$namespace", container=~"$container"',
-      cadvisorSelector: 'job=~".*cadvisor"',
       ksmSelector: 'job=~".*kube-state-metrics"',
       // the WordPress exporter's series (aorfanos/wordpress-exporter)
       wp: {
@@ -94,6 +95,8 @@ local variable =
         // every container of the site's pods: wordpress, php-fpm, nginx, exporters
         qvar('container', 'container', 'Container', cfg.varMetric + '{cluster=~"$cluster", namespace=~"$namespace"}'),
       ],
+      // the site's pods, for the shared pod rows
+      podMetric: cfg.varMetric + '{cluster=~"$cluster", namespace=~"$namespace", container=~"$container"}',
     };
 
     local rs = if cfg.ruleSelector != '' then '{' + cfg.ruleSelector + '}' else '';
@@ -190,25 +193,6 @@ local variable =
       dbQps: db.qps,
       dbSlow: db.slow,
       dbBufferPool: db.bufferPool,
-      // ---- containers
-      cpu: sig('CPU',
-               'sum by (container) (rate(container_cpu_usage_seconds_total{' + cfg.cadvisorSelector + ', %(queriesSelector)s}[$__rate_interval]))',
-               'short',
-               '{{container}}',
-               'CPU cores used per container (cAdvisor).',
-               cfg.containerSelector),
-      memory: sig('Memory',
-                  'sum by (container) (container_memory_working_set_bytes{' + cfg.cadvisorSelector + ', %(queriesSelector)s})',
-                  'bytes',
-                  '{{container}}',
-                  'Working-set memory per container (cAdvisor).',
-                  cfg.containerSelector),
-      restarts: sig('Restarts',
-                    'sum by (container) (increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[1h]))',
-                    'short',
-                    '{{container}}',
-                    'Container restarts in the trailing hour.',
-                    cfg.containerSelector),
       // ---- logs
       logs: signal.new('Site logs', 'loki', '${loki_datasource}', '{%(queriesSelector)s}', 'short')
             .filteringSelector('namespace=~"$namespace", container=~"$container"')
@@ -318,17 +302,6 @@ local variable =
           d3_slow: signals.dbSlow.asTimeSeries('Slow queries/s'),
           d4_buffer: signals.dbBufferPool.asTimeSeries('InnoDB buffer pool data'),
         },
-      },
-      {
-        title: 'Containers',
-        alwaysShow: true,
-        elements: {
-          c1_cpu: signals.cpu.asTimeSeries('CPU (cores)'),
-          c2_memory: signals.memory.asTimeSeries('Memory working set'),
-          c3_restarts: signals.restarts.asTimeSeries('Restarts / 1h'),
-        },
-        width: 12,
-        height: 7,
       },
       {
         title: 'Logs',

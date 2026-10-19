@@ -1442,7 +1442,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "Minecraft Java servers and their Velocity proxy on Kubernetes: readiness and restarts, players and network logins from the server logs, and the logs without their noise.",
    "folder": [
     "Workloads",
     "Gaming"
@@ -1457,31 +1457,13 @@
       "s5_joins",
       "s6_restarts"
      ],
-     "t": "Status"
-    },
-    {
-     "els": [
-      "t1_servers"
-     ],
-     "t": "Servers"
+     "t": "Overview"
     }
    ],
    "panels": [],
    "queries": [],
    "records": [],
    "signals": [
-    {
-     "e": "max by (server) (label_replace(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"}, \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "n": "containerReady",
-     "re": "max by (server) (label_replace(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", }, \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "u": "short"
-    },
-    {
-     "e": "sum by (server) (label_replace(rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"}[$__rate_interval]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "n": "cpu",
-     "re": "sum by (server) (label_replace(rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", }[5m]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "u": "short"
-    },
     {
      "e": "{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"} |~ `joined the game|left the game|\\[connected player\\] .* has (dis)?connected`",
      "n": "events",
@@ -1519,12 +1501,6 @@
      "u": "short"
     },
     {
-     "e": "sum by (server) (label_replace(container_memory_working_set_bytes{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"}, \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "n": "memory",
-     "re": "sum by (server) (label_replace(container_memory_working_set_bytes{job=~\".*cadvisor\", }, \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "u": "bytes"
-    },
-    {
      "e": "sum by (server) (label_replace(last_over_time({cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"} |~ `joined the game|left the game|\\[connected player\\] .* has (dis)?connected` | regexp `(?:\\]: (?:\\x1b\\[[0-9;]*m)?|\\[connected player\\] )(?P<player>\\w{1,16})(?: \\([^)]*\\))? (?P<event>joined|left|has connected|has disconnected)` | player != \"\" | label_format online=`{{ if or (eq .event \"joined\") (eq .event \"has connected\") }}1{{ else }}0{{ end }}` | unwrap online [12h]) by (container, player), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
      "n": "playersOnline",
      "re": "sum by (server) (label_replace(last_over_time( |~ `joined the game|left the game|\\[connected player\\] .* has (dis)?connected` | regexp `(?:\\]: (?:\\x1b\\[[0-9;]*m)?|\\[connected player\\] )(?P<player>\\w{1,16})(?: \\([^)]*\\))? (?P<event>joined|left|has connected|has disconnected)` | player != \"\" | label_format online=`{{ if or (eq .event \"joined\") (eq .event \"has connected\") }}1{{ else }}0{{ end }}` | unwrap online [12h]) by (container, player), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
@@ -1540,12 +1516,6 @@
      "e": "sum by (server) (label_replace(count_over_time({cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"} |~ `(?:[ /])(?:WARN|ERROR)\\]` [$__auto]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
      "n": "problems",
      "re": "sum by (server) (label_replace(count_over_time( |~ `(?:[ /])(?:WARN|ERROR)\\]` [$__auto]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "u": "short"
-    },
-    {
-     "e": "sum by (server) (label_replace(increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"minecraft-java-$server\"}[1h]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
-     "n": "restarts",
-     "re": "sum by (server) (label_replace(increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", }[1h]), \"server\", \"$1\", \"container\", \"minecraft-java-(.*)\"))",
      "u": "short"
     },
     {
@@ -1630,7 +1600,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "MinIO clusters from the v2 Prometheus metrics: health, nodes and drives, capacity, buckets, S3 API traffic and errors, drive and process health.",
    "folder": [
     "Platform",
     "Infrastructure",
@@ -1926,7 +1896,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "Syncthing instances from the built-in /metrics endpoint: connected devices, folders and their state, transfer, scanner and filesystem activity.",
    "folder": [
     "Platform",
     "Infrastructure",
@@ -2093,7 +2063,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "Valheim dedicated servers on Kubernetes: readiness, the exporter scrape, players from the server log, restarts, and the server log without its noise.",
    "folder": [
     "Workloads",
     "Gaming"
@@ -2106,22 +2076,13 @@
       "s3_players",
       "s4_restarts"
      ],
-     "t": "Status"
+     "t": "Overview"
     },
     {
      "els": [
       "p1_players"
      ],
      "t": "Players"
-    },
-    {
-     "els": [
-      "r1_cpu",
-      "r2_memory",
-      "r3_restarts",
-      "r4_ready"
-     ],
-     "t": "Resources"
     },
     {
      "els": [
@@ -2141,12 +2102,6 @@
      "u": "short"
     },
     {
-     "e": "sum by (container) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$server\"}[$__rate_interval]))",
-     "n": "cpu",
-     "re": "sum by (container) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", }[5m]))",
-     "u": "short"
-    },
-    {
      "e": "max by (container) (up{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$server\"})",
      "n": "exporterUp",
      "re": "max by (container) (up)",
@@ -2157,12 +2112,6 @@
      "n": "logs",
      "re": " !~ \"Failed to request server information|Connections [0-9]+|[Ss]hader\"",
      "u": "short"
-    },
-    {
-     "e": "sum by (container) (container_memory_working_set_bytes{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$server\"})",
-     "n": "memory",
-     "re": "sum by (container) (container_memory_working_set_bytes{job=~\".*cadvisor\", })",
-     "u": "bytes"
     },
     {
      "e": "max by (container) (last_over_time(valheim:connections{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$server\"}[15m]))",
@@ -2858,7 +2807,7 @@
      "sev": "critical"
     }
    ],
-   "description": "",
+   "description": "Vault and OpenBao servers from their Prometheus telemetry: seal state and runtime, barrier, requests, tokens and leases.",
    "folder": [
     "Platform",
     "Configuration"
@@ -3248,7 +3197,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "MongoDB servers from percona/mongodb_exporter: operations, connections and cursors, WiredTiger cache and memory, replica set health and replication, database sizes.",
    "folder": [
     "Platform",
     "Databases"
@@ -3984,7 +3933,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "Elasticsearch clusters from elasticsearch_exporter: cluster health and shards, documents, and per node the heap, CPU, data disk, circuit breakers, thread pools and transport.",
    "folder": [
     "Platform",
     "Databases"
@@ -5608,12 +5557,6 @@
      "u": "short"
     },
     {
-     "e": "sum by (container) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[$__rate_interval]))",
-     "n": "cpu",
-     "re": "sum by (container) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", }[5m]))",
-     "u": "short"
-    },
-    {
      "e": "mysql_global_status_innodb_buffer_pool_bytes_data{cluster=~\"$cluster\", namespace=~\"$namespace\"}",
      "n": "dbBufferPool",
      "re": "mysql_global_status_innodb_buffer_pool_bytes_data",
@@ -5734,12 +5677,6 @@
      "u": "short"
     },
     {
-     "e": "sum by (container) (container_memory_working_set_bytes{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"})",
-     "n": "memory",
-     "re": "sum by (container) (container_memory_working_set_bytes{job=~\".*cadvisor\", })",
-     "u": "bytes"
-    },
-    {
      "e": "sum(nginx_connections_active{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
      "n": "nginxConnections",
      "re": "sum(nginx_connections_active)",
@@ -5767,12 +5704,6 @@
      "e": "max by (exported_instance) (wordpress_post_count{cluster=~\"$cluster\", namespace=~\"$namespace\"})",
      "n": "posts",
      "re": "max by (exported_instance) (wordpress_post_count)",
-     "u": "short"
-    },
-    {
-     "e": "sum by (container) (increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\"}[1h]))",
-     "n": "restarts",
-     "re": "sum by (container) (increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", }[1h]))",
      "u": "short"
     },
     {
@@ -7053,7 +6984,7 @@
      "sev": "critical"
     }
    ],
-   "description": "",
+   "description": "cert-manager from its controller metrics: certificate readiness and expiry, ClusterIssuer readiness, ACME client requests and controller sync.",
    "folder": [
     "Platform",
     "Kubernetes"
@@ -7148,6 +7079,18 @@
      "e": "count(certmanager_certificate_ready_status{condition!=\"True\", namespace=~\"$namespace\", job=~\"$job\", cluster=~\"$cluster\"} == 1) or vector(0)",
      "n": "notReady",
      "re": "count(certmanager_certificate_ready_status{condition!=\"True\", namespace=~\"$namespace\", } == 1) or vector(0)",
+     "u": "short"
+    },
+    {
+     "e": "sum((certmanager_certificate_expiration_timestamp_seconds{namespace=~\"$namespace\", job=~\"$job\", cluster=~\"$cluster\"} - time()) < bool 1814400)",
+     "n": "ov_expiring",
+     "re": "sum((certmanager_certificate_expiration_timestamp_seconds{namespace=~\"$namespace\", } - time()) < bool 1814400)",
+     "u": "short"
+    },
+    {
+     "e": "sum(certmanager_certificate_ready_status{condition!=\"True\", namespace=~\"$namespace\", job=~\"$job\", cluster=~\"$cluster\"})",
+     "n": "ov_notReady",
+     "re": "sum(certmanager_certificate_ready_status{condition!=\"True\", namespace=~\"$namespace\", })",
      "u": "short"
     },
     {
@@ -7871,7 +7814,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "CoreDNS from its Prometheus plugin: requests, responses and rcodes, latency, cache, and server health per pod.",
    "folder": [
     "Platform",
     "Kubernetes"
@@ -10025,7 +9968,7 @@
      "sev": "critical"
     }
    ],
-   "description": "",
+   "description": "kube-state-metrics' own health from its telemetry endpoint: list and watch outcomes per resource, sharding, and the process.",
    "folder": [
     "Platform",
     "Monitoring",
@@ -12355,7 +12298,7 @@
      "sev": "warning"
     }
    ],
-   "description": "",
+   "description": "Pangolin tunnels from the Newt side: newt pod readiness and restarts per cluster, tunnel events counted from the Newt logs, and newt_* metrics where Newt exports them.",
    "folder": [
     "Platform",
     "Ingress"
@@ -12370,14 +12313,7 @@
       "s5_lost",
       "s6_targets"
      ],
-     "t": "Status"
-    },
-    {
-     "els": [
-      "c1_perCluster",
-      "c2_pods"
-     ],
-     "t": "Clusters"
+     "t": "Overview"
     }
    ],
    "panels": [],
@@ -12412,12 +12348,6 @@
      "e": "sum(count_over_time({cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"} |~ `Tunnel connection to server established` [$__range])) or vector(0)",
      "n": "connectsRange",
      "re": "sum(count_over_time( |~ `Tunnel connection to server established` [$__range])) or vector(0)",
-     "u": "short"
-    },
-    {
-     "e": "sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"}[$__rate_interval]))",
-     "n": "cpu",
-     "re": "sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{job=~\".*cadvisor\", }[5m]))",
      "u": "short"
     },
     {
@@ -12457,12 +12387,6 @@
      "u": "short"
     },
     {
-     "e": "sum by (cluster, namespace, pod) (container_memory_working_set_bytes{job=~\".*cadvisor\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"})",
-     "n": "memory",
-     "re": "sum by (cluster, namespace, pod) (container_memory_working_set_bytes{job=~\".*cadvisor\", })",
-     "u": "bytes"
-    },
-    {
      "e": "count(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"} == 0) or vector(0)",
      "n": "notReady",
      "re": "count(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", } == 0) or vector(0)",
@@ -12487,12 +12411,6 @@
      "u": "short"
     },
     {
-     "e": "max by (cluster, namespace, pod) (kube_pod_container_status_ready{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"})",
-     "n": "ready",
-     "re": "max by (cluster, namespace, pod) (kube_pod_container_status_ready{job=~\".*kube-state-metrics\", })",
-     "u": "short"
-    },
-    {
      "e": "sum by (cluster) (kube_pod_container_status_ready{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"})",
      "n": "readyPerCluster",
      "re": "sum by (cluster) (kube_pod_container_status_ready{job=~\".*kube-state-metrics\", })",
@@ -12502,12 +12420,6 @@
      "e": "sum(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"})",
      "n": "readyTotal",
      "re": "sum(kube_pod_container_status_ready{job=~\".*kube-state-metrics\", })",
-     "u": "short"
-    },
-    {
-     "e": "sum by (cluster, namespace, pod) (increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"newt\"}[1h]))",
-     "n": "restarts",
-     "re": "sum by (cluster, namespace, pod) (increase(kube_pod_container_status_restarts_total{job=~\".*kube-state-metrics\", }[1h]))",
      "u": "short"
     },
     {

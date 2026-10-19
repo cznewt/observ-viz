@@ -6,7 +6,8 @@
 //
 // There are no Minecraft metrics: no exporter runs next to the servers. So
 //   - health comes from kube-state-metrics (ready / restarts / CrashLoopBackOff)
-//     and cAdvisor (CPU / memory), keyed by namespace + container;
+//     and cAdvisor (CPU / memory), keyed by namespace + container; the Overview
+//     opens on the shared pod rows (Pods, Resources, Logs) of the server pods;
 //   - players come from the server logs in Loki:
 //       Paper / Fabric / vanilla   "<name> joined the game" / "<name> left the game"
 //                                  (Paper wraps the name in ANSI colour codes, and
@@ -47,7 +48,12 @@ local variable =
         { title: 'Cluster', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: true, tooltip: 'Boards for this cluster', tags: ['cluster-level'] },
       ],
       docTabs: true,
-      primaryTabTitle: 'Overview',
+      // the shared tabbed board: Overview (the pod rows of the server pods, the
+      // Overview group, then the servers table, which stands in for the
+      // instances table) + a tab per signal group
+      tabbed: true,
+      description: 'Minecraft Java servers and their Velocity proxy on Kubernetes: readiness and restarts, players and network logins from the server logs, and the logs without their noise.',
+      overviewInstances: false,
       datasource: '${datasource}',
       lokiDatasource: true,
       // the servers: pods labelled app.kubernetes.io/part-of=<partOf>, one
@@ -87,6 +93,8 @@ local variable =
         kubeVar('namespace', 'namespace', 'Namespace', 'cluster=~"$cluster", '),
         kubeVar('server', 'label_app_kubernetes_io_component', 'Server', 'cluster=~"$cluster", namespace=~"$namespace", '),
       ],
+      // the pods of the selected servers, for the shared pod rows
+      podMetric: labelSel('cluster=~"$cluster", namespace=~"$namespace", label_app_kubernetes_io_component=~"$server", '),
     };
 
     // container -> server (the component) for legends and table rows; works in
@@ -120,10 +128,6 @@ local variable =
 
     local signals = {
       // status (kube-state-metrics)
-      containerReady: sig('Server ready',
-                          'max by (server) (' + srv('kube_pod_container_status_ready{' + cfg.ksmSelector + ', %(queriesSelector)s}') + ')',
-                          'short',
-                          desc='kube-state-metrics readiness of the server container. 1 = ready.'),
       serversReady: sig('Servers ready',
                         'sum(max by (container) (kube_pod_container_status_ready{' + cfg.ksmSelector + ', %(queriesSelector)s}))',
                         'short',
@@ -134,24 +138,11 @@ local variable =
                            'short',
                            'not ready',
                            desc='Server containers that exist but are not ready (starting, crash-looping, failing their probe).'),
-      restarts: sig('Restarts',
-                    'sum by (server) (' + srv('increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[1h])') + ')',
-                    'short',
-                    desc='Container restarts in the trailing hour.'),
       restartsRange: sig('Restarts in range',
                          'sum(increase(kube_pod_container_status_restarts_total{' + cfg.ksmSelector + ', %(queriesSelector)s}[$__range]))',
                          'short',
                          'restarts',
                          desc='Container restarts over the selected time range.'),
-      // resources (cAdvisor)
-      cpu: sig('CPU',
-               'sum by (server) (' + srv('rate(container_cpu_usage_seconds_total{' + cfg.cadvisorSelector + ', %(queriesSelector)s}[$__rate_interval])') + ')',
-               'short',
-               desc='CPU cores used by the server container (cAdvisor). A Minecraft server is mostly one busy tick thread, so ~1 core sustained means the server is tick-bound.'),
-      memory: sig('Memory',
-                  'sum by (server) (' + srv('container_memory_working_set_bytes{' + cfg.cadvisorSelector + ', %(queriesSelector)s}') + ')',
-                  'bytes',
-                  desc='Working-set memory of the server container (cAdvisor): the JVM heap plus off-heap and native memory.'),
       // players (Loki, derived from the join / leave log lines)
       playersOnline: lsig('Players online',
                           'sum by (server) (' + srv(onlineState('{%(queriesSelector)s}')) + ')',
@@ -296,9 +287,22 @@ local variable =
         + annotations.base.asToggle(false),
       ];
 
-    local built = pack.build(cfgVars, signals, [
+    // CPU, memory and restarts per pod are the Overview's shared pod rows; the
+    // servers table closes the Overview tab
+    local built = pack.build(cfgVars {
+      overviewExtraGroups: [
+        {
+          title: 'Servers',
+          width: 24,
+          height: 10,
+          elements: {
+            t1_servers: serversTable,
+          },
+        },
+      ],
+    }, signals, [
       {
-        title: 'Status',
+        title: 'Overview',
         width: 4,
         height: 5,
         elements: {
@@ -308,14 +312,6 @@ local variable =
           s4_logins: signals.loginsRange.asStat('Network logins in range'),
           s5_joins: signals.joinsRange.asStat('Server joins in range'),
           s6_restarts: signals.restartsRange.asStat('Restarts in range') + redAbove(1),
-        },
-      },
-      {
-        title: 'Servers',
-        width: 24,
-        height: 10,
-        elements: {
-          t1_servers: serversTable,
         },
       },
     ], [
@@ -377,18 +373,6 @@ local variable =
             },
           },
         ],
-      },
-      {
-        title: 'Resources',
-        alwaysShow: true,
-        width: 12,
-        height: 8,
-        elements: {
-          r1_cpu: signals.cpu.asTimeSeries('CPU (cores)'),
-          r2_memory: signals.memory.asTimeSeries('Memory working set'),
-          r3_restarts: signals.restarts.asTimeSeries('Restarts / 1h'),
-          r4_ready: signals.containerReady.asTimeSeries('Server ready'),
-        },
       },
       {
         title: 'Logs',
