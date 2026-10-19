@@ -43,9 +43,12 @@ local variable =
       // identity metric (varMetric), each row gated on has_pods, so boards whose
       // targets are hosts never show them. A composer bringing its own lead rows
       // (g.libs.service) and a pack with overviewPods: false (the cluster and pod
-      // boards) are left alone.
+      // boards) are left alone. A board scoped by something other than job (a
+      // workload board built on kube-state-metrics, groupVar: 'cluster') names
+      // its pods itself: config.podMetric, a series selector whose `pod` label
+      // lists them, read through the same hidden variables.
       local podsOn = tabbedOn
-                     && (if std.objectHas(config, 'groupVar') then config.groupVar else 'job') == 'job'
+                     && (std.objectHas(config, 'podMetric') || (if std.objectHas(config, 'groupVar') then config.groupVar else 'job') == 'job')
                      && !std.objectHas(config, 'overviewLeadGroups')
                      && (if std.objectHas(config, 'overviewPods') then config.overviewPods else true),
       local podLead = if podsOn then podrows.groups({
@@ -287,8 +290,9 @@ local variable =
         // them, job_cluster / job_namespace / job_pod scope their queries (hidden).
         // scoped by the pack's identity metric, not `up`: a scrape that gives
         // every app one job name (monlab's annotation autodiscovery) would
-        // otherwise put every pod on every board.
-        local podUp = varMetric + '{job=~"$job", pod!=""}';
+        // otherwise put every pod on every board. config.podMetric replaces it on
+        // a board without a job (the server containers of a workload board).
+        local podUp = if std.objectHas(config, 'podMetric') then config.podMetric else varMetric + '{job=~"$job", pod!=""}';
         local podVars = if podsOn then [
           variable.query.new('has_pods') + variable.query.withLabelValues('pod', podUp) + variable.query.withHide('hideVariable'),
         ] + [

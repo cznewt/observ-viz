@@ -35,6 +35,7 @@ Optional, on every pack built through `libs/common-lib/filters.libsonnet`:
 | `rowLabels`, `instanceLabel` | what one row of the instances table is, e.g. `['namespace', 'pod']` |
 | `overviewLeadGroups`, `overviewExtraGroups` | a composer's own rows at the top / bottom of the Overview tab: `[{title, width, height, elements, hideHeader?, when?}]`; `when` names a hidden presence variable (`has_kubernetes`) the row waits for. `overviewInstancesTitle` titles the instances row under lead rows |
 | `overviewPods` | on a tabbed board scoped by `job` (default `true`): the shared pod rows of `libs/common-lib/podrows.libsonnet` (Pods table, Resources, Logs) for the pods behind the selected job - hidden `job_cluster` / `job_namespace` / `job_pod` variables off `varMetric{job=~"$job", pod!=""}`, every row gated on `has_pods`. `false` drops them (the cluster and pod boards); a composer passing `overviewLeadGroups` replaces them |
+| `podMetric` | the pods for the pod rows on a tabbed board that is not scoped by `job` (`groupVar: 'cluster'`, a workload board built on kube-state-metrics): a series selector whose `pod` label lists them, e.g. `kube_pod_container_status_ready{cluster=~"$cluster", namespace=~"$namespace", container=~"$server"}`. It replaces `varMetric{job=~"$job", pod!=""}` in the hidden variables above (Valheim, Minecraft, Pangolin, WordPress) |
 | `folderPath` | where the board is filed, as an ancestor chain: `[{uid, title}, ...]` ending in the folder itself |
 
 ## The board
