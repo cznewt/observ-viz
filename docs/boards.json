@@ -8144,18 +8144,18 @@
    "alerts": [
     {
      "d": "",
-     "e": "sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) > sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"})",
+     "e": "sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) > sum by (namespace, pod, container) (kube_pod_container_resource_requests{resource=\"cpu\"})",
      "f": "15m",
      "n": "KubePodCpuOverRequest",
-     "s": "Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} is using more CPU than requested.",
+     "s": "Container {{ $labels.container }} of pod {{ $labels.namespace }}/{{ $labels.pod }} uses more CPU than it requests.",
      "sev": "warning"
     },
     {
      "d": "",
-     "e": "sum by (namespace, pod) (container_memory_working_set_bytes{container!=\"\"}) / sum by (namespace, pod) (kube_pod_container_resource_limits{resource=\"memory\"}) > 0.9",
+     "e": "sum by (namespace, pod, container) (container_memory_working_set_bytes{container!=\"\"}) / sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource=\"memory\"}) > 0.9",
      "f": "15m",
      "n": "KubePodMemoryNearLimit",
-     "s": "Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} memory working set is above 90% of its limit.",
+     "s": "Container {{ $labels.container }} of pod {{ $labels.namespace }}/{{ $labels.pod }} uses {{ $value | humanizePercentage }} of its memory limit.",
      "sev": "warning"
     }
    ],
@@ -13723,10 +13723,10 @@
     },
     {
      "d": "",
-     "e": false,
+     "e": "sum by (job, instance) (rate(nodejs_gc_duration_seconds_sum[5m])) > 0.1",
      "f": "15m",
      "n": "NodeJsHighGcTime",
-     "s": "GC time on {{ $labels.instance }} is high.",
+     "s": "Node.js on {{ $labels.instance }} spends {{ $value | humanizePercentage }} of its time in garbage collection.",
      "sev": "warning"
     }
    ],

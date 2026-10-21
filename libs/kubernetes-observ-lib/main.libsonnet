@@ -191,22 +191,24 @@ local variable =
       // KubePodCrashLooping belong to the cluster pack's kubernetes-apps group
       // (kubernetes-mixin semantics); defining them here as well made every
       // stuck pod alert twice under the same name.
+      // Per container: a pod-wide sum against the requests / limits of only the
+      // containers that declare one compared a whole pod with one sidecar's limit.
       alert.rule.group('kubernetes-pod', [
         alert.rule.new(
           'KubePodCpuOverRequest',
-          'sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m])) > sum by (namespace, pod) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})',
+          'sum by (namespace, pod, container) (rate(container_cpu_usage_seconds_total{container!=""' + rsComma + '}[5m])) > sum by (namespace, pod, container) (kube_pod_container_resource_requests{resource="cpu"' + rsComma + '})',
           '15m',
           'warning',
           {},
-          { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} is using more CPU than requested.' }
+          { summary: 'Container {{ $labels.container }} of pod {{ $labels.namespace }}/{{ $labels.pod }} uses more CPU than it requests.' }
         ),
         alert.rule.new(
           'KubePodMemoryNearLimit',
-          'sum by (namespace, pod) (container_memory_working_set_bytes{container!=""' + rsComma + '}) / sum by (namespace, pod) (kube_pod_container_resource_limits{resource="memory"' + rsComma + '}) > 0.9',
+          'sum by (namespace, pod, container) (container_memory_working_set_bytes{container!=""' + rsComma + '}) / sum by (namespace, pod, container) (kube_pod_container_resource_limits{resource="memory"' + rsComma + '}) > 0.9',
           '15m',
           'warning',
           {},
-          { summary: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} on {{ $labels.instance }} memory working set is above 90% of its limit.' }
+          { summary: 'Container {{ $labels.container }} of pod {{ $labels.namespace }}/{{ $labels.pod }} uses {{ $value | humanizePercentage }} of its memory limit.' }
         ),
       ]),
     ], [

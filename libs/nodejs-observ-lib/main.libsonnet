@@ -109,11 +109,11 @@ local pack = import 'libs/common-lib/pack.libsonnet';
         ),
         alert.rule.new(
           'NodeJsHighGcTime',
-          'rate(nodejs_gc_duration_seconds_sum{' + cfg.selector + '}[5m])' == '',  // placeholder
+          'sum by (job, instance) (rate(nodejs_gc_duration_seconds_sum' + rsBrace + '[5m])) > 0.1',
           '15m',
           'warning',
           {},
-          { summary: 'GC time on {{ $labels.instance }} is high.' }
+          { summary: 'Node.js on {{ $labels.instance }} spends {{ $value | humanizePercentage }} of its time in garbage collection.' }
         ),
       ]),
     ], [
