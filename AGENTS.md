@@ -87,5 +87,20 @@ tab rendered, then the alert rules, recording rules and signals) is generated:
 
 [`just`]: https://github.com/casey/just
 
+## Agent skills (`skills/`)
+Five skills, linked from `.claude/skills/` and `.agents/skills/`, packaged as a Claude
+Code plugin by `.claude-plugin/` - use them rather than ad-hoc curl or guessing:
+- `telemetry-query` (`scripts/ovq.py`): metrics, logs, traces, profiles, alerts, rules,
+  board layouts through `GRAFANA_URL` / `GRAFANA_TOKEN` (a Viewer token; `--env <file|profile>`).
+- `observ-viz-catalog` (`scripts/catalog.py`): library / board / signal / alert lookup
+  from `docs/boards.json` and `docs/exporters/`.
+- `board-verify` (`scripts/board_check.py`): every visible panel query of a board, with
+  its variables and conditional rendering.
+- `alert-triage` (`scripts/triage.py`): an alert's fact sheet; the diagnosis is advice only.
+- `observ-lib-authoring`: the edit loop for `libs/` - names from live telemetry, `just test`,
+  `just validate-lib`, test push, board-verify, `just docs-boards`.
+The scripts are stdlib Python and import each other by relative path; keep the skill
+folders side by side. docs/agents.md is the user documentation.
+
 ## Deploying through monitor-tools
 Every scenario (`scenarios/<name>`) exposes `asMonitoringMixin()` = `{grafanaDashboards (v2 specs), prometheusAlerts, prometheusRules}`. monitor-tools ships an `observ-viz` mixin (`docker/files/mixins/observ-viz-mixin`) that vendors this repo with jb and selects a scenario via `config.scenario`; its `grafana.render: grafanactl` path pushes v2 boards through the app-platform API. `scenarios/platform` = site-agnostic platform boards, `scenarios/monlab` = one service board per monitoring-lab catalog component.

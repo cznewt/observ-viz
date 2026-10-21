@@ -76,6 +76,16 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linu
 # 3) ship an observ-lib container: dashboards+alerts+rules (observ-lib.justfile)
 ```
 
+## Agent skills
+
+`skills/` holds five [Agent Skills](https://agentskills.io) for coding agents that
+work with telemetry and these boards: query metrics, logs, traces and profiles through
+a Grafana token (`telemetry-query`), find the board, signal or alert for a metric
+(`observ-viz-catalog`), check a board against live data (`board-verify`), triage an
+alert (`alert-triage`) and change a library with live checks (`observ-lib-authoring`).
+They load by themselves inside a checkout; elsewhere, in Claude Code,
+`/plugin marketplace add cznewt/observ-viz`. See [docs/agents.md](docs/agents.md).
+
 ## Layout of this repo
 
 | Path | What |
@@ -88,6 +98,7 @@ docker run --rm -v "$PWD":/work ghcr.io/cznewt/observ-lib render-lib system.linu
 | `templates/observ-lib/` | Generic observ-lib justfile + mixin template (Makefile_mixin analogue) |
 | `scripts/`, `docker/` | Render / load / deploy tooling + the renderer image |
 | `examples/` | Worked dashboards + [example justfiles](examples/justfiles/) · `generator/` schema → builder generator |
+| `skills/` | Agent Skills (telemetry-query, observ-viz-catalog, board-verify, alert-triage, observ-lib-authoring); `.claude-plugin/` makes the repo a Claude Code plugin |
 
 ## Development
 

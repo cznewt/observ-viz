@@ -1,0 +1,10 @@
+{
+  "name": "observ-viz",
+  "version": "0.3.0",
+  "description": "Agent skills for working with telemetry through Grafana and the observ-viz boards: query metrics, logs, traces and profiles; find boards, signals and alerts in the observ-viz catalog; verify a board against live data; triage an alert; author observ-viz libraries with live checks.",
+  "author": {"name": "Aleš Komárek", "url": "https://github.com/cznewt"},
+  "homepage": "https://github.com/cznewt/observ-viz",
+  "repository": "https://github.com/cznewt/observ-viz",
+  "license": "Apache-2.0",
+  "keywords": ["grafana", "prometheus", "mimir", "loki", "tempo", "pyroscope", "observability", "dashboards"]
+}

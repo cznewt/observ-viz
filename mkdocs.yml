@@ -19,6 +19,7 @@ nav:
   - Guide:
       - Capabilities: capabilities.md
       - Usage & justfiles: usage.md
+      - Agent skills: agents.md
       - Concepts: concepts.md
       - Core API: api.md
       - Packs (mixins): packs.md

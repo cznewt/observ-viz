@@ -1,0 +1,11 @@
+{
+  "name": "observ-viz",
+  "owner": {"name": "Aleš Komárek", "url": "https://github.com/cznewt"},
+  "plugins": [
+    {
+      "name": "observ-viz",
+      "source": ".",
+      "description": "Telemetry skills for agents: telemetry-query, observ-viz-catalog, board-verify, alert-triage, observ-lib-authoring."
+    }
+  ]
+}
