@@ -18,4 +18,7 @@ docs/shots/
 docs/boards/
 docs/observ-libs/
 docs/.gen/
+# the alert pages (scripts/gen-board-pages.py); a hand-written runbook there needs its own ! line
+docs/runbooks/*.md
+!docs/runbooks/node.md
 mkdocs.gen.yml

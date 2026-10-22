@@ -84,7 +84,8 @@ local ann(r, k) = std.get(std.get(r, 'annotations', {{}}), k, '');
     [{{ n: k, e: std.get(std.get(std.get(std.get(l.queries[k], 'spec', {{}}), 'query', {{}}), 'spec', {{}}), 'expr', '') }} for k in std.objectFields(l.queries)],
   groups: [{{ t: g.title, els: std.objectFields(g.elements) }} for g in std.get(l.grafana, 'groups', [])],
   panels: if std.objectHas(l.grafana, 'groups') || !std.objectHas(l.grafana, 'panels') then [] else std.objectFields(l.grafana.panels),
-  // u the written runbook's URL, rb the runbook the board's Runbooks tab shows
+  // u the rule's runbook_url (a written runbook, else the alert's page on the
+  // docs site), rb the runbook the board's Runbooks tab shows
   alerts: [{{ n: r.alert, sev: std.get(r.labels, 'severity', ''), f: r['for'], e: r.expr,
              s: ann(r, 'summary'), d: ann(r, 'description'), u: ann(r, 'runbook_url'), rb: runbook.of(r) }}
            for grp in (if std.objectHas(l, 'prometheus') then l.prometheus.alerts else []) for r in grp.rules],
@@ -112,7 +113,9 @@ def collectors():
 
 
 def main():
-    data = {"libs": {}, "boards": {}, "errors": {}, "collectors": collectors()}
+    # runbookBase: the docs site the alerts' runbook_url points at (one page per alert name)
+    data = {"libs": {}, "boards": {}, "errors": {}, "collectors": collectors(),
+            "runbookBase": ev("(import 'libs/common-lib/alert/runbook.libsonnet').docsBase")}
     paths = lib_paths()
     for p in paths:
         try:

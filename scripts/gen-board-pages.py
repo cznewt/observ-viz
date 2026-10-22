@@ -19,6 +19,8 @@ Outputs (gitignored, written at docs build time):
   docs/observ-libs/index.md, <namespace>/index.md, <namespace>/<lib>.md
   docs/boards/index.md, <folder>/.../index.md   the Grafana folder tree
   docs/boards/<folder>/.../<uid>.md             a board no library owns
+  docs/runbooks/<alert>.md    one page per alert name: what an alert rule's
+                              runbook_url opens (libs/common-lib/alert/runbook.libsonnet)
   docs/.gen/overview.md       the home page's overview (docs/index.md includes it)
   mkdocs.gen.yml              mkdocs.yml + the generated navigation + redirects
                               from the former pages
@@ -31,6 +33,7 @@ generated file lands next to it), --site its name for the overview pages,
 <docs>/shots/<name>/, each with its manifest.json.
 """
 import argparse
+import collections
 import glob
 import json
 import os
@@ -44,6 +47,11 @@ DOCS = os.path.join(ROOT, "docs")
 SHOTS = os.path.join(DOCS, "shots")
 LIB_PREFIX = "g.libs."
 LIBS_DIR = "observ-libs"
+# the alert pages sit next to the hand-written runbooks/*.md: out of the search
+# (their library page has the same text) and marked, so a run removes only its own
+RUNBOOKS_DIR = "runbooks"
+ALERT_PAGE_MARK = "generated: gen-board-pages.py"
+ALERT_PAGE_META = ["---", "search:", "  exclude: true", ALERT_PAGE_MARK, "---", ""]
 # top-level board folders, in this order; a board in any other root folder becomes a workload
 SECTIONS = ["Analysis", "Platform", "Workloads", "Components", "Reference", "Base"]
 RUNTIMES = ["Reference", "Runtimes"]
@@ -263,6 +271,8 @@ class Ctx:
     def __init__(self, data, manifest, entries, boards, collectors):
         self.data, self.manifest, self.entries, self.boards = data, manifest, entries, boards
         self.collectors = collectors
+        # the docs site the alerts' runbook_url points at (runbook.libsonnet docsBase)
+        self.runbook_base = data.get("runbookBase", "")
 
 
 def anchor(heading):
@@ -318,15 +328,74 @@ def screenshots(shot, title, page, ctx, heading="###"):
     return L
 
 
-def runbook_block(a):
+def runbook_ids(alerts):
+    """Each alert rule's anchors on its library page: runbook-<alert>, or
+    runbook-<alert>-<severity> (then -2, -3, ...) when the library has the alert
+    more than once - the first rule of a name keeps runbook-<alert> as well, for
+    the Metrics table and older links. The rule's own anchor comes last."""
+    names = collections.Counter(a["n"] for a in alerts)
+    seen, out = collections.Counter(), []
+    for a in alerts:
+        base = "runbook-" + slug(a["n"])
+        if names[a["n"]] == 1:
+            out.append([base])
+            continue
+        sev = a.get("sev") or "warning"
+        seen[a["n"]] += 1
+        seen[(a["n"], sev)] += 1
+        own = f"{base}-{slug(sev)}" + (f"-{seen[(a['n'], sev)]}" if seen[(a["n"], sev)] > 1 else "")
+        out.append([base, own] if seen[a["n"]] == 1 else [own])
+    return out
+
+
+def written(a, ctx):
+    """The rule's runbook_url when it is a written runbook, not its page here."""
+    u = a.get("u") or ""
+    return u if u and not (ctx.runbook_base and u.startswith(ctx.runbook_base)) else ""
+
+
+def runbook_block(a, ids, expanded=False):
     sev = a.get("sev") or "warning"
     head = f"{a['n']} · {sev}" + (f" · for {a['f']}" if a.get("f") else "")
     # the runbook's own headings (Meaning, Impact, ...) as bold lines, so they
     # stay out of the page's table of contents
     body = re.sub(r"^#{1,6} +(.+?) *#*$", r"**\1**", a.get("rb") or "", flags=re.M)
-    L = [f'<a id="runbook-{slug(a["n"])}"></a>', "", f'??? {ADMONITION.get(sev, "note")} "{head}"']
+    L = ["".join(f'<a id="{i}"></a>' for i in ids), ""] if ids else []
+    L += [f'???{"+" if expanded else ""} {ADMONITION.get(sev, "note")} "{head}"']
     L += [("    " + line) if line else "" for line in body.split("\n")]
     return L + [""]
+
+
+def alert_pages(ctx):
+    """runbooks/<alert>.md -> page: one per alert name, the page an alert rule's
+    runbook_url opens - the rule in every library that has it, linked to its
+    runbook there, then the runbook itself, expanded (once per distinct rule: a
+    service library repeats its component's). The analysis methods' alerts get
+    one too, though their libraries have no page."""
+    by_name = {}
+    for p, lib in sorted(ctx.data["libs"].items()):
+        alerts = lib.get("alerts") or []
+        for a, ids in zip(alerts, runbook_ids(alerts)):
+            by_name.setdefault(a["n"], []).append((p, ctx.entries.get(p), a, ids[-1]))
+    pages = {}
+    for n, uses in sorted(by_name.items()):
+        page = os.path.join(RUNBOOKS_DIR, slug(n) + ".md")
+        L = ALERT_PAGE_META + [f"# {n}", ""]
+        summaries = {a.get("s") or "" for _, _, a, _ in uses}
+        if len(summaries) == 1 and "" not in summaries:  # variants that differ say so in their own runbook
+            L += [cell(summaries.pop()), ""]
+        L += ["The runbook this alert rule links to, and the libraries that ship the rule.", ""]
+        rows = [(f"[{e['title']}]({rel(e['page'], page)}#{i}) (`{LIB_PREFIX}{p}`)" if e else f"`{LIB_PREFIX}{p}`",
+                 a["sev"], a["f"], fence(a["e"])) for p, e, a, i in uses]
+        L += table(["Library", "Severity", "For", "Expression"], rows)
+        seen = set()
+        for p, e, a, i in uses:
+            key = (a.get("sev"), a.get("f"), a.get("e"), a.get("rb"))
+            if key not in seen:
+                seen.add(key)
+                L += runbook_block(a, [], expanded=True)
+        pages[page] = "\n".join(L)
+    return pages
 
 
 def library_page(e, ctx):
@@ -389,25 +458,24 @@ def library_page(e, ctx):
                          ", ".join(f"[{x}](#runbook-{slug(x)})" for x in sorted(set(u["alerts"]))) or "—",
                          ", ".join(f"`{x}`" for x in sorted(set(u["records"]))) or "—"))
         L += table(["Metric", "Collector", "Signals", "Alert rules", "Recording rules"], rows)
+    ids = runbook_ids(lib["alerts"])
     if lib["alerts"]:
         # "Alert rules", not "Alerts": many boards have an Alerts tab of their own
         L += ["## Alert rules", ""]
         rows = []
-        for a in lib["alerts"]:
+        for a, i in zip(lib["alerts"], ids):
             name = f"`{a['n']}`" + (f"<br>{cell(a.get('s'))}" if a.get("s") else "")
-            rb = f"[runbook](#runbook-{slug(a['n'])})" + (f" · [written]({a['u']})" if a.get("u") else "")
+            rb = f"[runbook](#{i[-1]})" + (f" · [written]({written(a, ctx)})" if written(a, ctx) else "")
             rows.append((name, a["sev"], a["f"], fence(a["e"]), rb))
         L += table(["Alert", "Severity", "For", "Expression", "Runbook"], rows)
     if lib["records"]:
         L += ["## Recording rules", ""] + table(["Record", "Expression"], [(f"`{r['n']}`", fence(r["e"])) for r in lib["records"]])
     if lib["alerts"]:
         L += ["## Runbooks", "", "One per alert rule - the runbook the rule carries, or one generated from it - the text the "
-              "board's Runbooks tab shows.", ""]
-        seen = set()
-        for a in lib["alerts"]:
-            if a["n"] not in seen:
-                seen.add(a["n"])
-                L += runbook_block(a)
+              "board's Runbooks tab shows. A rule without a written runbook links to its page here, "
+              f"`{RUNBOOKS_DIR}/<alert>/`, which shows the same text.", ""]
+        for a, i in zip(lib["alerts"], ids):
+            L += runbook_block(a, i)
     if lib.get("queries"):
         L += ["## Queries", ""] + table(["Query", "Expression"], [(f"`{q['n']}`", fence(q["e"])) for q in lib["queries"]])
     if lib.get("groups") or lib.get("panels"):
@@ -634,6 +702,21 @@ def main():
     for b in boards.values():
         if not b.get("lib"):
             write(b["page"], board_page(b, ctx))
+    for f in glob.glob(os.path.join(DOCS, RUNBOOKS_DIR, "*.md")):
+        with open(f) as fh:
+            if ALERT_PAGE_MARK in fh.read(200):
+                os.remove(f)
+    pages = alert_pages(ctx)
+    for path, text in pages.items():
+        if os.path.exists(os.path.join(DOCS, path)):
+            raise SystemExit(f"docs/{path} is hand-written but is also alert {path}'s page")
+        write(path, text)
+    # an alert's runbook_url on this site must be its page (runbook.libsonnet url() = slug() here)
+    base = ctx.runbook_base
+    stray = sorted({a["u"] for lib in data["libs"].values() for a in lib.get("alerts") or []
+                    if base and (a.get("u") or "").startswith(base) and a["u"] != f"{base}{RUNBOOKS_DIR}/{slug(a['n'])}/"})
+    if stray:
+        raise SystemExit("runbook_url without a page on this site: " + ", ".join(stray[:5]))
     for folder, node in tree.items():
         path, text = folder_page(folder, node, tree, ctx)
         write(path, text)
@@ -658,6 +741,8 @@ def main():
     gen = {
         "INHERIT": os.path.basename(a.mkdocs),
         "nav": nav,
+        # the alert pages are reached from the alerts' runbook_url, not the navigation
+        "not_in_nav": f"/{RUNBOOKS_DIR}/*.md\n",
         "plugins": ["search", {"redirects": {"redirect_maps": redirects(ctx, real)}}],
     }
     with open(os.path.join(os.path.dirname(os.path.abspath(a.mkdocs)), "mkdocs.gen.yml"), "w") as fh:
@@ -665,8 +750,8 @@ def main():
         yaml.safe_dump(gen, fh, sort_keys=False, allow_unicode=True)
     rendered = sum(1 for b in boards.values() if b.get("shot") in manifest["boards"])
     print(f"{len(entries)} library pages in {len(groups)} namespaces, {len(boards)} boards ({rendered} rendered, "
-          f"{sum(1 for b in boards.values() if not b.get('lib'))} with pages of their own) in {len(tree)} folders "
-          f"-> docs/{LIBS_DIR}/, docs/boards/, docs/.gen/overview.md, mkdocs.gen.yml")
+          f"{sum(1 for b in boards.values() if not b.get('lib'))} with pages of their own) in {len(tree)} folders, "
+          f"{len(pages)} alert pages -> docs/{LIBS_DIR}/, docs/boards/, docs/{RUNBOOKS_DIR}/, docs/.gen/overview.md, mkdocs.gen.yml")
     return 0
 
 

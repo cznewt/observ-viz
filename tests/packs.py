@@ -88,12 +88,29 @@ def instance_row_clashes(dashboard):
     return clashes
 
 
+def slug(s):
+    """scripts/gen-board-pages.py slug(): the alert pages' file names."""
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
 def main():
     fail = 0
+    docs = json.loads(_jsonnet.evaluate_snippet("t", "(import 'libs/common-lib/alert/runbook.libsonnet').docsBase", jpathdir=[ROOT]))
     for p in PACKS:
-        snippet = f"(import 'g.libsonnet').libs.{p}.new({{}}).grafana.dashboard.toResource()"
+        # the board, and every alerting rule's name + runbook_url
+        snippet = (f"local l = (import 'g.libsonnet').libs.{p}.new({{}}); local rb = import 'libs/common-lib/alert/runbook.libsonnet';"
+                   " { dashboard: l.grafana.dashboard.toResource(),"
+                   "   runbooks: [[r.alert, rb.ann(r, 'runbook_url')] for g in (if std.objectHas(l, 'prometheus') then l.prometheus.alerts else [])"
+                   "              for r in g.rules if std.objectHas(r, 'alert')] }")
         try:
-            d = json.loads(_jsonnet.evaluate_snippet("t", snippet, jpathdir=[ROOT]))
+            out = json.loads(_jsonnet.evaluate_snippet("t", snippet, jpathdir=[ROOT]))
+            d = out["dashboard"]
+            # every alert links a runbook: a written one, or its page on the docs site
+            # (scripts/gen-board-pages.py writes runbooks/<slug>.md for each name)
+            missing = sorted({n for n, u in out["runbooks"] if not u})
+            assert not missing, "alerts without a runbook_url: " + ", ".join(missing[:5])
+            stray = sorted({u for n, u in out["runbooks"] if u.startswith(docs) and u != f"{docs}runbooks/{slug(n)}/"})
+            assert not stray, "runbook_url off the alert's docs page: " + ", ".join(stray[:3])
             assert d["kind"] == "Dashboard"
             assert d["spec"]["elements"], "no elements"
             clashes = instance_row_clashes(d)

@@ -27,6 +27,9 @@ local variable =
   //   rules:   [ ruleGroup ]               (optional prometheus recording rule groups)
   build(config, signals, groups, alerts=[], rules=[], optionalTabs=[]):: {
     local this = self,
+    // the rendered alerting rules carry a runbook_url: the written one, else
+    // the alert's page on the docs site (config.runbookBaseUrl, '' for none)
+    local linkedAlerts = runbook.withUrls(alerts, if std.objectHas(config, 'runbookBaseUrl') then config.runbookBaseUrl else runbook.docsBase),
     config: config,
     signals: signals,
 
@@ -304,12 +307,12 @@ local variable =
     },
 
     // the prometheus side of the container: alerting + recording rule groups.
-    prometheus: { alerts: alerts, rules: rules },
+    prometheus: { alerts: linkedAlerts, rules: rules },
 
     // observ-lib mixin output for the monitor-tools / render-lib pipeline.
     asMonitoringMixin():: {
       grafanaDashboards+:: { [config.uid + '.json']: this.grafana.dashboard.toSpec() },
-      [if std.length(alerts) > 0 then 'prometheusAlerts']+:: { groups: alerts },
+      [if std.length(alerts) > 0 then 'prometheusAlerts']+:: { groups: linkedAlerts },
       [if std.length(rules) > 0 then 'prometheusRules']+:: { groups: rules },
     },
   },
