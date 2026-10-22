@@ -11,8 +11,11 @@ __pycache__/
 .venv/
 .pytest_cache/
 site/
-# the docs board tree: screenshots from the docs-shots branch + the pages and
-# navigation built from them (scripts/gen-board-pages.py, at docs build time)
+# the docs library pages and board tree: screenshots from the docs-shots branch +
+# the pages, home overview and navigation built from them
+# (scripts/gen-board-pages.py, at docs build time)
 docs/shots/
 docs/boards/
+docs/observ-libs/
+docs/.gen/
 mkdocs.gen.yml

@@ -1,4 +1,5 @@
 site_name: observ-viz
+site_url: https://cznewt.github.io/observ-viz/
 site_description: >-
   A standalone Jsonnet library for generating Grafana dashboard schema v2
   resources — slim core, lots of mixins.
@@ -12,18 +13,24 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.indexes
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - toc.follow
     - content.code.copy
 
 nav:
   - Home: index.md
   - Guide:
+      - Introduction: intro.md
       - Capabilities: capabilities.md
       - Usage & justfiles: usage.md
       - Agent skills: agents.md
       - Concepts: concepts.md
       - Core API: api.md
       - Packs (mixins): packs.md
-      - observ-libs: libs.md
       - Chart types: panels.md
       - Reference & scenarios: reference.md
       - Backstage: backstage.md
@@ -31,14 +38,33 @@ nav:
       - observ-lib container: render.md
       - Runbooks (node): runbooks/node.md
       - Docker image: docker.md
-  # The boards follow, filed like the Grafana folders (Analysis, Platform,
-  # Workloads, Components, Reference, Base): scripts/gen-board-pages.py writes
-  # them and mkdocs.gen.yml (INHERIT: mkdocs.yml) - build with -f mkdocs.gen.yml.
+  # observ-libs (one page per library, by namespace) goes in after Guide and
+  # Boards (every board, filed like the Grafana folders) at the end:
+  # scripts/gen-board-pages.py writes them and mkdocs.gen.yml (INHERIT:
+  # mkdocs.yml) - build with -f mkdocs.gen.yml.
+  - Collectors:
+      - exporters/index.md
+      - node_exporter: exporters/node_exporter.md
+      - windows_exporter: exporters/windows_exporter.md
+      - cAdvisor: exporters/cadvisor.md
+      - kube-state-metrics: exporters/kube-state-metrics.md
+      - kubelet: exporters/kubelet.md
+      - API server: exporters/apiserver.md
+      - OhmGraphite: exporters/ohmgraphite.md
+      - Application exporters: exporters/app-exporters.md
+      - Alerting: exporters/alerting.md
+      - Mimir ruler: exporters/mimir-ruler.md
+      - Signal map: exporters/signals.md
 
 markdown_extensions:
   - toc:
       permalink: true
   - admonition
+  - pymdownx.details
   - pymdownx.highlight
   - pymdownx.superfences
+  # the home page includes the overview gen-board-pages.py writes (docs/.gen/)
+  - pymdownx.snippets:
+      base_path: [docs]
+      check_paths: true
   - tables

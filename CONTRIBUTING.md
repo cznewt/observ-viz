@@ -46,9 +46,9 @@ just panels     # tests/panels.py    — every common-lib preset + reference var
 2. Add a `jsonnetfile.json` (copy any existing lib's — it declares the observ-viz dep for jb).
 3. Register it in `libs/observ-libs.libsonnet` under the right group (`runtimes` / `system` / `databases` / …).
 4. Add its dotted path to the `PACKS` list in `tests/packs.py`.
-5. `just packs` to verify, then `just docs-libs` to refresh `docs/libs.md`.
+5. `just packs` to verify, then `just docs-boards` to refresh `docs/boards.json` (its docs page).
 
-The signal abstraction does the heavy lifting — see [common-lib `signal`](docs/libs.md#common-lib)
+The signal abstraction does the heavy lifting — see [common-lib `signal`](docs/intro.md#reusable-parts-common-lib)
 for `init`/`addSignal` (typed counter/histogram/gauge) and the `as*` renderers.
 
 ## Add a panel type or datasource
@@ -69,7 +69,7 @@ drop a schema under `generator/schemas/`, add a registry line, and run `just gen
 
 ```sh
 just docs-panels   # regenerate docs/panels.md from the chart definitions
-just docs-libs     # regenerate docs/libs.md from the observ-lib index
+just docs-boards   # regenerate docs/boards.json (every library's page, the board tree)
 just docs          # build the mkdocs site
 ```
 

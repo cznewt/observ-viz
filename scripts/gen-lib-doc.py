@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""Generate docs/boards.json: every board observ-viz ships, the Grafana folder
-it is filed in, and the library behind it with its signals, alerts and
-recording rules.
+"""Generate docs/boards.json: every library and board observ-viz ships, the
+Grafana folder each board is filed in, the libraries' signals, alerts with
+their runbooks and recording rules, and the collectors behind the metrics.
 
   gen-lib-doc.py
 
 - libs:   every observ-lib under g.libs (found by walking the index, not a
           hand-kept list): title, board uid, folder, description, signals (or
-          panel queries), dashboard groups/panels, alerts and recording rules.
+          panel queries) with their title and description, dashboard
+          groups/panels, alerts with their runbooks, and recording rules.
 - boards: the boards the reference and base mixins render (analysis, chart
           types, runtimes, deployment targets, common, base), with their folder.
+- collectors: the exporter / collector registry (libs/common-lib/exporters.libsonnet)
+          with the metric patterns each collector produces.
 
 The docs build (scripts/gen-board-pages.py) turns this, plus the screenshots
-from the docs-shots branch, into one page per board in a navigation tree that
+from the docs-shots branch, into one page per library and a board tree that
 mirrors the Grafana folders. Run it after changing a library (a few minutes:
 every board is evaluated) and commit docs/boards.json.
 """
@@ -53,7 +56,9 @@ walk(libs, '')""")
 def lib_data(p):
     return ev(FOLDER + f"""
 local l = (import 'g.libsonnet').libs.{p}.new({{}});
+local runbook = import 'libs/common-lib/alert/runbook.libsonnet';
 local sig(k) = l.signals[k];
+local hidden(o, f, d) = if std.objectHasAll(o, f) then o[f] else d;
 local res = l.grafana.dashboard;
 local ann(r, k) = std.get(std.get(r, 'annotations', {{}}), k, '');
 {{
@@ -63,8 +68,13 @@ local ann(r, k) = std.get(std.get(r, 'annotations', {{}}), k, '');
   description: std.get(res.spec, 'description', ''),
   // a service board's whitebox: the component pack it wraps
   whitebox: if std.objectHas(l, 'whitebox') then std.get(l.whitebox.config, 'uid', '') else '',
+  // n key, t title, d description, k datasource kind (prometheus / loki / ...),
+  // u unit, e the board's query, re the recording-rule form
   signals: if !std.objectHas(l, 'signals') then [] else [{{
     n: k,
+    t: hidden(sig(k), '_name', k),
+    d: hidden(sig(k), '_description', ''),
+    k: hidden(sig(k), '_type', 'prometheus'),
     u: (local d = sig(k).asTimeSeries('x').spec.vizConfig.spec.fieldConfig.defaults; std.get(d, 'unit', '')),
     e: sig(k).asTarget().spec.query.spec.expr,
     re: sig(k).asRecordingRule('_', '', '5m').expr,
@@ -74,8 +84,9 @@ local ann(r, k) = std.get(std.get(r, 'annotations', {{}}), k, '');
     [{{ n: k, e: std.get(std.get(std.get(std.get(l.queries[k], 'spec', {{}}), 'query', {{}}), 'spec', {{}}), 'expr', '') }} for k in std.objectFields(l.queries)],
   groups: [{{ t: g.title, els: std.objectFields(g.elements) }} for g in std.get(l.grafana, 'groups', [])],
   panels: if std.objectHas(l.grafana, 'groups') || !std.objectHas(l.grafana, 'panels') then [] else std.objectFields(l.grafana.panels),
+  // u the written runbook's URL, rb the runbook the board's Runbooks tab shows
   alerts: [{{ n: r.alert, sev: std.get(r.labels, 'severity', ''), f: r['for'], e: r.expr,
-             s: ann(r, 'summary'), d: ann(r, 'description') }}
+             s: ann(r, 'summary'), d: ann(r, 'description'), u: ann(r, 'runbook_url'), rb: runbook.of(r) }}
            for grp in (if std.objectHas(l, 'prometheus') then l.prometheus.alerts else []) for r in grp.rules],
   records: [{{ n: r.record, e: r.expr }}
             for grp in (if std.objectHas(l, 'prometheus') then std.get(l.prometheus, 'rules', []) else []) for r in grp.rules],
@@ -93,8 +104,15 @@ local entry(res, src) = { uid: res.metadata.name, title: res.spec.title, folder:
 + [entry(if std.objectHas(baseBoards[k], 'toResource') then baseBoards[k].toResource() else baseBoards[k], 'base') for k in std.objectFields(baseBoards)]""")
 
 
+def collectors():
+    """'<exporter>/<collector>' -> exporter, collector, source, metric patterns."""
+    out = ev("(import 'libs/common-lib/exporters.libsonnet').exporters")
+    return {e + "/" + c: {"exporter": e, "collector": c, "source": ex.get("source", ""), "patterns": col["patterns"]}
+            for e, ex in out.items() for c, col in ex["collectors"].items()}
+
+
 def main():
-    data = {"libs": {}, "boards": {}, "errors": {}}
+    data = {"libs": {}, "boards": {}, "errors": {}, "collectors": collectors()}
     paths = lib_paths()
     for p in paths:
         try:

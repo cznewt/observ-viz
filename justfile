@@ -46,10 +46,6 @@ vars:
 docs-panels:
     python3 scripts/gen-panel-docs.py
 
-# regenerate docs/libs.md from the observ-lib index
-docs-libs:
-    python3 scripts/gen-libs-docs.py
-
 # regenerate docs/exporters/ (exporter/collector metric inventories + signal map)
 docs-collectors:
     python3 scripts/gen-collector-docs.py
@@ -208,9 +204,10 @@ catalog:
 
 # ── docs ────────────────────────────────────────────────────────────────────
 
-# build the docs site (the board pages + navigation come from docs/boards.json
-# and docs/shots: `just docs-shots-fetch` first for the screenshots)
-docs: docs-panels docs-libs docs-collectors
+# build the docs site (the library pages, board tree, home overview + navigation
+# come from docs/boards.json and docs/shots: `just docs-shots-fetch` first for
+# the screenshots)
+docs: docs-panels docs-collectors
     python3 scripts/gen-board-pages.py
     python3 -m mkdocs build -f mkdocs.gen.yml
 

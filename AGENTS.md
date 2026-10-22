@@ -71,19 +71,24 @@ Each `new(config)` → `{ signals, grafana:{dashboard,dashboards,elements,layout
 ## Where the rest is documented
 `README.md` · `CONTRIBUTING.md` · docs site (mkdocs, GitHub Pages): `docs/capabilities.md`
 (full feature list), `docs/usage.md` (the three workflows), `docs/render.md` (container),
-`docs/docker.md` (image), `docs/api.md` (builders), `docs/libs.md` (observ-libs),
-`docs/panels.md` (chart types).
+`docs/docker.md` (image), `docs/api.md` (builders), `docs/intro.md` (introduction,
+reusable parts), `docs/panels.md` (chart types), `docs/exporters/` (collectors).
 
-The site's board tree (one page per board, filed like the Grafana folders: every
-tab rendered, then the alert rules, recording rules and signals) is generated:
+The site's library pages and board tree are generated. Tabs: Home (an overview of
+every library) · Guide · observ-libs (one page per library, by namespace: signals
+with the metrics they read, metrics with their collectors, alert rules with their
+runbooks, recording rules, then the board with every tab rendered) · Collectors ·
+Boards (every board, filed like the Grafana folders, linked to its library):
 - `docs/boards.json` (committed) - `just docs-boards` (scripts/gen-lib-doc.py)
   after changing a library: every library and mixin board, its folder, signals,
-  alerts and rules;
+  alerts with their runbooks (`alert/runbook.libsonnet`, the text the board's
+  Runbooks tab shows), rules, and the collector registry;
 - the screenshots - `just docs-shots build/shots --jobs 3` on the monlab Grafana,
   then `just docs-shots-publish build/shots` (orphan `docs-shots` branch);
-- the pages + navigation - scripts/gen-board-pages.py writes `docs/boards/` and
-  `mkdocs.gen.yml` (INHERIT: mkdocs.yml, plus redirects from the old pages) at
-  docs build time; build/serve with `-f mkdocs.gen.yml` (`just docs`, `just docs-serve`).
+- the pages + navigation - scripts/gen-board-pages.py writes `docs/observ-libs/`,
+  `docs/boards/`, the home overview `docs/.gen/overview.md` (docs/index.md includes
+  it) and `mkdocs.gen.yml` (INHERIT: mkdocs.yml, plus redirects from the old pages)
+  at docs build time; build/serve with `-f mkdocs.gen.yml` (`just docs`, `just docs-serve`).
 
 [`just`]: https://github.com/casey/just
 

@@ -52,7 +52,7 @@ just dashboards   # jsonnet -m dashboards_out dashboards.jsonnet
 ```
 
 → [`vendor-and-render.justfile`](https://github.com/cznewt/observ-viz/blob/main/examples/justfiles/vendor-and-render.justfile)
-· builders: [Core API](api.md) · reuse [observ-libs](libs.md) · presets [Chart types](panels.md).
+· builders: [Core API](api.md) · reuse [observ-libs](observ-libs/index.md) · presets [Chart types](panels.md).
 
 ## 3 · Ship an observ-lib (dashboards + alerts + rules)
 
