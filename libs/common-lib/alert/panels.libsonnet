@@ -18,11 +18,12 @@ local query = import 'custom/query.libsonnet';
       viewMode: 'list',
     } } } } },
 
-  // Instant table of firing alerts grouped by alertname + severity.
-  firingTable(title='Firing alerts', datasource='${datasource}', selector=''):
+  // Instant table of firing alerts grouped by alertname + severity (by: the
+  // grouping labels, e.g. cluster first on a multi-cluster board).
+  firingTable(title='Firing alerts', datasource='${datasource}', selector='', by=['alertname', 'severity']):
     panel.table.new(title)
     + panel.table.withTargets([
-      query.prometheus.new(datasource, 'sum by (alertname, severity) (ALERTS{alertstate="firing"' + (if selector != '' then ', ' + selector else '') + '})')
+      query.prometheus.new(datasource, 'sum by (' + std.join(', ', by) + ') (ALERTS{alertstate="firing"' + (if selector != '' then ', ' + selector else '') + '})')
       + query.prometheus.withInstant(true)
       + query.prometheus.withFormat('table'),
     ]),

@@ -1,7 +1,8 @@
 // observ-viz base/cluster fleet boards (hand-written; ported from the base-mixin).
 // A two-tier overview, emitted as native v2:
 //   base.home.new()    Home dashboard — clusters + applications count tables (env-level)
-//   base.cluster.new() Base clusters  — workload + linux-servers tables (per cluster)
+//   base.cluster.new() Base clusters  — one row per cluster, then every server and
+//                                      every namespace (per cluster)
 // Tables use instant table queries + seriesToColumns transforms (counts/stats joined
 // into columns), with drill-through links (cluster -> Base/Cluster, node -> Linux node).
 local dashboard = (import 'gen/observ-viz-v2beta1/dashboard.libsonnet') + (import 'custom/dashboard.libsonnet');
@@ -28,7 +29,10 @@ local variable =
 local defaults = {
   clusterLabel: 'cluster',
   nodeLabel: 'instance',
-  appLabel: 'app_part_of',  // workload grouping label (e.g. app_part_of / app / namespace)
+  // workload grouping label (e.g. namespace / app / app_part_of); the collectors
+  // no longer stamp app_part_of (gone from monlab and newt by 2026-10-22), so
+  // namespace by default
+  appLabel: 'namespace',
   nodeMetric: 'node_uname_info',  // an info metric every node_exporter exports (node count + release)
   windowsNodeMetric: 'windows_os_info',  // windows_exporter OS info (node count + version)
   // baseline filter in every query — site policy from config/config.libsonnet
@@ -97,6 +101,10 @@ local tq(c, expr) =
   + { spec+: { query+: { spec+: { instant: true, range: false, format: 'table' } } } };
 
 local ov(regex, props) = { matcher: { id: 'byRegexp', options: regex }, properties: props };
+// every drill link carries the current time range and datasource, as Grafana's
+// own dashboard links do (otherwise the target opens on its defaults)
+local carry = '&${__url_time_range}&${datasource:queryparam}';
+local links(title, url) = [{ id: 'links', value: [{ title: title, url: url }] }];
 
 // temperature column styling shared by the CPUs/GPUs/Disks tables: sparkline
 // over the dashboard range (0-100 scale, red when the latest value runs hot).
@@ -253,24 +261,23 @@ local serversTable(c, capacity=false) =
   local cl = c.clusterLabel;
   local s = clComma(c) + (if capacity then ', ' + nl + '=~"$instance"' else '');
   local byNode = 'by (' + cl + ', ' + nl + ')';
-  // capacity flavor stretches static facts over the dashboard range so nodes
-  // that went offline keep their row (live columns just go blank).
-  local lot(sel) = if capacity then 'last_over_time(' + sel + '[$__range])' else sel;
+  // the overview flavor keeps the cluster label on the info query (A) only: a
+  // label every frame carries reaches the joined table once per frame (cluster 1,
+  // cluster 2, ...) and none of them is the Cluster column its links read
+  local keyLabels = if capacity then cl + ', ' + nl else nl;
+  // static facts stretch over the dashboard range, like the CPU / memory
+  // sparklines, so a node that went offline keeps its row (live columns just
+  // go blank).
+  local lot(sel) = 'last_over_time(' + sel + '[$__range])';
   local qInfo =
     tq(c, '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(' + lot(c.nodeMetric + '{' + s + '}') + ', "board", "' + c.nodeUid + '", "", ""))) or '
           + '(sum by (' + cl + ', ' + nl + ', release, board) (label_replace(label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "release", "$1", "version", "(.+)"), "board", "' + c.windowsNodeUid + '", "", "")))');
-  local qCpuPct =
-    tq(c, '((1 - avg ' + byNode + ' (rate(node_cpu_seconds_total{mode="idle", ' + s + '}[5m]))) * 100) or '
-          + '((1 - avg ' + byNode + ' (rate(windows_cpu_time_total{mode="idle", ' + s + '}[5m]))) * 100)');
-  local qMemPct =
-    tq(c, '((1 - avg ' + byNode + ' (node_memory_MemAvailable_bytes{' + s + '}) / avg ' + byNode + ' (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
-          + '((1 - avg ' + byNode + ' (windows_memory_available_bytes{' + s + '}) / avg ' + byNode + ' (windows_memory_physical_total_bytes{' + s + '})) * 100)');
   local qUptime =
-    tq(c, '(max ' + byNode + ' (time() - node_boot_time_seconds{' + s + '})) or '
-          + '(max ' + byNode + ' (time() - windows_system_boot_time_timestamp{' + s + '}))');
+    tq(c, '(max by (' + keyLabels + ') (time() - node_boot_time_seconds{' + s + '})) or '
+          + '(max by (' + keyLabels + ') (time() - windows_system_boot_time_timestamp{' + s + '}))');
   local qOs =
-    tq(c, '(sum by (' + cl + ', ' + nl + ', pretty_name) (' + lot('node_os_info{' + s + '}') + ')) or '
-          + '(sum by (' + cl + ', ' + nl + ', pretty_name) (label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "pretty_name", "$1", "product", "(.+)")))');
+    tq(c, '(sum by (' + keyLabels + ', pretty_name) (' + lot('node_os_info{' + s + '}') + ')) or '
+          + '(sum by (' + keyLabels + ', pretty_name) (label_replace(' + lot(c.windowsNodeMetric + '{' + s + '}') + ', "pretty_name", "$1", "product", "(.+)")))');
   local qCpus =
     tq(c, '(count ' + byNode + ' (' + lot('node_cpu_seconds_total{mode="idle", ' + s + '}') + ')) or '
           + '(count ' + byNode + ' (' + lot('windows_cpu_time_total{mode="idle", ' + s + '}') + '))');
@@ -308,39 +315,34 @@ local serversTable(c, capacity=false) =
     rq('((1 - avg by (' + nl + ') (node_memory_MemAvailable_bytes{' + s + '}) / avg by (' + nl + ') (node_memory_MemTotal_bytes{' + s + '})) * 100) or '
        + '((1 - avg by (' + nl + ') (windows_memory_available_bytes{' + s + '}) / avg by (' + nl + ') (windows_memory_physical_total_bytes{' + s + '})) * 100)');
   panel.table.new('Servers')
-  // refIds by position — default: A info, B cpu%, C mem%, D uptime, E os;
-  // capacity: A info, B cpus, C mem-total, D load/cpu, E os, F kind,
-  // G cpu-trend (range), H mem-trend (range).
+  // refIds by position — default: A info, B cpu-trend (range), C mem-trend
+  // (range), D uptime, E os; capacity: A info, B cpus, C mem-total, D uptime,
+  // E os, F kind, G cpu-trend (range), H mem-trend (range), I load/cpu, J device.
   + panel.table.withTargets(
     if capacity
     then [qInfo, qCpus, qMemTotal, qUptime, qOs, qKind, qTrendCpu, qTrendMem, qLoadPerCpu, qDevice]
-    else [qInfo, qCpuPct, qMemPct, qUptime, qOs]
+    else [qInfo, qTrendCpu, qTrendMem, qUptime, qOs]
   )
-  + panel.table.withTransformations(
-    (if capacity then [{ id: 'timeSeriesTable', options: {} }] else []) + [
-      { id: 'labelsToFields' },
-      // the cluster label is deliberately NOT included: no Cluster column (in any
-      // join-suffixed variant) reaches the table — drill links carry the cluster
-      // via the dashboard variable instead.
-      { id: 'filterFieldsByName', options: { include: { names:
-        [nl, 'pretty_name', 'release', 'board', 'Value #B', 'Value #C', 'Value #D']
-        + (if capacity then ['kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else [cl]) } } },
-      { id: 'seriesToColumns', options: { byField: nl } },
-      { id: 'organize', options:
-        if capacity then {
-          excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true, 'Value #J': true },
-          indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
-          renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
-        } else {
-          excludeByName: { 'Value #A': true, 'Value #E': true, [cl + ' 2']: true, [cl + ' 3']: true, [cl + ' 4']: true, [cl + ' 5']: true },
-          // every field needs an explicit index — unindexed ones (the excluded
-          // join-suffixed cluster copies) otherwise take the low slots and push
-          // the real Cluster column out of first place
-          indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Value #B': 4, 'Value #C': 5, 'Value #D': 6, board: 7, 'Value #A': 8, 'Value #E': 9, [cl + ' 2']: 10, [cl + ' 3']: 11, [cl + ' 4']: 12, [cl + ' 5']: 13 },
-          renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Value #B': 'CPU', 'Value #C': 'Memory', 'Value #D': 'Uptime', board: 'Board' },
-        } },
-    ]
-  )
+  + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
+    { id: 'labelsToFields' },
+    // capacity: no Cluster column - the board is single-cluster and its drill
+    // links carry the cluster via the dashboard variable. Overview: the Cluster
+    // column comes from the info query alone (keyLabels).
+    { id: 'filterFieldsByName', options: { include: { names:
+      [nl, 'pretty_name', 'release', 'board', 'Value #D']
+      + (if capacity then ['Value #B', 'Value #C', 'kind', 'device', 'Trend #G', 'Trend #H', 'Trend #I'] else [cl, 'Trend #B', 'Trend #C']) } } },
+    { id: 'seriesToColumns', options: { byField: nl } },
+    { id: 'organize', options:
+      if capacity then {
+        excludeByName: { 'Value #A': true, 'Value #E': true, 'Value #F': true, 'Value #J': true },
+        indexByName: { [nl]: 0, pretty_name: 1, release: 2, kind: 3, device: 4, 'Trend #G': 5, 'Value #B': 6, 'Trend #H': 7, 'Value #C': 8, 'Trend #I': 9, 'Value #D': 10, board: 11 },
+        renameByName: { [nl]: 'Node', pretty_name: 'OS', release: 'Release', kind: 'Type', device: 'Device', 'Value #B': 'CPUs', 'Value #D': 'Uptime', 'Trend #G': 'CPU %', 'Value #C': 'Memory', 'Trend #H': 'Mem %', 'Trend #I': 'Load/CPU', board: 'Board' },
+      } else {
+        indexByName: { [cl]: 0, [nl]: 1, pretty_name: 2, release: 3, 'Trend #B': 4, 'Trend #C': 5, 'Value #D': 6, board: 7 },
+        renameByName: { [cl]: 'Cluster', [nl]: 'Node', pretty_name: 'OS', release: 'Release', 'Trend #B': 'CPU %', 'Trend #C': 'Mem %', 'Value #D': 'Uptime', board: 'Board' },
+      } },
+  ] + (if capacity then [] else [{ id: 'sortBy', options: { sort: [{ field: 'Cluster' }] } }]))
   + panel.table.withOverrides(
     // drill link: cluster comes from the dashboard variable (single value on the
     // detail board; on the multi-cluster overview "All" still resolves the node
@@ -353,8 +355,8 @@ local serversTable(c, capacity=false) =
       url: '/d/${__data.fields["Board"]}?var-instance=${__value.raw}&' +
            (if capacity then '${cluster:queryparam}' else 'var-cluster=${__data.fields["Cluster"]}'),
     }] }])]
+    + [ov('CPU %|Mem %', pctSpark)]
     + (if capacity then [
-         ov('CPU %|Mem %', pctSpark),
          ov('CPUs', [{ id: 'custom.width', value: 60 }]),
          ov('Type', [{ id: 'custom.width', value: 80 }]),
          ov('Load/CPU', [
@@ -373,12 +375,9 @@ local serversTable(c, capacity=false) =
        ] else [
          // single link: multiple links turn the cell into a popup menu instead
          // of a plain clickable value
-         ov('Cluster', [
-           { id: 'links', value: [{ title: 'Cluster detail', url: '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' }] },
-           { id: 'custom.width', value: 150 },
-         ]),
-         ov('Uptime', [{ id: 'unit', value: 'dtdurations' }]),
-         ov('CPU|Memory', [{ id: 'unit', value: 'percent' }, { id: 'custom.cellOptions', value: { type: 'gauge', mode: 'basic' } }, { id: 'min', value: 0 }, { id: 'max', value: 100 }]),
+         ov('Cluster', links('Cluster detail', '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' + carry)
+                       + [{ id: 'custom.width', value: 150 }]),
+         ov('Uptime', [{ id: 'unit', value: 'dtdurations' }, { id: 'custom.width', value: 110 }]),
        ])
     + [ov('Board', [{ id: 'custom.hidden', value: true }])]
   );
@@ -827,6 +826,112 @@ local appsTable(c) =
                    + colorText([{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }])),
   ]);
 
+local colorText(steps) = [
+  { id: 'custom.cellOptions', value: { type: 'color-text' } },
+  { id: 'color', value: { mode: 'thresholds' } },
+  { id: 'thresholds', value: { mode: 'absolute', steps: steps } },
+];
+local alertSteps = [{ color: 'green', value: null }, { color: 'orange', value: 1 }, { color: 'red', value: 5 }];
+
+// Clusters table (Base clusters, first tab): one row per cluster - its nodes
+// (Linux and Windows), CPU and memory utilisation as sparklines over the
+// dashboard range (computed like the Home stats), running pods
+// (kube-state-metrics, else cAdvisor) and the firing alerts: their count over
+// the range as a sparkline (0 where nothing fires), then critical and warning
+// now. Alerts without a cluster label (Watchdog, absent() rules) are on no row.
+local clustersTable(c) =
+  local cl = c.clusterLabel;
+  local s = clComma(c);
+  local by = 'by (' + cl + ')';
+  local nodes = '(' + c.nodeMetric + '{' + s + '}) or (' + c.windowsNodeMetric + '{' + s + '})';
+  local firing(sev) = 'ALERTS{alertstate="firing", ' + (if sev != '' then 'severity="' + sev + '", ' else '') + s + '}';
+  local rq(expr) = query.prometheus.new(c.datasource, expr);
+  local row = '${__data.fields["Cluster"]}';
+  local detail(tab) = '/d/' + c.uidClusterDetail + '?var-cluster=' + row + '&var-instance=$__all&dtab=' + tab + carry;
+  local num = [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 90 }];
+  panel.table.new('Clusters')
+  + panel.table.withDescription('One row per cluster: nodes (Linux and Windows), CPU and memory utilisation over the dashboard range, running pods (kube-state-metrics, else cAdvisor) and firing alerts - their count over the range, then critical and warning now. Alerts without a cluster label (Watchdog, absent() rules) are on no row. Cluster opens Base cluster, Nodes the Servers tab, Pods and the alert cells Base cluster\'s Applications and Alerts tabs.')
+  // refIds by position: A nodes, B cpu % (range), C mem % (range), D pods,
+  // E firing alerts (range), F critical, G warning
+  + panel.table.withTargets([
+    tq(c, 'count ' + by + ' (' + nodes + ')'),
+    rq('(1 - avg ' + by + ' ((rate(node_cpu_seconds_total{mode="idle", ' + s + '}[$__rate_interval])) or (rate(windows_cpu_time_total{mode="idle", ' + s + '}[$__rate_interval])))) * 100'),
+    rq('(1 - sum ' + by + ' ((node_memory_MemAvailable_bytes{' + s + '}) or (windows_memory_available_bytes{' + s + '})) / sum ' + by + ' ((node_memory_MemTotal_bytes{' + s + '}) or (windows_memory_physical_total_bytes{' + s + '}))) * 100'),
+    tq(c, '(sum ' + by + ' (kube_pod_status_phase{phase="Running", ' + s + '})) or (count ' + by + ' (count by (' + cl + ', namespace, pod) (container_memory_working_set_bytes{job=~".*cadvisor", container!="", pod!="", ' + s + '})))'),
+    rq('(count ' + by + ' (' + firing('') + ')) or (0 * group ' + by + ' (' + nodes + '))'),
+    tq(c, 'count ' + by + ' (' + firing('critical') + ')'),
+    tq(c, 'count ' + by + ' (' + firing('warning') + ')'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'timeSeriesTable', options: {} },
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: [cl, 'Value #A', 'Trend #B', 'Trend #C', 'Value #D', 'Trend #E', 'Value #F', 'Value #G'] } } },
+    { id: 'seriesToColumns', options: { byField: cl } },
+    { id: 'organize', options: {
+      indexByName: { [cl]: 0, 'Value #A': 1, 'Trend #B': 2, 'Trend #C': 3, 'Value #D': 4, 'Trend #E': 5, 'Value #F': 6, 'Value #G': 7 },
+      renameByName: { [cl]: 'Cluster', 'Value #A': 'Nodes', 'Trend #B': 'CPU %', 'Trend #C': 'Mem %', 'Value #D': 'Pods', 'Trend #E': 'Alerts', 'Value #F': 'Critical', 'Value #G': 'Warning' },
+    } },
+    { id: 'sortBy', options: { sort: [{ field: 'Cluster' }] } },
+  ])
+  + panel.table.withOverrides([
+    ov('^Cluster$', links('Cluster detail', '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' + carry)
+                    + [{ id: 'custom.width', value: 160 }]),
+    ov('^Nodes$', num + links('Servers of ' + row, '/d/' + c.uidCluster + '?var-cluster=' + row + '&dtab=servers' + carry)),
+    ov('^(CPU %|Mem %)$', pctSpark),
+    ov('^Pods$', num + links('Applications of ' + row, detail('applications'))),
+    ov('^Alerts$', [
+      { id: 'decimals', value: 0 },
+      { id: 'custom.cellOptions', value: { type: 'sparkline', hideValue: false, lineWidth: 1.5, fillOpacity: 16, gradientMode: 'scheme', thresholdsStyle: { mode: 'dashed' } } },
+      { id: 'min', value: 0 },
+      { id: 'color', value: { mode: 'thresholds' } },
+      { id: 'thresholds', value: { mode: 'absolute', steps: alertSteps } },
+    ] + links('Alerts of ' + row, detail('alerts'))),
+    ov('^Critical$', num + [{ id: 'noValue', value: '0' }]
+                     + colorText([{ color: 'green', value: null }, { color: 'red', value: 1 }]) + links('Alerts of ' + row, detail('alerts'))),
+    ov('^Warning$', num + [{ id: 'noValue', value: '0' }]
+                    + colorText([{ color: 'green', value: null }, { color: 'orange', value: 1 }]) + links('Alerts of ' + row, detail('alerts'))),
+  ]);
+
+// Workload table (Base clusters): one row per cluster x namespace - running
+// pods (kube-state-metrics, else cAdvisor) and firing alerts. The queries join
+// on a synthetic cluster|namespace key, and only the pods query keeps the
+// cluster and namespace labels, so each reaches the table once; a namespace
+// with firing alerts but no pods still gets its row (0 pods).
+local workloadTable(c) =
+  local cl = c.clusterLabel;
+  local s = clComma(c);
+  local byNs = 'by (' + cl + ', namespace)';
+  local key(expr) = 'label_join(' + expr + ', "row", "|", "' + cl + '", "namespace")';
+  local firing = 'count ' + byNs + ' (ALERTS{alertstate="firing", namespace!="", ' + s + '})';
+  local pods = '(sum ' + byNs + ' (kube_pod_status_phase{phase="Running", namespace!="", ' + s + '})) or (count ' + byNs + ' (count by (' + cl + ', namespace, pod) (container_memory_working_set_bytes{job=~".*cadvisor", container!="", pod!="", ' + s + '})))';
+  local detail(tab) = '/d/' + c.uidClusterDetail + '?var-cluster=${__data.fields["Cluster"]}&var-instance=$__all&var-namespace=${__data.fields["Namespace"]}&dtab=' + tab + carry;
+  panel.table.new('Workload')
+  + panel.table.withDescription('One row per cluster and namespace: running pods (kube-state-metrics, else cAdvisor) and firing alerts. Namespace opens it on Base cluster\'s Applications tab, Alerts that cluster\'s Alerts tab.')
+  // refIds: A pods (+ the cluster and namespace labels), B firing alerts (the key only)
+  + panel.table.withTargets([
+    tq(c, key('(' + pods + ') or (0 * ' + firing + ')')),
+    tq(c, 'sum by (row) (' + key(firing) + ')'),
+  ])
+  + panel.table.withTransformations([
+    { id: 'labelsToFields' },
+    { id: 'filterFieldsByName', options: { include: { names: ['row', cl, 'namespace', 'Value #A', 'Value #B'] } } },
+    { id: 'seriesToColumns', options: { byField: 'row' } },
+    { id: 'sortBy', options: { sort: [{ field: 'row' }] } },
+    { id: 'organize', options: {
+      excludeByName: { row: true },
+      indexByName: { row: 0, [cl]: 1, namespace: 2, 'Value #A': 3, 'Value #B': 4 },
+      renameByName: { [cl]: 'Cluster', namespace: 'Namespace', 'Value #A': 'Pods', 'Value #B': 'Alerts' },
+    } },
+  ])
+  + panel.table.withOverrides([
+    ov('^Cluster$', links('Cluster detail', '/d/' + c.uidClusterDetail + '?var-cluster=${__value.raw}&var-instance=$__all' + carry)
+                    + [{ id: 'custom.width', value: 160 }]),
+    ov('^Namespace$', links('Applications in ${__value.raw}', detail('applications'))),
+    ov('^Pods$', [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 90 }]),
+    ov('^Alerts$', [{ id: 'decimals', value: 0 }, { id: 'custom.width', value: 90 }, { id: 'noValue', value: '0' }]
+                   + colorText(alertSteps) + links('Alerts of ${__data.fields["Cluster"]}', detail('alerts'))),
+  ]);
+
 {
   config:: defaults,
 
@@ -865,10 +970,8 @@ local appsTable(c) =
       // title already names the cluster - to the cluster detail board, its
       // Applications and Alerts tabs (dtab = the tab title's slug), and the
       // nodes board. Grafana's text sanitizer keeps inline styles on <a>; no
-      // flexbox, which it may strip.
-      // every button carries the current time range and datasource, as Grafana's
-      // own dashboard links do (otherwise the target opens on its defaults)
-      local carry = '&${__url_time_range}&${datasource:queryparam}';
+      // flexbox, which it may strip. Every button carries the time range and
+      // datasource (carry).
       local detail = '/d/' + c.uidClusterDetail + '?var-cluster=$cluster&var-instance=$__all' + carry;
       local button(label, url) =
         '<a href="' + url + '" style="display:inline-block; margin-right:8px; padding:10px 22px; '
@@ -880,7 +983,7 @@ local appsTable(c) =
         + panel.text.withOptions({ mode: 'markdown', content: std.join(' ', [
           button('Details', detail),
           button('Workload', detail + '&dtab=applications'),
-          button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster' + carry),
+          button('Nodes', '/d/' + c.uidCluster + '?var-cluster=$cluster&dtab=servers' + carry),
           button('Alerts', detail + '&dtab=alerts'),
         ]) });
       // capacity stats are plain values: no threshold colour on value or sparkline
@@ -912,7 +1015,16 @@ local appsTable(c) =
         alerts: alertPanels.list('Alerts', groupMode='custom', groupBy=[cl]),
         // the list shows Grafana-managed rules; the table reads the ALERTS
         // series, which is what a Mimir / Prometheus ruler produces
-        alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c)),
+        // per cluster: Cluster / Alert / Severity / Firing (series), by cluster
+        alertsFiring: alertPanels.firingTable('Firing alerts', c.datasource, cl + '=~"$cluster"' + selComma(c), by=[cl, 'alertname', 'severity'])
+                      + panel.table.withTransformations([
+                        { id: 'organize', options: {
+                          excludeByName: { Time: true },
+                          indexByName: { [cl]: 0, alertname: 1, severity: 2, Value: 3 },
+                          renameByName: { [cl]: 'Cluster', alertname: 'Alert', severity: 'Severity', Value: 'Firing' },
+                        } },
+                        { id: 'sortBy', options: { sort: [{ field: 'Cluster' }] } },
+                      ]),
         apps: countTable(
           c,
           'Applications',
@@ -981,27 +1093,17 @@ local appsTable(c) =
       },
   },
 
+  // every cluster at a glance (one row each), then every server and every
+  // namespace of the selected clusters
   cluster:: {
     new(config={}):
       local c = defaults + config;
-      local nl = c.nodeLabel;
-      local cl = c.clusterLabel;
-      local s = clComma(c);  // base selector + cluster=~"$cluster"
-      local byNode = 'by (' + cl + ', ' + nl + ')';
-      local workload =
-        countTable(
-          c,
-          'Workload',
-          c.appLabel,
-          'count(up{' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
-          'count(ALERTS{alertstate="firing", ' + c.appLabel + '=~".+", ' + s + '}) by (' + c.appLabel + ')',
-          ['App', 'Pods', 'Alerts']
-        );
-      local servers = serversTable(c);
       local dash = board(c.uidCluster, c.titleCluster, c.tags + ['env-level'], [dsVar, clusterVar(c)], [
-                     { title: 'Servers', width: 24, height: 12, elements: { servers: servers } },
-                     { title: 'Workload', width: 24, height: 8, elements: { workload: workload } },
+                     { title: 'Clusters', width: 24, height: 10, elements: { clusters: clustersTable(c) } },
+                     { title: 'Servers', width: 24, height: 20, elements: { servers: serversTable(c) } },
+                     { title: 'Workload', width: 24, height: 20, elements: { workload: workloadTable(c) } },
                    ], asTabs=true)
+                   + dashboard.withDescription('Every cluster at a glance - nodes, CPU and memory trends, running pods and firing alerts per cluster - then every server and every namespace of the selected clusters.')
                    + dashboard.withLinks([
                      { title: 'Environment', type: 'dashboards', icon: 'dashboard', url: '', keepTime: true, targetBlank: false, asDropdown: true, includeVars: false, tooltip: 'Environment-level boards', tags: ['env-level'] },
                    ]);
