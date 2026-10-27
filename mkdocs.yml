@@ -38,6 +38,7 @@ nav:
       - observ-lib container: render.md
       - Runbooks (node): runbooks/node.md
       - Docker image: docker.md
+      - From mixins to a stack: delivery.md
   # observ-libs (one page per library, by namespace) goes in after Guide and
   # Boards (every board, filed like the Grafana folders) at the end:
   # scripts/gen-board-pages.py writes them and mkdocs.gen.yml (INHERIT:
@@ -62,7 +63,11 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   # the home page includes the overview gen-board-pages.py writes (docs/.gen/)
   - pymdownx.snippets:
       base_path: [docs]
