@@ -2362,10 +2362,10 @@
     },
     {
      "d": "",
-     "e": "sum by (namespace, drive) (increase(minio_node_drive_errors_ioerror{job=~\"$job\", cluster=~\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]) + increase(minio_node_drive_errors_timeout{job=~\"$job\", cluster=~\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]) + increase(minio_node_drive_errors_availability{job=~\"$job\", cluster=~\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]))",
+     "e": "sum by (namespace, drive) (increase(minio_node_drive_errors_availability{job=~\"$job\", cluster=~\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]))",
      "k": "prometheus",
      "n": "driveErrors",
-     "re": "sum by (namespace, drive) (increase(minio_node_drive_errors_ioerror[5m]) + increase(minio_node_drive_errors_timeout[5m]) + increase(minio_node_drive_errors_availability[5m]))",
+     "re": "sum by (namespace, drive) (increase(minio_node_drive_errors_availability[5m]))",
      "t": "Drive errors",
      "u": "short"
     },
