@@ -86,7 +86,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       driveUsed: sig('Drive used', 'minio_node_drive_used_bytes{%(queriesSelector)s} / minio_node_drive_total_bytes{%(queriesSelector)s}', 'percentunit', '{{namespace}} / {{drive}}'),
       driveFreeInodes: sig('Drive free inodes', 'minio_node_drive_free_inodes{%(queriesSelector)s}', 'short', '{{namespace}} / {{drive}}'),
       driveLatency: sig('Drive latency', 'max by (namespace, api) (minio_node_drive_latency_us{%(queriesSelector)s})', 'µs', '{{namespace}} / {{api}}'),
-      driveErrors: sig('Drive errors', 'sum by (namespace, drive) (increase(minio_node_drive_errors_ioerror{%(queriesSelector)s}[$__rate_interval]) + increase(minio_node_drive_errors_timeout{%(queriesSelector)s}[$__rate_interval]) + increase(minio_node_drive_errors_availability{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{namespace}} / {{drive}}'),
+      // errors_availability counts every drive error: errors_timeout is its timeout share, errors_ioerror (newer releases only) the rest
+      driveErrors: sig('Drive errors', 'sum by (namespace, drive) (increase(minio_node_drive_errors_availability{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{namespace}} / {{drive}}'),
       // process
       memory: sig('Resident memory', 'sum by (namespace, pod) (minio_node_process_resident_memory_bytes{%(queriesSelector)s})', 'bytes', '{{namespace}} / {{pod}}'),
       cpu: sig('CPU', 'sum by (namespace, pod) (rate(minio_node_process_cpu_total_seconds{%(queriesSelector)s}[$__rate_interval]))', 'short', '{{namespace}} / {{pod}}'),
