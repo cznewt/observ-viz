@@ -23,6 +23,8 @@
 //   Reference / Runtimes                      language runtimes and frameworks (reference boards)
 //   Platform / Databases                      SQL, key-value, document and search stores:
 //                                             MongoDB, Elasticsearch
+//   Platform / Message Bus                    message brokers and event streaming: Kafka
+//                                             (Strimzi), its exporters and controllers
 //   Platform / Deployments                    reference-lib deployment-target boards
 //   Workloads / Gaming                        game servers the platform hosts: Valheim,
 //                                             Minecraft
@@ -54,6 +56,7 @@ local workloads = { uid: 'workloads', title: 'Workloads' };
   configuration: [platform, { uid: 'platform-configuration', title: 'Configuration' }],
   runtimes: [{ uid: 'observ-viz-reference', title: 'Reference' }, { uid: 'observ-viz-languages', title: 'Runtimes' }],
   databases: [platform, { uid: 'platform-databases', title: 'Databases' }],
+  messageBus: [platform, { uid: 'platform-message-bus', title: 'Message Bus' }],
   deployments: [platform, { uid: 'platform-deployments', title: 'Deployments' }],
   workloads: [workloads],
   gaming: [workloads, { uid: 'workloads-gaming', title: 'Gaming' }],
