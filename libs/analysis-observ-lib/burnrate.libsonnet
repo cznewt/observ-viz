@@ -43,7 +43,19 @@ local pairs = [
 
 local resolve(config) =
   local cfg = defaults + config;
-  cfg { varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []) };
+  // a source says what its series are filtered by (sources.libsonnet); an
+  // explicit config still wins
+  local own(key, otherwise) =
+    if std.objectHas(config, key) then config[key]
+    else if std.objectHas(cfg.source, key) then cfg.source[key]
+    else otherwise;
+  local groupVar = own('groupVar', 'job');
+  cfg {
+    selector: own('selector', cfg.selector),
+    groupVar: groupVar,
+    varMetric: own('varMetric', 'up'),
+    varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then [l for l in cfg.source.groupBy if l != groupVar] else []),
+  };
 
 {
   local this = self,

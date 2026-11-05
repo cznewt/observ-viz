@@ -19,6 +19,9 @@ Three more mistakes that render, review and deploy fine, and only show on the bo
 - a filter variable asking `up` for a label it cannot have. `up` carries a scrape
   target's labels and no others, so the variable comes out empty, `label=~""`
   matches nothing and the board says No data. Name the series with `varMetric`.
+  An analysis board reads someone else's metrics, so there it goes for every filter
+  but the job: `up` lists only what has a scrape target, and the rest go missing
+  with no sign of it (35 of 57 namespaces on one fleet).
 """
 import json
 import os
@@ -61,12 +64,6 @@ VARIABLE_SUBQUERY = re.compile(r"\[\$\{?\w+\}?[a-z]*:")
 # label_values(up, x), label_values(up{job=~"$job"}, x)
 UP_VARIABLE = re.compile(r"label_values\(up(?:\{.*\})?,\s*(\w+)\)")
 TARGET_LABELS = {"job", "instance", "cluster", "namespace", "pod", "container", "node", "service", "endpoint"}
-# Boards that still ask `up` for such a label, and so show nothing. A board fixed
-# here must leave this list, or the run fails.
-KNOWN_UP_VARIABLES = {
-    "ref:analysis-burnrate-apiserver.json", "ref:analysis-burnrate-pyrra.json",
-    "ref:analysis-golden-apiserver.json", "ref:analysis-golden-ingress-nginx.json",
-}
 
 
 def queries_in(node):
@@ -90,14 +87,17 @@ def query_defects(spec):
     return defects
 
 
-def up_variables(spec):
-    """The labels a board's filter variables ask `up` for and a target cannot have."""
+def up_variables(name, spec):
+    """The labels a board's filter variables ask `up` for and should not."""
+    allowed = {"job"} if name.startswith("ref:analysis-") else TARGET_LABELS
     labels = set()
     for variable in spec.get("variables", []):
-        query = variable.get("spec", {}).get("query")
-        if isinstance(query, dict):
+        var = variable.get("spec", {})
+        query = var.get("query")
+        # the hidden ones gate the pod rows, and name no filter
+        if isinstance(query, dict) and var.get("hide") != "hideVariable":
             found = UP_VARIABLE.search(query.get("spec", {}).get("query") or "")
-            if found and found.group(1) not in TARGET_LABELS:
+            if found and found.group(1) not in allowed:
                 labels.add(found.group(1))
     return sorted(labels)
 
@@ -123,11 +123,8 @@ def main():
         if defects:
             fails += 1
             print("  FAIL %s: %s" % (name, "; ".join(sorted(set(defects)))))
-        asks_up = up_variables(spec)
-        if name in KNOWN_UP_VARIABLES and not asks_up:
-            fails += 1
-            print("  FAIL %s: its variables are fixed; drop it from KNOWN_UP_VARIABLES" % name)
-        elif asks_up and name not in KNOWN_UP_VARIABLES:
+        asks_up = up_variables(name, spec)
+        if asks_up:
             fails += 1
             print("  FAIL %s: asks `up` for %s; name the series with varMetric" % (name, ", ".join(asks_up)))
     print("\n%d boards checked, %d with undeclared variable references or bad queries" % (checked, fails))
