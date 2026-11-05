@@ -10,15 +10,24 @@ panels filtered on it.
 Builtins ($__rate_interval and friends) and Grafana's own $__all/$__field/... are
 ignored, as are the repeat/regex modifiers (${var:regex}).
 
-Three more mistakes that render, review and deploy fine, and only show on the board:
+Four more mistakes that render, review and deploy fine, and only show on the board:
 - `offset` inside a selector's braces, `up{job="x" offset 7d}`: a parse error, so
   the panel errors. The capacity boards shipped one for a month.
 - a subquery over a window a variable chooses, in a range query: months of data
   evaluated once per dashboard step, which is minutes, for a number a table reads
   once. It has to be instant.
+- predict_linear on a ratio: a regression over hours of something that rises and
+  falls reads below 0 and far over 100 percent. Draw the line through two points.
 - a filter variable asking `up` for a label it cannot have. `up` carries a scrape
   target's labels and no others, so the variable comes out empty, `label=~""`
   matches nothing and the board says No data. Name the series with `varMetric`.
+  An analysis board reads someone else's metrics, so there it goes for every
+  variable but the job, hidden ones too: `up` lists only what has a scrape target,
+  so the rest go missing with no sign of it (35 of 57 namespaces on one fleet), and
+  the pods of every job of the fleet, so the board opens on all of them.
+
+And on an analysis board, two lines of a chart with one legend: a value and its
+forecast, say, with nothing to tell them apart.
 """
 import json
 import os
@@ -61,45 +70,56 @@ VARIABLE_SUBQUERY = re.compile(r"\[\$\{?\w+\}?[a-z]*:")
 # label_values(up, x), label_values(up{job=~"$job"}, x)
 UP_VARIABLE = re.compile(r"label_values\(up(?:\{.*\})?,\s*(\w+)\)")
 TARGET_LABELS = {"job", "instance", "cluster", "namespace", "pod", "container", "node", "service", "endpoint"}
-# Boards that still ask `up` for such a label, and so show nothing. A board fixed
-# here must leave this list, or the run fails.
-KNOWN_UP_VARIABLES = {
-    "ref:analysis-burnrate-apiserver.json", "ref:analysis-burnrate-pyrra.json",
-    "ref:analysis-golden-apiserver.json", "ref:analysis-golden-ingress-nginx.json",
-}
 
 
 def queries_in(node):
-    """Every query of a board's elements: (panel title, query spec)."""
+    """Every query of a board's elements: (panel title, panel unit, query spec)."""
     for element in node.values():
         spec = element.get("spec", {})
+        unit = spec.get("vizConfig", {}).get("spec", {}).get("fieldConfig", {}).get("defaults", {}).get("unit")
         for query in spec.get("data", {}).get("spec", {}).get("queries", []):
             inner = query.get("spec", {}).get("query", {}).get("spec", {})
             if isinstance(inner.get("expr"), str):
-                yield spec.get("title", "?"), inner
+                yield spec.get("title", "?"), unit, inner
 
 
 def query_defects(spec):
     defects = []
-    for title, query in queries_in(spec.get("elements", {})):
+    for title, unit, query in queries_in(spec.get("elements", {})):
         expr = STRING.sub('""', query["expr"])
         if OFFSET_IN_SELECTOR.search(expr):
             defects.append(f"{title}: offset inside a selector")
         if VARIABLE_SUBQUERY.search(expr) and not query.get("instant"):
             defects.append(f"{title}: a subquery over a variable window that is not instant")
+        if "predict_linear" in expr and unit == "percentunit":
+            defects.append(f"{title}: predict_linear on a ratio")
     return defects
 
 
-def up_variables(spec):
-    """The labels a board's filter variables ask `up` for and a target cannot have."""
+def up_variables(name, spec):
+    """The labels a board's variables ask `up` for and should not."""
+    allowed = {"job"} if name.startswith("ref:analysis-") else TARGET_LABELS
     labels = set()
     for variable in spec.get("variables", []):
         query = variable.get("spec", {}).get("query")
         if isinstance(query, dict):
             found = UP_VARIABLE.search(query.get("spec", {}).get("query") or "")
-            if found and found.group(1) not in TARGET_LABELS:
+            if found and found.group(1) not in allowed:
                 labels.add(found.group(1))
     return sorted(labels)
+
+
+def shared_legends(spec):
+    """The charts of a board where two queries carry one legend."""
+    titles = []
+    for element in spec.get("elements", {}).values():
+        panel = element.get("spec", {})
+        if panel.get("vizConfig", {}).get("group") == "timeseries":
+            legends = [q.get("spec", {}).get("query", {}).get("spec", {}).get("legendFormat")
+                       for q in panel.get("data", {}).get("spec", {}).get("queries", [])]
+            if len(legends) != len(set(legends)):
+                titles.append(panel.get("title", "?"))
+    return titles
 
 
 def declared(spec):
@@ -123,13 +143,14 @@ def main():
         if defects:
             fails += 1
             print("  FAIL %s: %s" % (name, "; ".join(sorted(set(defects)))))
-        asks_up = up_variables(spec)
-        if name in KNOWN_UP_VARIABLES and not asks_up:
-            fails += 1
-            print("  FAIL %s: its variables are fixed; drop it from KNOWN_UP_VARIABLES" % name)
-        elif asks_up and name not in KNOWN_UP_VARIABLES:
+        asks_up = up_variables(name, spec)
+        if asks_up:
             fails += 1
             print("  FAIL %s: asks `up` for %s; name the series with varMetric" % (name, ", ".join(asks_up)))
+        shared = shared_legends(spec) if name.startswith("ref:analysis-") else []
+        if shared:
+            fails += 1
+            print("  FAIL %s: lines with one legend in %s" % (name, ", ".join(sorted(shared))))
     print("\n%d boards checked, %d with undeclared variable references or bad queries" % (checked, fails))
     sys.exit(1 if fails else 0)
 

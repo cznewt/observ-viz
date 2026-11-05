@@ -43,7 +43,19 @@ local pairs = [
 
 local resolve(config) =
   local cfg = defaults + config;
-  cfg { varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []) };
+  // a source says what its series are filtered by (sources.libsonnet); an
+  // explicit config still wins
+  local own(key, otherwise) =
+    if std.objectHas(config, key) then config[key]
+    else if std.objectHas(cfg.source, key) then cfg.source[key]
+    else otherwise;
+  local groupVar = own('groupVar', 'job');
+  cfg {
+    selector: own('selector', cfg.selector),
+    groupVar: groupVar,
+    varMetric: own('varMetric', 'up'),
+    varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then [l for l in cfg.source.groupBy if l != groupVar] else []),
+  };
 
 {
   local this = self,
@@ -74,7 +86,7 @@ local resolve(config) =
       for w in windows
     } + (if src.kind == 'budget' then {
            availability: sig('Availability', src.availability + '{%(queriesSelector)s}', 'percentunit', legend, 'The SLI over the SLO window.'),
-           objective: sig('Objective', src.objective + '{%(queriesSelector)s}', 'percentunit', legend, 'What it is supposed to be.'),
+           objective: sig('Objective', src.objective + '{%(queriesSelector)s}', 'percentunit', legend + ' objective', 'What it is supposed to be.'),
            budgetLeft: sig(
              'Error budget left',
              '1 - ((1 - ' + src.availability + '{%(queriesSelector)s}) / clamp_min(1 - ' + src.objective + '{%(queriesSelector)s}, 1e-9))',

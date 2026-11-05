@@ -86,11 +86,13 @@
   },
 
   // An anomaly source is just a set of series to watch; the method compares
-  // each with its own past, so anything with a number works.
+  // each with its own past, so anything with a number works. `varMetric` is the
+  // series its job filter lists from.
   anomaly: {
     process: {
       title: 'Process',
       service: 'process',
+      varMetric: 'process_cpu_seconds_total',
       description: 'The three numbers every Prometheus client exposes, whatever the service is written in.',
       series: [
         { key: 'cpu', title: 'CPU', unit: 'short', expr: 'sum by (instance) (rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval]))' },
@@ -101,6 +103,8 @@
     requests: {
       title: 'Requests',
       service: 'requests',
+      // no `varMetric`: the counter and the histogram do not always come from the
+      // same jobs, so naming one would empty the panels of the other
       description: 'Rate, failures and latency of a request-driven service, each against its own past - the RED numbers, watched for a change of shape rather than a threshold.',
       series: [
         { key: 'rate', title: 'Request rate', unit: 'reqps', expr: 'sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval]))' },
@@ -111,14 +115,20 @@
   },
 
   // A burn-rate source is either windows of recorded burn rate, or an
-  // availability and the objective it is measured against.
+  // availability and the objective it is measured against. These are recording
+  // rules, which keep the labels they aggregate by and no `job`, so a source says
+  // what the board filters on: the series (`varMetric`), the first filter
+  // (`groupVar`) and the selector that reads it.
   burnRate: {
     apiserver: {
       title: 'Kubernetes API server',
       kind: 'windows',
       prefix: 'apiserver_request:burnrate',
       windows: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
-      groupBy: ['verb'],
+      groupBy: ['cluster', 'verb'],
+      varMetric: 'apiserver_request:burnrate1h',
+      selector: 'cluster=~"$cluster"',
+      groupVar: 'cluster',
       description: 'The kube-apiserver-burnrate.rules of kubernetes.cluster (or of the kubernetes-mixin) record these seven windows for the API server\'s own SLO, split by read and write.',
     },
     pyrra: {
@@ -127,15 +137,20 @@
       availability: 'pyrra_availability',
       objective: 'pyrra_objective',
       groupBy: ['slo'],
+      varMetric: 'pyrra_availability',
+      selector: 'slo=~"$slo"',
+      groupVar: 'slo',
       description: 'Pyrra publishes the availability and the objective per SLO; the burn and the budget left follow from the two.',
     },
   },
 
   // A golden-signals source names the four: latency, traffic, errors and - the
-  // one RED leaves out - saturation.
+  // one RED leaves out - saturation. `varMetric` is the series the filter
+  // variables list their values from.
   golden: {
     apiserver: {
       title: 'Kubernetes API server',
+      varMetric: 'apiserver_request_total',
       groupBy: ['verb'],
       overviewSignals: ['latency', 'traffic', 'errors'],
       description: 'Saturation here is the flowcontrol queue: requests waiting for a seat, which is what the API server does instead of failing when it is full.',
@@ -151,6 +166,9 @@
     },
     node: {
       title: 'Linux node',
+      varMetric: 'node_load1',
+      // the rows of this board's table are machines, not the exporter pods on them
+      overviewPods: false,
       groupBy: ['instance'],
       description: 'Traffic and errors come from the network, saturation from load against the CPUs it has - the number that leads the rest.',
       signals: {
@@ -162,6 +180,7 @@
     },
     ingressNginx: {
       title: 'Ingress NGINX',
+      varMetric: 'nginx_ingress_controller_requests',
       groupBy: ['ingress'],
       description: 'Saturation is the share of configured upstream connections in use, so it rises before the latency does.',
       signals: {
@@ -176,6 +195,9 @@
     },
     container: {
       title: 'Container',
+      varMetric: 'container_cpu_usage_seconds_total',
+      // the rows of this board's table are the pods already
+      overviewPods: false,
       groupBy: ['namespace', 'pod'],
       description: 'Saturation is memory against the limit the container was given: the number that decides whether it is about to be killed.',
       signals: {
@@ -248,6 +270,9 @@
       total: 'sum by (namespace) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})',
       totalTitle: 'Memory limit',
       totalUnit: 'bytes',
+      // containers without a limit count in used and not in total, so the
+      // forecast has a floor and no ceiling
+      overTotal: true,
       groupBy: ['namespace'],
       description: 'What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.',
     },
@@ -403,6 +428,7 @@
   use: {
     node: {
       title: 'Nodes (node_exporter)',
+      varMetric: 'node_cpu_seconds_total',
       groupBy: ['instance'],
       description: "Brendan Gregg's USE method over node_exporter: for every resource, how busy it is, how much work is queued, and what is failing.",
       resources: {
@@ -427,6 +453,7 @@
     },
     container: {
       title: 'Containers (cAdvisor)',
+      varMetric: 'container_cpu_usage_seconds_total',
       groupBy: ['namespace', 'pod'],
       description: 'The same four resources per container, read from cAdvisor; saturation is what the cgroup throttled or reclaimed.',
       resources: {

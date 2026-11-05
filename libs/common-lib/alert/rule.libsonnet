@@ -1,11 +1,17 @@
 // observ-viz reusable Prometheus alert-rule builder (hand-written).
 // Emits the rule-group shape consumed by the monitor-tools pipeline
 // (prometheusAlerts+:: { groups: [...] }).
+
+// A pack's rules fill its query templates with `ruleSelector`, and that is empty
+// by default: `{%(queriesSelector)s, code=~"5.."}` becomes `{, code=~"5.."}`, a
+// parse error. The comma goes here rather than in every template.
+local noEmptySelector(expr) = std.strReplace(expr, '{, ', '{');
+
 {
   // new(name, expr, ...) -> a single alerting rule.
   new(name, expr, forDuration='5m', severity='warning', labels={}, annotations={}): {
     alert: name,
-    expr: expr,
+    expr: noEmptySelector(expr),
     'for': forDuration,
     labels: { severity: severity } + labels,
     annotations: annotations,
@@ -19,7 +25,7 @@
   // record(name, expr, labels) -> a single recording rule.
   record(name, expr, labels={}): {
     record: name,
-    expr: expr,
+    expr: noEmptySelector(expr),
     labels: labels,
   },
 
