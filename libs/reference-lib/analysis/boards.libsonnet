@@ -47,6 +47,8 @@ local capacityBoards = [
   ['node-memory', 'nodeMemory'],
   ['workload-memory', 'workloadMemory'],
 ];
+// the planning set: every cluster, node and application at one moment
+local capacityPlanBoards = ['clusters', 'nodes', 'apps'];
 
 {
   _config+:: {},
@@ -146,5 +148,18 @@ local capacityBoards = [
           $._config.tags,
         )
       for b in capacityBoards
+    } + {
+      ['analysis-capacity-' + b + '.json']:
+        util.place(
+          g.libs.analysis.capacityPlan.new({
+            uid: 'observ-viz-capacity-' + b,
+            dashboardTitle: 'Capacity / ' + sources.capacityPlan[b].title,
+            datasource: $._config.datasource,
+            source: sources.capacityPlan[b],
+          }).grafana.dashboard,
+          $._config.folders.analysisCapacity,
+          $._config.tags,
+        )
+      for b in capacityPlanBoards
     },
 }

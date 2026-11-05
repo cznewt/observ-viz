@@ -25,6 +25,13 @@
       for i in std.range(0, n - 1)
     ],
 
+  // groupItems places a pack group: its own `items` when one size does not fit
+  // its panels (tiles above the table they summarise), else its elements wrapped
+  // at the group's width and height.
+  groupItems(grp)::
+    if std.objectHas(grp, 'items') then grp.items
+    else self.wrapItems(std.objectFields(grp.elements), grp.width, grp.height),
+
   // item builds a single explicitly-placed GridLayoutItem from an element name.
   item(name, x, y, width, height):: {
     kind: 'GridLayoutItem',

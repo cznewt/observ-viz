@@ -20,7 +20,8 @@ local variable =
   // build(config, signals, groups, alerts, rules)
   //   config: { uid, dashboardTitle, dashboardTags, ... }
   //   signals: { name: signal }            (observ-lib .signals accessor)
-  //   groups:  [{ title, width, height, elements: { name: PanelKind } }]
+  //   groups:  [{ title, width, height, elements: { name: PanelKind }, items? }]
+  //            (items: placed grid items, for panels of more than one size)
   //   optionalTabs: [{ title, presence?, alwaysShow?, width, height, elements }]
   //                 or [{ title, presence?, groups: [group, ...] }] for rows inside a tab
   //   alerts:  [ alertGroup ]              (optional prometheus alerting rule groups)
@@ -83,7 +84,7 @@ local variable =
 
       local gridOf(grp) =
         layout.grid.new()
-        + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)),
+        + layout.grid.withItems(grid.groupItems(grp)),
       // a row inside an optional tab may wait for a hidden presence variable
       // (`when: 'has_systemd'`), like a whole tab does with `presence`.
       local rowWhen(grp) =

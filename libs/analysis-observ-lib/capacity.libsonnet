@@ -59,7 +59,13 @@ local seconds(d) =
 
 local resolve(config) =
   local cfg = defaults + config;
-  cfg { varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []) };
+  cfg {
+    varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []),
+    // the filter variables list what this source's own series carry. `up` knows
+    // no mountpoint, so that filter came out empty and matched nothing, and only
+    // the namespaces with a scrape target, so the others went missing unnoticed.
+    [if !std.objectHas(config, 'varMetric') && std.objectHas(cfg.source, 'varMetric') then 'varMetric']: cfg.source.varMetric,
+  };
 
 {
   local this = self,
@@ -191,8 +197,10 @@ local resolve(config) =
     total: total,
     now: '(' + used + ') / clamp_min(' + total + ', 1e-9)',
     // the same ratio as it stood `past` ago, for the column that says whether
-    // this is a trend or a Tuesday
-    before: '(' + std.strReplace(used, '}', ' offset ' + cfg.past + '}') + ') / clamp_min(' + std.strReplace(total, '}', ' offset ' + cfg.past + '}') + ', 1e-9)',
+    // this is a trend or a Tuesday. A subquery, because `offset` follows a
+    // selector rather than sitting inside its braces, and this way the source's
+    // expressions need no surgery.
+    before: 'last_over_time(((' + used + ') / clamp_min(' + total + ', 1e-9))[5m:1m] offset ' + cfg.past + ')',
     // where the trend puts it `ahead` from now - a prediction, which is what
     // the catalog board promised and did not do
     soon: 'predict_linear(((' + used + ') / clamp_min(' + total + ', 1e-9))[' + cfg.learn + ':], ' + seconds(cfg.ahead) + ')',
@@ -212,6 +220,9 @@ local resolve(config) =
         { title: 'Alerting on disks filling up', url: 'https://www.robustperception.io/reduce-noise-from-disk-space-alerts/', description: 'why a prediction beats a percentage threshold' },
       ],
       rowLabels: src.groupBy,
+      // a machine, a disk, a namespace or a certificate, not the pods behind a
+      // job: `up` would list every pod of the fleet above the table this board is for
+      overviewPods: false,
       overviewSignals:
         if src.kind == 'utilisation'
         then ['before', 'now', 'soon', 'total']

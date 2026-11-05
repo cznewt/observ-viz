@@ -16,6 +16,8 @@
   burnRate: import 'libs/analysis-observ-lib/burnrate.libsonnet',
   // when a shrinking quantity runs out
   capacity: import 'libs/analysis-observ-lib/capacity.libsonnet',
+  // how full each cluster, node and application was, is and will be
+  capacityPlan: import 'libs/analysis-observ-lib/capacity-plan.libsonnet',
   red: import 'libs/analysis-observ-lib/red.libsonnet',
   use: import 'libs/analysis-observ-lib/use.libsonnet',
 }
