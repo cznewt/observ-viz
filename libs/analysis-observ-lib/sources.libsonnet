@@ -193,11 +193,13 @@
   //                        it, how full will it be (ported from the service
   //                        catalog's capacity-mixin, whose "future" column
   //                        repeated the present rather than predicting it)
+  // `varMetric` is the series the filter variables list their values from.
   capacity: {
     // ---- utilisation: capacity planning rather than exhaustion -------------
     clusterCpu: {
       title: 'Cluster CPU',
       kind: 'utilisation',
+      varMetric: 'node_cpu_seconds_total',
       used: 'sum by (cluster) (rate(node_cpu_seconds_total{%(queriesSelector)s, mode!="idle"}[$interval]))',
       total: 'count by (cluster) (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"})',
       totalTitle: 'Cores',
@@ -208,6 +210,7 @@
     clusterMemory: {
       title: 'Cluster memory',
       kind: 'utilisation',
+      varMetric: 'node_memory_MemTotal_bytes',
       used: 'sum by (cluster) (node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s})',
       total: 'sum by (cluster) (node_memory_MemTotal_bytes{%(queriesSelector)s})',
       totalTitle: 'Memory',
@@ -218,6 +221,7 @@
     nodeCpu: {
       title: 'Node CPU',
       kind: 'utilisation',
+      varMetric: 'node_cpu_seconds_total',
       used: 'sum by (instance) (rate(node_cpu_seconds_total{%(queriesSelector)s, mode!="idle"}[$interval]))',
       total: 'count by (instance) (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"})',
       totalTitle: 'Cores',
@@ -228,6 +232,7 @@
     nodeMemory: {
       title: 'Node memory',
       kind: 'utilisation',
+      varMetric: 'node_memory_MemTotal_bytes',
       used: 'sum by (instance) (node_memory_MemTotal_bytes{%(queriesSelector)s} - node_memory_MemAvailable_bytes{%(queriesSelector)s})',
       total: 'sum by (instance) (node_memory_MemTotal_bytes{%(queriesSelector)s})',
       totalTitle: 'Memory',
@@ -238,6 +243,7 @@
     workloadMemory: {
       title: 'Workload memory',
       kind: 'utilisation',
+      varMetric: 'container_memory_working_set_bytes',
       used: 'sum by (namespace) (container_memory_working_set_bytes{%(queriesSelector)s, container!=""})',
       total: 'sum by (namespace) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})',
       totalTitle: 'Memory limit',
@@ -250,6 +256,7 @@
     filesystem: {
       title: 'Filesystems',
       kind: 'exhaustion',
+      varMetric: 'node_filesystem_avail_bytes',
       // nsfs is the big one on a Kubernetes node: every container namespace
       // shows up as a zero-byte "filesystem" and would otherwise fill the
       // board with mounts that cannot run out of anything
@@ -262,6 +269,7 @@
     memory: {
       title: 'Free node memory',
       kind: 'exhaustion',
+      varMetric: 'node_memory_MemAvailable_bytes',
       remaining: 'node_memory_MemAvailable_bytes{%(queriesSelector)s}',
       remainingTitle: 'Available memory',
       unit: 'bytes',
@@ -271,6 +279,7 @@
     certificates: {
       title: 'Certificates',
       kind: 'exhaustion',
+      varMetric: 'certmanager_certificate_expiration_timestamp_seconds',
       remaining: 'certmanager_certificate_expiration_timestamp_seconds{%(queriesSelector)s} - time()',
       remainingTitle: 'Certificate life left',
       unit: 's',
