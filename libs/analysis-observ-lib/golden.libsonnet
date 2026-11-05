@@ -41,7 +41,13 @@ local about = {
 
 local resolve(config) =
   local cfg = defaults + config;
-  cfg { varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []) };
+  cfg {
+    varLabels: cfg.varLabels + (if std.length(cfg.source.groupBy) > 0 && cfg.varLabels == [] then cfg.source.groupBy else []),
+    // the filter variables list what this source's own series carry. `up` knows
+    // no verb or ingress, so those came out empty and matched nothing, and only
+    // the pods with a scrape target, so the rest went missing unnoticed.
+    [if !std.objectHas(config, 'varMetric') && std.objectHas(cfg.source, 'varMetric') then 'varMetric']: cfg.source.varMetric,
+  };
 
 {
   local this = self,
@@ -121,6 +127,7 @@ local resolve(config) =
         { title: 'The RED method', url: 'https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/', description: 'the same first three, without saturation' },
       ],
       rowLabels: src.groupBy,
+      [if std.objectHas(src, 'overviewPods') then 'overviewPods']: src.overviewPods,
       // a profile whose saturation carries different labels says so rather
       // than leaving an empty column
       overviewSignals: if std.objectHas(src, 'overviewSignals') then src.overviewSignals else present,

@@ -86,7 +86,7 @@
    "title": "Capacity / Certificates"
   },
   "observ-viz-capacity-cluster-cpu": {
-   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Cores in use against cores available, per cluster. Under 30 percent says the cluster is paid for and idle; over 70 says the next node is already late.",
+   "description": "How full this is, how full it was 7d ago, and where the line through the two puts it in 4d. Cores in use against cores available, per cluster. Under 30 percent says the cluster is paid for and idle; over 70 says the next node is already late.",
    "folder": [
     "Analysis",
     "Capacity"
@@ -95,7 +95,7 @@
    "title": "Capacity / Cluster CPU"
   },
   "observ-viz-capacity-cluster-memory": {
-   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Memory in use against memory installed, per cluster.",
+   "description": "How full this is, how full it was 7d ago, and where the line through the two puts it in 4d. Memory in use against memory installed, per cluster.",
    "folder": [
     "Analysis",
     "Capacity"
@@ -131,7 +131,7 @@
    "title": "Capacity / Free node memory"
   },
   "observ-viz-capacity-node-cpu": {
-   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. The same question per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.",
+   "description": "How full this is, how full it was 7d ago, and where the line through the two puts it in 4d. The same question per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.",
    "folder": [
     "Analysis",
     "Capacity"
@@ -140,7 +140,7 @@
    "title": "Capacity / Node CPU"
   },
   "observ-viz-capacity-node-memory": {
-   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Memory in use against memory installed, per node.",
+   "description": "How full this is, how full it was 7d ago, and where the line through the two puts it in 4d. Memory in use against memory installed, per node.",
    "folder": [
     "Analysis",
     "Capacity"
@@ -158,7 +158,7 @@
    "title": "Capacity / Nodes"
   },
   "observ-viz-capacity-workload-memory": {
-   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.",
+   "description": "How full this is, how full it was 7d ago, and where the line through the two puts it in 4d. What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.",
    "folder": [
     "Analysis",
     "Capacity"
@@ -1248,7 +1248,7 @@
    "signals": [
     {
      "d": "Budgets per SLO window, measured over 1d. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate1d{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate1d{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_1d",
      "re": "apiserver_request:burnrate1d",
@@ -1257,7 +1257,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 1h. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate1h{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate1h{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_1h",
      "re": "apiserver_request:burnrate1h",
@@ -1266,7 +1266,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 2h. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate2h{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate2h{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_2h",
      "re": "apiserver_request:burnrate2h",
@@ -1275,7 +1275,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 30m. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate30m{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate30m{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_30m",
      "re": "apiserver_request:burnrate30m",
@@ -1284,7 +1284,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 3d. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate3d{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate3d{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_3d",
      "re": "apiserver_request:burnrate3d",
@@ -1293,7 +1293,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 5m. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate5m{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate5m{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_5m",
      "re": "apiserver_request:burnrate5m",
@@ -1302,7 +1302,7 @@
     },
     {
      "d": "Budgets per SLO window, measured over 6h. Past 1 the budget runs out before the window ends.",
-     "e": "apiserver_request:burnrate6h{verb=~\"$verb\"}",
+     "e": "apiserver_request:burnrate6h{cluster=~\"$cluster\", verb=~\"$verb\"}",
      "k": "prometheus",
      "n": "burn_6h",
      "re": "apiserver_request:burnrate6h",
