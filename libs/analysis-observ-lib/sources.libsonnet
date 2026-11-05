@@ -266,6 +266,9 @@
       total: 'sum by (namespace) (kube_pod_container_resource_limits{%(queriesSelector)s, resource="memory"})',
       totalTitle: 'Memory limit',
       totalUnit: 'bytes',
+      // containers without a limit count in used and not in total, so the
+      // forecast has a floor and no ceiling
+      overTotal: true,
       groupBy: ['namespace'],
       description: 'What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.',
     },

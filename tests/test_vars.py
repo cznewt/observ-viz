@@ -10,12 +10,14 @@ panels filtered on it.
 Builtins ($__rate_interval and friends) and Grafana's own $__all/$__field/... are
 ignored, as are the repeat/regex modifiers (${var:regex}).
 
-Three more mistakes that render, review and deploy fine, and only show on the board:
+Four more mistakes that render, review and deploy fine, and only show on the board:
 - `offset` inside a selector's braces, `up{job="x" offset 7d}`: a parse error, so
   the panel errors. The capacity boards shipped one for a month.
 - a subquery over a window a variable chooses, in a range query: months of data
   evaluated once per dashboard step, which is minutes, for a number a table reads
   once. It has to be instant.
+- predict_linear on a ratio: a regression over hours of something that rises and
+  falls reads below 0 and far over 100 percent. Draw the line through two points.
 - a filter variable asking `up` for a label it cannot have. `up` carries a scrape
   target's labels and no others, so the variable comes out empty, `label=~""`
   matches nothing and the board says No data. Name the series with `varMetric`.
@@ -67,23 +69,26 @@ TARGET_LABELS = {"job", "instance", "cluster", "namespace", "pod", "container", 
 
 
 def queries_in(node):
-    """Every query of a board's elements: (panel title, query spec)."""
+    """Every query of a board's elements: (panel title, panel unit, query spec)."""
     for element in node.values():
         spec = element.get("spec", {})
+        unit = spec.get("vizConfig", {}).get("spec", {}).get("fieldConfig", {}).get("defaults", {}).get("unit")
         for query in spec.get("data", {}).get("spec", {}).get("queries", []):
             inner = query.get("spec", {}).get("query", {}).get("spec", {})
             if isinstance(inner.get("expr"), str):
-                yield spec.get("title", "?"), inner
+                yield spec.get("title", "?"), unit, inner
 
 
 def query_defects(spec):
     defects = []
-    for title, query in queries_in(spec.get("elements", {})):
+    for title, unit, query in queries_in(spec.get("elements", {})):
         expr = STRING.sub('""', query["expr"])
         if OFFSET_IN_SELECTOR.search(expr):
             defects.append(f"{title}: offset inside a selector")
         if VARIABLE_SUBQUERY.search(expr) and not query.get("instant"):
             defects.append(f"{title}: a subquery over a variable window that is not instant")
+        if "predict_linear" in expr and unit == "percentunit":
+            defects.append(f"{title}: predict_linear on a ratio")
     return defects
 
 
