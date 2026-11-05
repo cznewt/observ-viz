@@ -101,7 +101,9 @@ def main():
         snippet = (f"local l = (import 'g.libsonnet').libs.{p}.new({{}}); local rb = import 'libs/common-lib/alert/runbook.libsonnet';"
                    " { dashboard: l.grafana.dashboard.toResource(),"
                    "   runbooks: [[r.alert, rb.ann(r, 'runbook_url')] for g in (if std.objectHas(l, 'prometheus') then l.prometheus.alerts else [])"
-                   "              for r in g.rules if std.objectHas(r, 'alert')] }")
+                   "              for r in g.rules if std.objectHas(r, 'alert')],"
+                   "   exprs: [r.expr for k in ['alerts', 'rules'] if std.objectHas(l, 'prometheus') && std.objectHas(l.prometheus, k)"
+                   "           for g in l.prometheus[k] for r in g.rules] }")
         try:
             out = json.loads(_jsonnet.evaluate_snippet("t", snippet, jpathdir=[ROOT]))
             d = out["dashboard"]
@@ -111,6 +113,9 @@ def main():
             assert not missing, "alerts without a runbook_url: " + ", ".join(missing[:5])
             stray = sorted({u for n, u in out["runbooks"] if u.startswith(docs) and u != f"{docs}runbooks/{slug(n)}/"})
             assert not stray, "runbook_url off the alert's docs page: " + ", ".join(stray[:3])
+            # `{, x="y"}` is a parse error, and nothing here runs a rule through promtool
+            commas = [e for e in out["exprs"] if re.search(r"\{\s*,", e)]
+            assert not commas, "a rule with a comma after an empty selector: " + commas[0][:80]
             assert d["kind"] == "Dashboard"
             assert d["spec"]["elements"], "no elements"
             clashes = instance_row_clashes(d)
