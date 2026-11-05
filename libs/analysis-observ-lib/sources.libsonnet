@@ -288,6 +288,115 @@
     },
   },
 
+  // A capacity plan source is one board of the planning set: what a row is, and
+  // the resources it is measured in, each a tab. A new resource (disk, network)
+  // is one more entry in the list.
+  //   kind: 'share'  a resource is how full the row is, 0 to 1, against a total
+  //                  (a cluster, a node)
+  //   kind: 'quota'  a resource is an amount, against a request and a limit that
+  //                  not every row has (an application)
+  // `drill` and `history` link a row to another board, by uid and the variable
+  // that board filters on.
+  capacityPlan: {
+    // Memory and CPU of whatever a row is made of. CPU is the hourly rate rather
+    // than one long rate: an hour a machine was off has no samples and leaves the
+    // average, where one rate over the window would read the gap as busy.
+    local machines(by, history) = [
+      {
+        key: 'memory',
+        title: 'Memory',
+        share: '1 - sum by (' + by + ') (node_memory_MemAvailable_bytes{%(queriesSelector)s}) / sum by (' + by + ') (node_memory_MemTotal_bytes{%(queriesSelector)s})',
+        total: 'sum by (' + by + ') (node_memory_MemTotal_bytes{%(queriesSelector)s})',
+        totalTitle: 'Installed',
+        totalUnit: 'bytes',
+        history: history { title: 'Memory over time', uid: history.uid + '-memory' },
+      },
+      {
+        key: 'cpu',
+        title: 'CPU',
+        share: '1 - avg by (' + by + ') (rate(node_cpu_seconds_total{%(queriesSelector)s, mode="idle"}[1h]))',
+        total: 'count by (' + by + ') (node_cpu_seconds_total{%(queriesSelector)s, mode="idle"})',
+        totalTitle: 'Cores',
+        totalUnit: 'short',
+        history: history { title: 'CPU over time', uid: history.uid + '-cpu' },
+      },
+    ],
+    // The application a pod belongs to. The owner rule of kubernetes.cluster covers
+    // deployments, daemonsets and statefulsets; a pod it does not know (a static
+    // control-plane pod, a bare pod, or every pod where the rule is not loaded) is
+    // an application of its own, under its own name. Jobs stay out: each cron run
+    // would be a new row.
+    local owner = '(namespace_workload_pod:kube_pod_owner:relabel{%(queriesSelector)s, workload_type!="job"} or on (cluster, namespace, pod) max by (cluster, namespace, pod, workload) (label_replace(kube_pod_owner{%(queriesSelector)s, owner_kind!="Job"}, "workload", "$1", "pod", "(.+)")))',
+    local byApplication(x) = 'sum by (cluster, namespace, workload) (' + x + ' * on (cluster, namespace, pod) group_left (workload) ' + owner + ')',
+    // what the pods that exist now ask for: a finished pod keeps its series
+    local running = 'max by (cluster, namespace, pod) (kube_pod_status_phase{%(queriesSelector)s, phase=~"Pending|Running"} == 1)',
+    local quota(metric, resource) = byApplication('(' + metric + '{%(queriesSelector)s, resource="' + resource + '"} * on (cluster, namespace, pod) group_left () ' + running + ')'),
+
+    clusters: {
+      title: 'Clusters',
+      kind: 'share',
+      by: ['cluster'],
+      labels: { cluster: 'Cluster' },
+      varMetric: 'node_memory_MemTotal_bytes',
+      varLabels: [],
+      tableHeight: 8,
+      drill: {
+        cluster: [
+          { title: 'Nodes of this cluster', uid: 'observ-viz-capacity-nodes', 'var': 'cluster', plan: true },
+          { title: 'Applications of this cluster', uid: 'observ-viz-capacity-apps', 'var': 'cluster', plan: true },
+        ],
+      },
+      resources: machines('cluster', { label: 'cluster', uid: 'observ-viz-capacity-cluster', 'var': 'cluster' }),
+      description: 'One row per cluster, summed over its nodes: the question of whether the next node is late or the last one was a waste.',
+    },
+    nodes: {
+      title: 'Nodes',
+      kind: 'share',
+      by: ['cluster', 'instance'],
+      labels: { cluster: 'Cluster', instance: 'Node' },
+      varMetric: 'node_memory_MemTotal_bytes',
+      varLabels: [],
+      tableHeight: 18,
+      drill: {},
+      resources: machines('cluster, instance', { label: 'instance', uid: 'observ-viz-capacity-node', 'var': 'instance' }),
+      description: 'One row per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.',
+    },
+    apps: {
+      title: 'Applications',
+      kind: 'quota',
+      by: ['cluster', 'namespace', 'workload'],
+      labels: { cluster: 'Cluster', namespace: 'Namespace', workload: 'Application' },
+      varMetric: 'kube_pod_info',
+      varLabels: ['namespace'],
+      tableHeight: 24,
+      labelWidths: { cluster: 100, namespace: 230 },
+      columnWidth: 125,
+      drill: {},
+      resources: [
+        {
+          key: 'memory',
+          title: 'Memory',
+          used: byApplication('container_memory_working_set_bytes{%(queriesSelector)s, container!="", container!="POD"}'),
+          request: quota('kube_pod_container_resource_requests', 'memory'),
+          limit: quota('kube_pod_container_resource_limits', 'memory'),
+          unit: 'bytes',
+          decimals: 1,
+          history: { label: 'namespace', title: 'Namespace memory over time', uid: 'observ-viz-capacity-workload-memory', 'var': 'namespace' },
+        },
+        {
+          key: 'cpu',
+          title: 'CPU',
+          used: byApplication('rate(container_cpu_usage_seconds_total{%(queriesSelector)s, container!="", container!="POD"}[1h])'),
+          request: quota('kube_pod_container_resource_requests', 'cpu'),
+          limit: quota('kube_pod_container_resource_limits', 'cpu'),
+          unit: 'short',
+          decimals: 3,
+        },
+      ],
+      description: 'One row per application, its pods summed, against what it asks for and what it may take. An application with no request has no percentage and is in none of the three counts.',
+    },
+  },
+
   // A USE source names the four resources and how each one is measured. The
   // node profile is the node_exporter one the node mixin uses; the container
   // profile reads the same four from cAdvisor.

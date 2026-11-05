@@ -237,7 +237,7 @@ local grid = import 'custom/util/grid.libsonnet';
     local bodyRow(title, items) = layout.rows.row(title, layout.grid.new() + layout.grid.withItems(items)) + { spec+: { hideHeader: true } };
     local groupRows(grp) = [
       sigRow(grp),
-      bodyRow(grp.title, grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)),
+      bodyRow(grp.title, grid.groupItems(grp)),
     ];
 
     // a pack may already have a group called "Overview" (the system packs do).
@@ -245,7 +245,7 @@ local grid = import 'custom/util/grid.libsonnet';
     local isOverview(grp) = std.asciiLower(grp.title) == 'overview';
     local ownOverview = std.filter(isOverview, groups);
     local gridRow(grp) =
-      layout.rows.row(grp.title, layout.grid.new() + layout.grid.withItems(grid.wrapItems(std.objectFields(grp.elements), grp.width, grp.height)));
+      layout.rows.row(grp.title, layout.grid.new() + layout.grid.withItems(grid.groupItems(grp)));
     // config.overviewLeadGroups: rows at the top of the Overview tab,
     // [{ title, width, height, elements, hideHeader?, when? }]. `when` names a
     // hidden presence variable (has_kubernetes, say): the row renders only

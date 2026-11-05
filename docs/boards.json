@@ -67,6 +67,15 @@
    "source": "reference",
    "title": "Burn rate / Pyrra SLOs"
   },
+  "observ-viz-capacity-apps": {
+   "description": "How full each of them was, is and will be, over the chosen interval. One row per application, its pods summed, against what it asks for and what it may take. An application with no request has no percentage and is in none of the three counts.",
+   "folder": [
+    "Analysis",
+    "Capacity"
+   ],
+   "source": "reference",
+   "title": "Capacity / Applications"
+  },
   "observ-viz-capacity-certificates": {
    "description": "When this runs out, at the rate of the last 6h. Seconds until each cert-manager certificate expires. This one shrinks by a second per second, so the prediction is exact rather than a trend.",
    "folder": [
@@ -93,6 +102,15 @@
    ],
    "source": "reference",
    "title": "Capacity / Cluster memory"
+  },
+  "observ-viz-capacity-clusters": {
+   "description": "How full each of them was, is and will be, over the chosen interval. One row per cluster, summed over its nodes: the question of whether the next node is late or the last one was a waste.",
+   "folder": [
+    "Analysis",
+    "Capacity"
+   ],
+   "source": "reference",
+   "title": "Capacity / Clusters"
   },
   "observ-viz-capacity-filesystem": {
    "description": "When this runs out, at the rate of the last 6h. Free bytes per mounted filesystem, minus the ones that live in memory and cannot fill up the way a disk does.",
@@ -129,6 +147,15 @@
    ],
    "source": "reference",
    "title": "Capacity / Node memory"
+  },
+  "observ-viz-capacity-nodes": {
+   "description": "How full each of them was, is and will be, over the chosen interval. One row per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.",
+   "folder": [
+    "Analysis",
+    "Capacity"
+   ],
+   "source": "reference",
+   "title": "Capacity / Nodes"
   },
   "observ-viz-capacity-workload-memory": {
    "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.",
@@ -1345,6 +1372,165 @@
    ],
    "title": "Capacity",
    "uid": "observ-viz-capacity",
+   "whitebox": ""
+  },
+  "analysis.capacityPlan": {
+   "alerts": [],
+   "description": "How full each of them was, is and will be, over the chosen interval. One row per cluster, summed over its nodes: the question of whether the next node is late or the last one was a waste.",
+   "folder": [],
+   "groups": [
+    {
+     "els": [
+      "memory_over",
+      "memory_table",
+      "memory_under",
+      "memory_well"
+     ],
+     "t": "Memory"
+    },
+    {
+     "els": [
+      "cpu_over",
+      "cpu_table",
+      "cpu_under",
+      "cpu_well"
+     ],
+     "t": "CPU"
+    }
+   ],
+   "panels": [],
+   "queries": [],
+   "records": [],
+   "signals": [
+    {
+     "d": "The straight line through past and now, carried `future` ahead and held between empty and full. Blank where there is no past to draw it from.",
+     "e": "clamp(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h]) + (${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h]) - ${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h] offset ${past}s)) * ${future} / ${past}, 0, 1)",
+     "k": "prometheus",
+     "n": "cpu_future",
+     "re": "clamp(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h]) + (${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h]) - ${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h] offset ${past}s)) * ${future} / ${past}, 0, 1)",
+     "t": "CPU future",
+     "u": "percentunit"
+    },
+    {
+     "d": "How full it is: the chosen aggregation of the hourly value over the interval.",
+     "e": "${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h])",
+     "k": "prometheus",
+     "n": "cpu_now",
+     "re": "${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h])",
+     "t": "CPU now",
+     "u": "percentunit"
+    },
+    {
+     "d": "How many clusters are at 70% or more of their cpu over the interval: the next step is already late.",
+     "e": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h]) >= 0.7) or vector(0)",
+     "k": "prometheus",
+     "n": "cpu_over",
+     "re": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h]) >= 0.7) or vector(0)",
+     "t": "CPU over 70%",
+     "u": "short"
+    },
+    {
+     "d": "How full it was over an interval of the same length, `past` ago.",
+     "e": "${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h] offset ${past}s)",
+     "k": "prometheus",
+     "n": "cpu_past",
+     "re": "${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h] offset ${past}s)",
+     "t": "CPU past",
+     "u": "percentunit"
+    },
+    {
+     "d": "What there is to use, right now.",
+     "e": "count by (cluster) (node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"})",
+     "k": "prometheus",
+     "n": "cpu_total",
+     "re": "count by (cluster) (node_cpu_seconds_total{, mode=\"idle\"})",
+     "t": "CPU cores",
+     "u": "short"
+    },
+    {
+     "d": "How many clusters are under 30% of their cpu over the interval: room to give back.",
+     "e": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h]) < 0.3) or vector(0)",
+     "k": "prometheus",
+     "n": "cpu_under",
+     "re": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h]) < 0.3) or vector(0)",
+     "t": "CPU under 30%",
+     "u": "short"
+    },
+    {
+     "d": "How many clusters are between 30% and 70% of their cpu over the interval: what is paid for is in use.",
+     "e": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode=\"idle\"}[1h])))[${interval}s:1h]) >= 0.3 < 0.7) or vector(0)",
+     "k": "prometheus",
+     "n": "cpu_well",
+     "re": "count(${aggregation}_over_time((1 - avg by (cluster) (rate(node_cpu_seconds_total{, mode=\"idle\"}[1h])))[${interval}s:1h]) >= 0.3 < 0.7) or vector(0)",
+     "t": "CPU 30% to 70%",
+     "u": "short"
+    },
+    {
+     "d": "The straight line through past and now, carried `future` ahead and held between empty and full. Blank where there is no past to draw it from.",
+     "e": "clamp(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h]) + (${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h]) - ${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h] offset ${past}s)) * ${future} / ${past}, 0, 1)",
+     "k": "prometheus",
+     "n": "memory_future",
+     "re": "clamp(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h]) + (${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h]) - ${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h] offset ${past}s)) * ${future} / ${past}, 0, 1)",
+     "t": "Memory future",
+     "u": "percentunit"
+    },
+    {
+     "d": "How full it is: the chosen aggregation of the hourly value over the interval.",
+     "e": "${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h])",
+     "k": "prometheus",
+     "n": "memory_now",
+     "re": "${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h])",
+     "t": "Memory now",
+     "u": "percentunit"
+    },
+    {
+     "d": "How many clusters are at 70% or more of their memory over the interval: the next step is already late.",
+     "e": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h]) >= 0.7) or vector(0)",
+     "k": "prometheus",
+     "n": "memory_over",
+     "re": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h]) >= 0.7) or vector(0)",
+     "t": "Memory over 70%",
+     "u": "short"
+    },
+    {
+     "d": "How full it was over an interval of the same length, `past` ago.",
+     "e": "${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h] offset ${past}s)",
+     "k": "prometheus",
+     "n": "memory_past",
+     "re": "${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h] offset ${past}s)",
+     "t": "Memory past",
+     "u": "percentunit"
+    },
+    {
+     "d": "What there is to use, right now.",
+     "e": "sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"})",
+     "k": "prometheus",
+     "n": "memory_total",
+     "re": "sum by (cluster) (node_memory_MemTotal_bytes)",
+     "t": "Memory installed",
+     "u": "bytes"
+    },
+    {
+     "d": "How many clusters are under 30% of their memory over the interval: room to give back.",
+     "e": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h]) < 0.3) or vector(0)",
+     "k": "prometheus",
+     "n": "memory_under",
+     "re": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h]) < 0.3) or vector(0)",
+     "t": "Memory under 30%",
+     "u": "short"
+    },
+    {
+     "d": "How many clusters are between 30% and 70% of their memory over the interval: what is paid for is in use.",
+     "e": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}) / sum by (cluster) (node_memory_MemTotal_bytes{cluster=~\"$cluster\"}))[${interval}s:1h]) >= 0.3 < 0.7) or vector(0)",
+     "k": "prometheus",
+     "n": "memory_well",
+     "re": "count(${aggregation}_over_time((1 - sum by (cluster) (node_memory_MemAvailable_bytes) / sum by (cluster) (node_memory_MemTotal_bytes))[${interval}s:1h]) >= 0.3 < 0.7) or vector(0)",
+     "t": "Memory 30% to 70%",
+     "u": "short"
+    }
+   ],
+   "title": "Capacity plan",
+   "uid": "observ-viz-capacity-plan",
    "whitebox": ""
   },
   "analysis.golden": {

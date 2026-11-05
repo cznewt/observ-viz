@@ -106,6 +106,7 @@ instrumentation with the right shape:
 | `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, container |
 | `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (the `kubernetes.cluster` or kubernetes-mixin burn-rate rules), Pyrra |
 | `analysis.capacity` | one quantity that shrinks, or used against total | filesystems, free node memory, certificates; cluster and node CPU and memory, workload memory |
+| `analysis.capacityPlan` | what a row is, and the resources it is measured in | clusters, nodes, applications |
 
 Golden signals is RED plus the one RED leaves out: saturation, the leading
 signal that latency and errors follow. Burn rate answers whether an SLO is
@@ -120,6 +121,18 @@ where the trend puts it in `ahead` - the capacity planning question, ported from
 the service catalog's capacity-mixin. That mixin's future column repeated the
 present rather than predicting it; here it is a `predict_linear` over the same
 window the alert uses.
+
+Capacity plan is the same conversation for the whole fleet at one moment: one
+table of clusters, nodes or applications per resource, under three counts of how
+many are under 30 percent, between 30 and 70, and over 70. Aggregation, interval,
+past and future are board variables. Now is the aggregation of the hourly value
+over the interval, Past the same window `past` ago, and Future the straight line
+through the two, carried `future` ahead. Future is deliberately not
+`predict_linear`: a regression over sparse data is wild, where the line leaves
+the cell blank when there is no past to draw it from. An application is measured
+against its request and limit, and one without a request has no percentage and is
+in none of the three counts. Links from a row lead to the `analysis.capacity`
+board with that row's history.
 
 The same idea appears inside a pack where one thing reports two ways:
 `networking.kong` takes `implementation: 'prometheus' | 'prometheus2' |
