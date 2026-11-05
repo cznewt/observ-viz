@@ -1,0 +1,3245 @@
+{
+ "grafana": "https://grafana.monlab.newt.cz",
+ "rendered": "2026-10-21T23:48Z",
+ "logsMasked": true,
+ "boards": [
+  {
+   "uid": "base-home",
+   "title": "Home dashboard",
+   "folder": "",
+   "folderPath": [],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Home dashboard",
+     "slug": "board",
+     "file": "base-home/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-alert-handler",
+   "title": "Alert handler",
+   "folder": "Alerting",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Alerting"
+   ],
+   "description": "The alert-handler webhook receiver: webhooks and alerts received, rule matches, actions by rule, type and result with their duration, and the loaded configuration.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-alert-handler/00-overview.webp"
+    },
+    {
+     "title": "Intake",
+     "slug": "intake",
+     "file": "observ-viz-alert-handler/01-intake.webp"
+    },
+    {
+     "title": "Actions",
+     "slug": "actions",
+     "file": "observ-viz-alert-handler/02-actions.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-alert-handler/03-resources.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-alertmanager",
+   "title": "Alertmanager",
+   "folder": "Alerting",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Alerting"
+   ],
+   "description": "Prometheus Alertmanager self-monitoring: alerts received and active, notifications per integration with failures and latency, silences, the gossip cluster and configuration reloads.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-alertmanager/00-overview.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-alertmanager/01-alerts.webp"
+    },
+    {
+     "title": "Notifications",
+     "slug": "notifications",
+     "file": "observ-viz-alertmanager/02-notifications.webp"
+    },
+    {
+     "title": "Cluster",
+     "slug": "cluster",
+     "file": "observ-viz-alertmanager/03-cluster.webp"
+    },
+    {
+     "title": "API & resources",
+     "slug": "api-resources",
+     "file": "observ-viz-alertmanager/04-api-resources.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-grafana",
+   "title": "Grafana",
+   "folder": "Alerting",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Alerting"
+   ],
+   "description": "Grafana as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-grafana/00-overview.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-svc-grafana/01-requests.webp"
+    },
+    {
+     "title": "Datasources & plugins",
+     "slug": "datasources-plugins",
+     "file": "observ-viz-svc-grafana/02-datasources-plugins.webp"
+    },
+    {
+     "title": "Alerting",
+     "slug": "alerting",
+     "file": "observ-viz-svc-grafana/03-alerting.webp"
+    },
+    {
+     "title": "Database",
+     "slug": "database",
+     "file": "observ-viz-svc-grafana/04-database.webp"
+    },
+    {
+     "title": "Live & rendering",
+     "slug": "live-rendering",
+     "file": "observ-viz-svc-grafana/05-live-rendering.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-grafana/06-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-grafana/07-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-grafana/08-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-grafana/09-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-grafana/10-go-runtime.webp"
+    },
+    {
+     "title": "Ingress",
+     "slug": "ingress",
+     "file": "observ-viz-svc-grafana/11-ingress.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-grafana/12-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-grafana/13-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-grafana/14-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-anomaly-scores",
+   "title": "Anomaly / Detector scores",
+   "folder": "Anomaly",
+   "folderPath": [
+    "Analysis",
+    "Anomaly"
+   ],
+   "description": "The anomaly exporter itself: probes per module, success and failure rates, probe duration and version. Anomaly scores live on the Anomaly scorer board.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-anomaly-scores/00-overview.webp"
+    },
+    {
+     "title": "Scores",
+     "slug": "scores",
+     "file": "observ-viz-anomaly-scores/01-scores.webp"
+    },
+    {
+     "title": "Probes",
+     "slug": "probes",
+     "file": "observ-viz-anomaly-scores/02-probes.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-anomaly-scores/03-resources.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-anomaly-process",
+   "title": "Anomaly / Process",
+   "folder": "Anomaly",
+   "folderPath": [
+    "Analysis",
+    "Anomaly"
+   ],
+   "description": "Every series below is compared with its own past: the rolling mean over 1d and a band 3 standard deviations wide. It owns no metrics - point it at any service.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-anomaly-process/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "observ-viz-anomaly-process/01-cpu.webp"
+    },
+    {
+     "title": "Resident memory",
+     "slug": "resident-memory",
+     "file": "observ-viz-anomaly-process/02-resident-memory.webp"
+    },
+    {
+     "title": "Open file descriptors",
+     "slug": "open-file-descriptors",
+     "file": "observ-viz-anomaly-process/03-open-file-descriptors.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-anomaly-requests",
+   "title": "Anomaly / Requests",
+   "folder": "Anomaly",
+   "folderPath": [
+    "Analysis",
+    "Anomaly"
+   ],
+   "description": "Every series below is compared with its own past: the rolling mean over 1d and a band 3 standard deviations wide. It owns no metrics - point it at any service.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-anomaly-requests/00-overview.webp"
+    },
+    {
+     "title": "Request rate",
+     "slug": "request-rate",
+     "file": "observ-viz-anomaly-requests/01-request-rate.webp"
+    },
+    {
+     "title": "Error ratio",
+     "slug": "error-ratio",
+     "file": "observ-viz-anomaly-requests/02-error-ratio.webp"
+    },
+    {
+     "title": "Duration p99",
+     "slug": "duration-p99",
+     "file": "observ-viz-anomaly-requests/03-duration-p99.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-burnrate-apiserver",
+   "title": "Burn rate / Kubernetes API server",
+   "folder": "Burn rate",
+   "folderPath": [
+    "Analysis",
+    "Burn rate"
+   ],
+   "description": "How fast the error budget is being spent, and what that means for the objective. The kube-apiserver-burnrate.rules of kubernetes.cluster (or of the kubernetes-mixin) record these seven windows for the API server's own SLO, split by read and write.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-burnrate-apiserver/00-overview.webp"
+    },
+    {
+     "title": "Burn rate",
+     "slug": "burn-rate",
+     "file": "observ-viz-burnrate-apiserver/01-burn-rate.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-burnrate-pyrra",
+   "title": "Burn rate / Pyrra SLOs",
+   "folder": "Burn rate",
+   "folderPath": [
+    "Analysis",
+    "Burn rate"
+   ],
+   "description": "How fast the error budget is being spent, and what that means for the objective. Pyrra publishes the availability and the objective per SLO; the burn and the budget left follow from the two.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-burnrate-pyrra/00-overview.webp"
+    },
+    {
+     "title": "Burn rate",
+     "slug": "burn-rate",
+     "file": "observ-viz-burnrate-pyrra/01-burn-rate.webp"
+    },
+    {
+     "title": "Budget",
+     "slug": "budget",
+     "file": "observ-viz-burnrate-pyrra/02-budget.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-certificates",
+   "title": "Capacity / Certificates",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "When this runs out, at the rate of the last 6h. Seconds until each cert-manager certificate expires. This one shrinks by a second per second, so the prediction is exact rather than a trend.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-certificates/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-certificates/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-cluster-cpu",
+   "title": "Capacity / Cluster CPU",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Cores in use against cores available, per cluster. Under 30 percent says the cluster is paid for and idle; over 70 says the next node is already late.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-cluster-cpu/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-cluster-cpu/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-cluster-memory",
+   "title": "Capacity / Cluster memory",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Memory in use against memory installed, per cluster.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-cluster-memory/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-cluster-memory/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-filesystem",
+   "title": "Capacity / Filesystems",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "When this runs out, at the rate of the last 6h. Free bytes per mounted filesystem, minus the ones that live in memory and cannot fill up the way a disk does.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-filesystem/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-filesystem/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-memory",
+   "title": "Capacity / Free node memory",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "When this runs out, at the rate of the last 6h. Memory the kernel says is available - which is not free memory, it counts what the cache would give back.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-memory/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-memory/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-node-cpu",
+   "title": "Capacity / Node CPU",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. The same question per node, which is where the imbalance shows: a cluster at 50 percent can still have a node at 95.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-node-cpu/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-node-cpu/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-node-memory",
+   "title": "Capacity / Node memory",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. Memory in use against memory installed, per node.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-node-memory/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-node-memory/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-capacity-workload-memory",
+   "title": "Capacity / Workload memory",
+   "folder": "Capacity",
+   "folderPath": [
+    "Analysis",
+    "Capacity"
+   ],
+   "description": "How full this is, how full it was 7d ago, and where the trend of the last 6h puts it in 4d. What each namespace uses against what it is allowed. Over 100 percent means it has no limits set, not that it is overcommitted.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-capacity-workload-memory/00-overview.webp"
+    },
+    {
+     "title": "Capacity",
+     "slug": "capacity",
+     "file": "observ-viz-capacity-workload-memory/01-capacity.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-alloy",
+   "title": "Alloy",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "Alloy as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-alloy/00-overview.webp"
+    },
+    {
+     "title": "Components",
+     "slug": "components",
+     "file": "observ-viz-svc-alloy/01-components.webp"
+    },
+    {
+     "title": "Remote write",
+     "slug": "remote-write",
+     "file": "observ-viz-svc-alloy/02-remote-write.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-alloy/03-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-alloy/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-alloy/05-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-alloy/06-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-alloy/07-go-runtime.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-alloy/08-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-alloy/09-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-alloy/10-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-anomaly-exporter",
+   "title": "Anomaly exporter",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "The anomaly exporter itself: probes per module, success and failure rates, probe duration and version. Anomaly scores live on the Anomaly scorer board.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-anomaly-exporter/00-overview.webp"
+    },
+    {
+     "title": "Scores",
+     "slug": "scores",
+     "file": "observ-viz-anomaly-exporter/01-scores.webp"
+    },
+    {
+     "title": "Probes",
+     "slug": "probes",
+     "file": "observ-viz-anomaly-exporter/02-probes.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-anomaly-exporter/03-resources.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-blackbox-exporter",
+   "title": "Blackbox exporter",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "Black-box probes from blackbox_exporter: availability and uptime per target, probe latency by phase (HTTP, ICMP, DNS), HTTP status, version and redirects, TLS certificate expiry and version, and the exporter itself. A row is one target (instance) probed by one module (job).",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-blackbox-exporter/00-overview.webp"
+    },
+    {
+     "title": "Availability",
+     "slug": "availability",
+     "file": "observ-viz-blackbox-exporter/01-availability.webp"
+    },
+    {
+     "title": "Latency",
+     "slug": "latency",
+     "file": "observ-viz-blackbox-exporter/02-latency.webp"
+    },
+    {
+     "title": "HTTP",
+     "slug": "http",
+     "file": "observ-viz-blackbox-exporter/03-http.webp"
+    },
+    {
+     "title": "TLS",
+     "slug": "tls",
+     "file": "observ-viz-blackbox-exporter/04-tls.webp"
+    },
+    {
+     "title": "Exporter",
+     "slug": "exporter",
+     "file": "observ-viz-blackbox-exporter/05-exporter.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-node-exporter",
+   "title": "Node exporter",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "node_exporter reporting on itself: the collectors it ran, what each cost, and whether the scrape completed. When a Linux board has holes in it, the reason is here.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-node-exporter/00-overview.webp"
+    },
+    {
+     "title": "Scrape",
+     "slug": "scrape",
+     "file": "observ-viz-node-exporter/01-scrape.webp"
+    },
+    {
+     "title": "Collectors",
+     "slug": "collectors",
+     "file": "observ-viz-node-exporter/02-collectors.webp"
+    },
+    {
+     "title": "Exporter",
+     "slug": "exporter",
+     "file": "observ-viz-node-exporter/03-exporter.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-opencost",
+   "title": "OpenCost",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "Kubernetes cost from OpenCost: node hourly cost, allocation per namespace priced with the node rates, persistent volumes, spot nodes, egress and the cluster management fee. Monthly figures assume 730 hours.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-opencost/00-overview.webp"
+    },
+    {
+     "title": "Namespaces",
+     "slug": "namespaces",
+     "file": "observ-viz-opencost/01-namespaces.webp"
+    },
+    {
+     "title": "Nodes",
+     "slug": "nodes",
+     "file": "observ-viz-opencost/02-nodes.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-pushgateway",
+   "title": "Pushgateway",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "Prometheus Pushgateway: the groups batch jobs push and how long ago each last succeeded or failed, stale groups, push traffic (rate, errors, duration, size) and the gateway process. Groups are filtered with **Pushed job**, the gateway itself with **Job** / **Instance**.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-pushgateway/00-overview.webp"
+    },
+    {
+     "title": "Freshness",
+     "slug": "freshness",
+     "file": "observ-viz-pushgateway/01-freshness.webp"
+    },
+    {
+     "title": "Pushes",
+     "slug": "pushes",
+     "file": "observ-viz-pushgateway/02-pushes.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-pushgateway/03-process.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-kube-state-metrics",
+   "title": "kube-state-metrics",
+   "folder": "Collectors",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Collectors"
+   ],
+   "description": "kube-state-metrics' own health from its telemetry endpoint: list and watch outcomes per resource, sharding, and the process.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-kube-state-metrics/00-overview.webp"
+    },
+    {
+     "title": "List & watch",
+     "slug": "list-watch",
+     "file": "observ-viz-kube-state-metrics/01-list-watch.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-kube-state-metrics/02-process.webp"
+    }
+   ]
+  },
+  {
+   "uid": "compute-linux-overview",
+   "title": "Linux node",
+   "folder": "Compute",
+   "folderPath": [
+    "Platform",
+    "Infrastructure",
+    "Compute"
+   ],
+   "description": "One Linux host from node_exporter: facts and health tiles, then CPU, memory, disk, network, temperature and pressure rows, plus exporter tabs that appear only where their metrics exist (Proxmox, Docker, kubelet, Batocera, ZFS, NFS, battery, services, updates, logs).",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "compute-linux-overview/00-overview.webp"
+    },
+    {
+     "title": "Health",
+     "slug": "health",
+     "file": "compute-linux-overview/01-health.webp"
+    },
+    {
+     "title": "CPU / Load",
+     "slug": "cpu-load",
+     "file": "compute-linux-overview/02-cpu-load.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "compute-linux-overview/03-memory.webp"
+    },
+    {
+     "title": "Disk space",
+     "slug": "disk-space",
+     "file": "compute-linux-overview/04-disk-space.webp"
+    },
+    {
+     "title": "Disk IO",
+     "slug": "disk-io",
+     "file": "compute-linux-overview/05-disk-io.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "compute-linux-overview/06-network.webp"
+    },
+    {
+     "title": "System",
+     "slug": "system",
+     "file": "compute-linux-overview/07-system.webp"
+    },
+    {
+     "title": "Temperature / power",
+     "slug": "temperature-power",
+     "file": "compute-linux-overview/08-temperature-power.webp"
+    },
+    {
+     "title": "Pressure (PSI)",
+     "slug": "pressure-psi",
+     "file": "compute-linux-overview/09-pressure-psi.webp"
+    },
+    {
+     "title": "Kubelet",
+     "slug": "kubelet",
+     "file": "compute-linux-overview/10-kubelet.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "compute-linux-overview/11-logs.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "compute-linux-overview/12-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "compute-windows-overview",
+   "title": "Windows node",
+   "folder": "Compute",
+   "folderPath": [
+    "Platform",
+    "Infrastructure",
+    "Compute"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "compute-windows-overview/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "compute-windows-overview/01-cpu.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "compute-windows-overview/02-memory.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "compute-windows-overview/03-disk.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "compute-windows-overview/04-network.webp"
+    },
+    {
+     "title": "System activity",
+     "slug": "system-activity",
+     "file": "compute-windows-overview/05-system-activity.webp"
+    },
+    {
+     "title": "Time",
+     "slug": "time",
+     "file": "compute-windows-overview/06-time.webp"
+    },
+    {
+     "title": "Scrape health",
+     "slug": "scrape-health",
+     "file": "compute-windows-overview/07-scrape-health.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "compute-windows-overview/08-logs.webp"
+    },
+    {
+     "title": "Temperature",
+     "slug": "temperature",
+     "file": "compute-windows-overview/09-temperature.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "compute-windows-overview/10-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-argocd",
+   "title": "Argo CD",
+   "folder": "Configuration",
+   "folderPath": [
+    "Platform",
+    "Configuration"
+   ],
+   "description": "Argo CD from its own metrics: application health and sync status, sync operations and failures, reconcile latency, cluster and repository connectivity, Kubernetes API and git request traffic, controller workqueues.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-argocd/00-overview.webp"
+    },
+    {
+     "title": "Applications",
+     "slug": "applications",
+     "file": "observ-viz-argocd/01-applications.webp"
+    },
+    {
+     "title": "Clusters & repositories",
+     "slug": "clusters-repositories",
+     "file": "observ-viz-argocd/02-clusters-repositories.webp"
+    },
+    {
+     "title": "Controller",
+     "slug": "controller",
+     "file": "observ-viz-argocd/03-controller.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-backstage",
+   "title": "Backstage",
+   "folder": "Configuration",
+   "folderPath": [
+    "Platform",
+    "Configuration"
+   ],
+   "description": "The Backstage software catalog read through the Infinity datasource: components with owner, lifecycle, type and system; systems; APIs.",
+   "tabs": [
+    {
+     "title": "Backstage",
+     "slug": "board",
+     "file": "observ-viz-backstage/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-memcached",
+   "title": "Memcached",
+   "folder": "Databases",
+   "folderPath": [
+    "Platform",
+    "Databases"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-memcached/00-overview.webp"
+    },
+    {
+     "title": "Operations",
+     "slug": "operations",
+     "file": "observ-viz-memcached/01-operations.webp"
+    },
+    {
+     "title": "Hit ratio",
+     "slug": "hit-ratio",
+     "file": "observ-viz-memcached/02-hit-ratio.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-memcached/03-memory.webp"
+    },
+    {
+     "title": "Connections",
+     "slug": "connections",
+     "file": "observ-viz-memcached/04-connections.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-mysql",
+   "title": "MySQL",
+   "folder": "Databases",
+   "folderPath": [
+    "Platform",
+    "Databases"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-mysql/00-overview.webp"
+    },
+    {
+     "title": "Connections",
+     "slug": "connections",
+     "file": "observ-viz-mysql/01-connections.webp"
+    },
+    {
+     "title": "Queries",
+     "slug": "queries",
+     "file": "observ-viz-mysql/02-queries.webp"
+    },
+    {
+     "title": "InnoDB",
+     "slug": "innodb",
+     "file": "observ-viz-mysql/03-innodb.webp"
+    },
+    {
+     "title": "Traffic",
+     "slug": "traffic",
+     "file": "observ-viz-mysql/04-traffic.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-postgres",
+   "title": "PostgreSQL",
+   "folder": "Databases",
+   "folderPath": [
+    "Platform",
+    "Databases"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-postgres/00-overview.webp"
+    },
+    {
+     "title": "Connections",
+     "slug": "connections",
+     "file": "observ-viz-postgres/01-connections.webp"
+    },
+    {
+     "title": "Throughput",
+     "slug": "throughput",
+     "file": "observ-viz-postgres/02-throughput.webp"
+    },
+    {
+     "title": "Cache",
+     "slug": "cache",
+     "file": "observ-viz-postgres/03-cache.webp"
+    },
+    {
+     "title": "Size",
+     "slug": "size",
+     "file": "observ-viz-postgres/04-size.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-redis",
+   "title": "Redis",
+   "folder": "Databases",
+   "folderPath": [
+    "Platform",
+    "Databases"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-redis/00-overview.webp"
+    },
+    {
+     "title": "Clients",
+     "slug": "clients",
+     "file": "observ-viz-redis/01-clients.webp"
+    },
+    {
+     "title": "Operations",
+     "slug": "operations",
+     "file": "observ-viz-redis/02-operations.webp"
+    },
+    {
+     "title": "Hit ratio",
+     "slug": "hit-ratio",
+     "file": "observ-viz-redis/03-hit-ratio.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-redis/04-memory.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-etcd",
+   "title": "etcd",
+   "folder": "Databases",
+   "folderPath": [
+    "Platform",
+    "Databases"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-etcd/00-overview.webp"
+    },
+    {
+     "title": "Cluster",
+     "slug": "cluster",
+     "file": "observ-viz-etcd/01-cluster.webp"
+    },
+    {
+     "title": "Operations",
+     "slug": "operations",
+     "file": "observ-viz-etcd/02-operations.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "observ-viz-etcd/03-disk.webp"
+    }
+   ]
+  },
+  {
+   "uid": "scn-monlab-demoGo",
+   "title": "Demo Go",
+   "folder": "Demos",
+   "folderPath": [
+    "Workloads",
+    "Demos"
+   ],
+   "description": "Demo-go as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "scn-monlab-demoGo/00-overview.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "scn-monlab-demoGo/01-go-runtime.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "scn-monlab-demoGo/02-memory.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "scn-monlab-demoGo/03-garbage-collection.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "scn-monlab-demoGo/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "scn-monlab-demoGo/05-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "scn-monlab-demoGo/06-process.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "scn-monlab-demoGo/07-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "scn-monlab-demoGo/08-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "scn-monlab-demoGo/09-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "scn-monlab-demoJvm",
+   "title": "Demo JVM",
+   "folder": "Demos",
+   "folderPath": [
+    "Workloads",
+    "Demos"
+   ],
+   "description": "Demo-jvm as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "scn-monlab-demoJvm/00-overview.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "scn-monlab-demoJvm/01-memory.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "scn-monlab-demoJvm/02-garbage-collection.webp"
+    },
+    {
+     "title": "Threads",
+     "slug": "threads",
+     "file": "scn-monlab-demoJvm/03-threads.webp"
+    },
+    {
+     "title": "Classes",
+     "slug": "classes",
+     "file": "scn-monlab-demoJvm/04-classes.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "scn-monlab-demoJvm/05-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "scn-monlab-demoJvm/06-containers.webp"
+    },
+    {
+     "title": "HTTP server",
+     "slug": "http-server",
+     "file": "scn-monlab-demoJvm/07-http-server.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "scn-monlab-demoJvm/08-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "scn-monlab-demoJvm/09-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "scn-monlab-demoJvm/10-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "scn-monlab-demoPython",
+   "title": "Demo Python",
+   "folder": "Demos",
+   "folderPath": [
+    "Workloads",
+    "Demos"
+   ],
+   "description": "Demo-python as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "scn-monlab-demoPython/00-overview.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "scn-monlab-demoPython/01-garbage-collection.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "scn-monlab-demoPython/02-process.webp"
+    },
+    {
+     "title": "File descriptors",
+     "slug": "file-descriptors",
+     "file": "scn-monlab-demoPython/03-file-descriptors.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "scn-monlab-demoPython/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "scn-monlab-demoPython/05-containers.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "scn-monlab-demoPython/06-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "scn-monlab-demoPython/07-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "scn-monlab-demoPython/08-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-deploy-cadvisor",
+   "title": "Container runtime",
+   "folder": "Deployments",
+   "folderPath": [
+    "Platform",
+    "Deployments"
+   ],
+   "description": "Container resource usage from cAdvisor for Kubernetes pods: CPU with throttling, memory against limits, disk IO.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-deploy-cadvisor/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "observ-viz-deploy-cadvisor/01-cpu.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-deploy-cadvisor/02-memory.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "observ-viz-deploy-cadvisor/03-disk.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "observ-viz-deploy-cadvisor/04-network.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-deploy-kube-pod",
+   "title": "Kubernetes pod",
+   "folder": "Deployments",
+   "folderPath": [
+    "Platform",
+    "Deployments"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-deploy-kube-pod/00-overview.webp"
+    },
+    {
+     "title": "Pod resources",
+     "slug": "pod-resources",
+     "file": "observ-viz-deploy-kube-pod/01-pod-resources.webp"
+    },
+    {
+     "title": "Pod disk IO",
+     "slug": "pod-disk-io",
+     "file": "observ-viz-deploy-kube-pod/02-pod-disk-io.webp"
+    },
+    {
+     "title": "Pod health",
+     "slug": "pod-health",
+     "file": "observ-viz-deploy-kube-pod/03-pod-health.webp"
+    },
+    {
+     "title": "Workloads",
+     "slug": "workloads",
+     "file": "observ-viz-deploy-kube-pod/04-workloads.webp"
+    },
+    {
+     "title": "Jobs & storage",
+     "slug": "jobs-storage",
+     "file": "observ-viz-deploy-kube-pod/05-jobs-storage.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-deploy-kube-pod/06-alerts.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-deploy-kube-pod/07-logs.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-process-exporter",
+   "title": "Process group",
+   "folder": "Deployments",
+   "folderPath": [
+    "Platform",
+    "Deployments"
+   ],
+   "description": "Process groups from process-exporter: CPU, memory, processes and threads, file descriptors, IO and page faults per group and host, top-N tables and scrape health.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-process-exporter/00-overview.webp"
+    },
+    {
+     "title": "Usage",
+     "slug": "usage",
+     "file": "observ-viz-process-exporter/01-usage.webp"
+    },
+    {
+     "title": "Hosts",
+     "slug": "hosts",
+     "file": "observ-viz-process-exporter/02-hosts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-systemd",
+   "title": "Systemd unit",
+   "folder": "Deployments",
+   "folderPath": [
+    "Platform",
+    "Deployments"
+   ],
+   "description": "systemd units from node_exporter: unit state over time, active and failed counts, failed units, restarts and the overall system state.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-systemd/00-overview.webp"
+    },
+    {
+     "title": "Units",
+     "slug": "units",
+     "file": "observ-viz-systemd/01-units.webp"
+    },
+    {
+     "title": "Detail",
+     "slug": "detail",
+     "file": "observ-viz-systemd/02-detail.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-systemd/03-resources.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-windows-service",
+   "title": "Windows service",
+   "folder": "Deployments",
+   "folderPath": [
+    "Platform",
+    "Deployments"
+   ],
+   "description": "Windows services from the windows_exporter service collector: what each one is doing, how many run, and the ones set to start automatically that are stopped.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-windows-service/00-overview.webp"
+    },
+    {
+     "title": "Services",
+     "slug": "services",
+     "file": "observ-viz-windows-service/01-services.webp"
+    },
+    {
+     "title": "Detail",
+     "slug": "detail",
+     "file": "observ-viz-windows-service/02-detail.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-golden-container",
+   "title": "Golden signals / Container",
+   "folder": "Golden signals",
+   "folderPath": [
+    "Analysis",
+    "Golden signals"
+   ],
+   "description": "The four golden signals: latency, traffic, errors and the one RED leaves out, saturation. Saturation is memory against the limit the container was given: the number that decides whether it is about to be killed.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-golden-container/00-overview.webp"
+    },
+    {
+     "title": "Latency",
+     "slug": "latency",
+     "file": "observ-viz-golden-container/01-latency.webp"
+    },
+    {
+     "title": "Traffic",
+     "slug": "traffic",
+     "file": "observ-viz-golden-container/02-traffic.webp"
+    },
+    {
+     "title": "Errors",
+     "slug": "errors",
+     "file": "observ-viz-golden-container/03-errors.webp"
+    },
+    {
+     "title": "Saturation",
+     "slug": "saturation",
+     "file": "observ-viz-golden-container/04-saturation.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-golden-ingress-nginx",
+   "title": "Golden signals / Ingress NGINX",
+   "folder": "Golden signals",
+   "folderPath": [
+    "Analysis",
+    "Golden signals"
+   ],
+   "description": "The four golden signals: latency, traffic, errors and the one RED leaves out, saturation. Saturation is the share of configured upstream connections in use, so it rises before the latency does.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-golden-ingress-nginx/00-overview.webp"
+    },
+    {
+     "title": "Latency",
+     "slug": "latency",
+     "file": "observ-viz-golden-ingress-nginx/01-latency.webp"
+    },
+    {
+     "title": "Traffic",
+     "slug": "traffic",
+     "file": "observ-viz-golden-ingress-nginx/02-traffic.webp"
+    },
+    {
+     "title": "Errors",
+     "slug": "errors",
+     "file": "observ-viz-golden-ingress-nginx/03-errors.webp"
+    },
+    {
+     "title": "Saturation",
+     "slug": "saturation",
+     "file": "observ-viz-golden-ingress-nginx/04-saturation.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-golden-apiserver",
+   "title": "Golden signals / Kubernetes API server",
+   "folder": "Golden signals",
+   "folderPath": [
+    "Analysis",
+    "Golden signals"
+   ],
+   "description": "The four golden signals: latency, traffic, errors and the one RED leaves out, saturation. Saturation here is the flowcontrol queue: requests waiting for a seat, which is what the API server does instead of failing when it is full.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-golden-apiserver/00-overview.webp"
+    },
+    {
+     "title": "Latency",
+     "slug": "latency",
+     "file": "observ-viz-golden-apiserver/01-latency.webp"
+    },
+    {
+     "title": "Traffic",
+     "slug": "traffic",
+     "file": "observ-viz-golden-apiserver/02-traffic.webp"
+    },
+    {
+     "title": "Errors",
+     "slug": "errors",
+     "file": "observ-viz-golden-apiserver/03-errors.webp"
+    },
+    {
+     "title": "Saturation",
+     "slug": "saturation",
+     "file": "observ-viz-golden-apiserver/04-saturation.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-golden-node",
+   "title": "Golden signals / Linux node",
+   "folder": "Golden signals",
+   "folderPath": [
+    "Analysis",
+    "Golden signals"
+   ],
+   "description": "The four golden signals: latency, traffic, errors and the one RED leaves out, saturation. Traffic and errors come from the network, saturation from load against the CPUs it has - the number that leads the rest.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-golden-node/00-overview.webp"
+    },
+    {
+     "title": "Latency",
+     "slug": "latency",
+     "file": "observ-viz-golden-node/01-latency.webp"
+    },
+    {
+     "title": "Traffic",
+     "slug": "traffic",
+     "file": "observ-viz-golden-node/02-traffic.webp"
+    },
+    {
+     "title": "Errors",
+     "slug": "errors",
+     "file": "observ-viz-golden-node/03-errors.webp"
+    },
+    {
+     "title": "Saturation",
+     "slug": "saturation",
+     "file": "observ-viz-golden-node/04-saturation.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-nginx",
+   "title": "NGINX",
+   "folder": "Ingress",
+   "folderPath": [
+    "Platform",
+    "Ingress"
+   ],
+   "description": "Every NGINX in one place: servers read through nginx-prometheus-exporter (stub status) and ingress-nginx controllers (their own metrics). The Overview lists both kinds; the Server tab shows requests and connections from whichever source a target has, and the Ingress traffic / Controller tabs appear only where an ingress-nginx controller is scraped.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-nginx/00-overview.webp"
+    },
+    {
+     "title": "Server",
+     "slug": "server",
+     "file": "observ-viz-nginx/01-server.webp"
+    },
+    {
+     "title": "Ingress traffic",
+     "slug": "ingress-traffic",
+     "file": "observ-viz-nginx/02-ingress-traffic.webp"
+    },
+    {
+     "title": "Controller",
+     "slug": "controller",
+     "file": "observ-viz-nginx/03-controller.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-cadvisor",
+   "title": "Container resources",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "Container resource usage from cAdvisor for Kubernetes pods: CPU with throttling, memory against limits, disk IO.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-cadvisor/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "observ-viz-cadvisor/01-cpu.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-cadvisor/02-memory.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "observ-viz-cadvisor/03-disk.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "observ-viz-cadvisor/04-network.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-coredns",
+   "title": "CoreDNS",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "CoreDNS from its Prometheus plugin: requests, responses and rcodes, latency, cache, and server health per pod.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-coredns/00-overview.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-coredns/01-requests.webp"
+    },
+    {
+     "title": "Responses",
+     "slug": "responses",
+     "file": "observ-viz-coredns/02-responses.webp"
+    },
+    {
+     "title": "Cache",
+     "slug": "cache",
+     "file": "observ-viz-coredns/03-cache.webp"
+    },
+    {
+     "title": "Server health",
+     "slug": "server-health",
+     "file": "observ-viz-coredns/04-server-health.webp"
+    }
+   ]
+  },
+  {
+   "uid": "kube-cluster",
+   "title": "Kubernetes cluster",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "kube-cluster/00-overview.webp"
+    },
+    {
+     "title": "Namespaces",
+     "slug": "namespaces",
+     "file": "kube-cluster/01-namespaces.webp"
+    },
+    {
+     "title": "Nodes",
+     "slug": "nodes",
+     "file": "kube-cluster/02-nodes.webp"
+    },
+    {
+     "title": "Workloads",
+     "slug": "workloads",
+     "file": "kube-cluster/03-workloads.webp"
+    },
+    {
+     "title": "Control plane",
+     "slug": "control-plane",
+     "file": "kube-cluster/04-control-plane.webp"
+    },
+    {
+     "title": "Storage",
+     "slug": "storage",
+     "file": "kube-cluster/05-storage.webp"
+    },
+    {
+     "title": "Cluster Events",
+     "slug": "cluster-events",
+     "file": "kube-cluster/06-cluster-events.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "kube-cluster/07-alerts.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "kube-cluster/08-logs.webp"
+    }
+   ]
+  },
+  {
+   "uid": "kube-multicluster",
+   "title": "Kubernetes clusters",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "Every Kubernetes cluster that reports kube-state-metrics, side by side: how many nodes and pods each runs, what they are using, and what is restarting. A hand-port of the kubernetes-mixin multi-cluster board onto signals, so the numbers match what the mixin computes.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "kube-multicluster/00-overview.webp"
+    },
+    {
+     "title": "Clusters",
+     "slug": "clusters",
+     "file": "kube-multicluster/01-clusters.webp"
+    },
+    {
+     "title": "Usage by cluster",
+     "slug": "usage-by-cluster",
+     "file": "kube-multicluster/02-usage-by-cluster.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-kube-pod",
+   "title": "Kubernetes pod",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "Runtime signals for every instance matching the selected job.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-kube-pod/00-overview.webp"
+    },
+    {
+     "title": "Pod resources",
+     "slug": "pod-resources",
+     "file": "observ-viz-kube-pod/01-pod-resources.webp"
+    },
+    {
+     "title": "Pod disk IO",
+     "slug": "pod-disk-io",
+     "file": "observ-viz-kube-pod/02-pod-disk-io.webp"
+    },
+    {
+     "title": "Pod health",
+     "slug": "pod-health",
+     "file": "observ-viz-kube-pod/03-pod-health.webp"
+    },
+    {
+     "title": "Workloads",
+     "slug": "workloads",
+     "file": "observ-viz-kube-pod/04-workloads.webp"
+    },
+    {
+     "title": "Jobs & storage",
+     "slug": "jobs-storage",
+     "file": "observ-viz-kube-pod/05-jobs-storage.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-kube-pod/06-alerts.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-kube-pod/07-logs.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-cert-manager",
+   "title": "cert-manager",
+   "folder": "Kubernetes",
+   "folderPath": [
+    "Platform",
+    "Kubernetes"
+   ],
+   "description": "cert-manager from its controller metrics: certificate readiness and expiry, ClusterIssuer readiness, ACME client requests and controller sync.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-cert-manager/00-overview.webp"
+    },
+    {
+     "title": "Certificates",
+     "slug": "certificates",
+     "file": "observ-viz-cert-manager/01-certificates.webp"
+    },
+    {
+     "title": "Expiry",
+     "slug": "expiry",
+     "file": "observ-viz-cert-manager/02-expiry.webp"
+    },
+    {
+     "title": "Controller & ACME",
+     "slug": "controller-acme",
+     "file": "observ-viz-cert-manager/03-controller-acme.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-alertList",
+   "title": "Alert list",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Alert list",
+     "slug": "board",
+     "file": "observ-viz-panel-alertList/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-annotationsList",
+   "title": "Annotations list",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Annotations list",
+     "slug": "board",
+     "file": "observ-viz-panel-annotationsList/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-barChart",
+   "title": "Bar chart",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Bar chart",
+     "slug": "board",
+     "file": "observ-viz-panel-barChart/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-barGauge",
+   "title": "Bar gauge",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Bar gauge",
+     "slug": "board",
+     "file": "observ-viz-panel-barGauge/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-candlestick",
+   "title": "Candlestick",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Candlestick",
+     "slug": "board",
+     "file": "observ-viz-panel-candlestick/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-canvas",
+   "title": "Canvas",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Canvas",
+     "slug": "board",
+     "file": "observ-viz-panel-canvas/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-dashList",
+   "title": "Dashboard list",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Dashboard list",
+     "slug": "board",
+     "file": "observ-viz-panel-dashList/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-flameGraph",
+   "title": "Flame graph",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Flame graph",
+     "slug": "board",
+     "file": "observ-viz-panel-flameGraph/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-gauge",
+   "title": "Gauge",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Gauge",
+     "slug": "board",
+     "file": "observ-viz-panel-gauge/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-geomap",
+   "title": "Geomap",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Geomap",
+     "slug": "board",
+     "file": "observ-viz-panel-geomap/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-heatmap",
+   "title": "Heatmap",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Heatmap",
+     "slug": "board",
+     "file": "observ-viz-panel-heatmap/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-histogram",
+   "title": "Histogram",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Histogram",
+     "slug": "board",
+     "file": "observ-viz-panel-histogram/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-logs",
+   "title": "Logs",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Logs",
+     "slug": "board",
+     "file": "observ-viz-panel-logs/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-news",
+   "title": "News",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "News",
+     "slug": "board",
+     "file": "observ-viz-panel-news/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-nodeGraph",
+   "title": "Node graph",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Node graph",
+     "slug": "board",
+     "file": "observ-viz-panel-nodeGraph/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-pieChart",
+   "title": "Pie chart",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Pie chart",
+     "slug": "board",
+     "file": "observ-viz-panel-pieChart/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-stat",
+   "title": "Stat",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Stat",
+     "slug": "board",
+     "file": "observ-viz-panel-stat/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-stateTimeline",
+   "title": "State timeline",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "State timeline",
+     "slug": "board",
+     "file": "observ-viz-panel-stateTimeline/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-statusHistory",
+   "title": "Status history",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Status history",
+     "slug": "board",
+     "file": "observ-viz-panel-statusHistory/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-table",
+   "title": "Table",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Table",
+     "slug": "board",
+     "file": "observ-viz-panel-table/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-text",
+   "title": "Text",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Text",
+     "slug": "board",
+     "file": "observ-viz-panel-text/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-timeSeries",
+   "title": "Time series",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Time series",
+     "slug": "board",
+     "file": "observ-viz-panel-timeSeries/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-traces",
+   "title": "Traces",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Traces",
+     "slug": "board",
+     "file": "observ-viz-panel-traces/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-trend",
+   "title": "Trend",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Trend",
+     "slug": "board",
+     "file": "observ-viz-panel-trend/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-panel-xyChart",
+   "title": "XY chart",
+   "folder": "Panels",
+   "folderPath": [
+    "Reference",
+    "Panels"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "XY chart",
+     "slug": "board",
+     "file": "observ-viz-panel-xyChart/00-board.webp"
+    }
+   ]
+  },
+  {
+   "uid": "cluster-detail",
+   "title": "Base cluster",
+   "folder": "Platform",
+   "folderPath": [
+    "Platform"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Compute",
+     "slug": "compute",
+     "file": "cluster-detail/00-compute.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "cluster-detail/01-network.webp"
+    },
+    {
+     "title": "Storage",
+     "slug": "storage",
+     "file": "cluster-detail/02-storage.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "cluster-detail/03-alerts.webp"
+    },
+    {
+     "title": "Applications",
+     "slug": "applications",
+     "file": "cluster-detail/04-applications.webp"
+    }
+   ]
+  },
+  {
+   "uid": "base-cluster",
+   "title": "Base clusters",
+   "folder": "Platform",
+   "folderPath": [
+    "Platform"
+   ],
+   "description": "",
+   "tabs": [
+    {
+     "title": "Servers",
+     "slug": "servers",
+     "file": "base-cluster/00-servers.webp"
+    },
+    {
+     "title": "Workload",
+     "slug": "workload",
+     "file": "base-cluster/01-workload.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-django",
+   "title": "RED / Django",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over django. django-prometheus: responses by status, latency by view and method.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-django/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-django/01-red.webp"
+    },
+    {
+     "title": "Per view",
+     "slug": "per-view",
+     "file": "observ-viz-red-django/02-per-view.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-grafana",
+   "title": "RED / Grafana",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over grafana. Grafana's own HTTP handlers.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-grafana/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-grafana/01-red.webp"
+    },
+    {
+     "title": "Per handler",
+     "slug": "per-handler",
+     "file": "observ-viz-red-grafana/02-per-handler.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-otel-http",
+   "title": "RED / HTTP server (OpenTelemetry)",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over http server (opentelemetry). OpenTelemetry HTTP server semantic conventions: one histogram per request, split by route and status code.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-otel-http/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-otel-http/01-red.webp"
+    },
+    {
+     "title": "Per http_route",
+     "slug": "per-http-route",
+     "file": "observ-viz-red-otel-http/02-per-http-route.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-prometheus-client",
+   "title": "RED / HTTP server (Prometheus client)",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over http server (prometheus client). The `http_requests_total` / `http_request_duration_seconds` pair the Prometheus client libraries expose.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-prometheus-client/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-prometheus-client/01-red.webp"
+    },
+    {
+     "title": "Per handler",
+     "slug": "per-handler",
+     "file": "observ-viz-red-prometheus-client/02-per-handler.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-ingress-nginx",
+   "title": "RED / Ingress NGINX",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over ingress nginx. Every request the cluster ingress terminates, as the controller counts them.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-ingress-nginx/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-ingress-nginx/01-red.webp"
+    },
+    {
+     "title": "Per ingress",
+     "slug": "per-ingress",
+     "file": "observ-viz-red-ingress-nginx/02-per-ingress.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-kong",
+   "title": "RED / Kong",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over kong. Every request the Kong gateway proxied, as its Prometheus plugin counts them. Point it at http_server_request_duration_seconds_* instead for a Kong exporting OpenTelemetry.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-kong/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-kong/01-red.webp"
+    },
+    {
+     "title": "Per service",
+     "slug": "per-service",
+     "file": "observ-viz-red-kong/02-per-service.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-apiserver",
+   "title": "RED / Kubernetes API server",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over kubernetes api server. Every call to the API server, by resource and verb.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-apiserver/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-apiserver/01-red.webp"
+    },
+    {
+     "title": "Per resource",
+     "slug": "per-resource",
+     "file": "observ-viz-red-apiserver/02-per-resource.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-red-service-graph",
+   "title": "RED / Service graph (from traces)",
+   "folder": "RED",
+   "folderPath": [
+    "Analysis",
+    "RED"
+   ],
+   "description": "The RED method over service graph (from traces). Tempo's metrics-generator, counting every edge between two traced services.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-red-service-graph/00-overview.webp"
+    },
+    {
+     "title": "RED",
+     "slug": "red",
+     "file": "observ-viz-red-service-graph/01-red.webp"
+    },
+    {
+     "title": "Per client",
+     "slug": "per-client",
+     "file": "observ-viz-red-service-graph/02-per-client.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-dotnet",
+   "title": ".NET",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "The .NET runtime as exposed by prometheus-net: managed heap, thread pool, exceptions and JIT activity.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-dotnet/00-overview.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "observ-viz-lang-dotnet/01-garbage-collection.webp"
+    },
+    {
+     "title": "Threads",
+     "slug": "threads",
+     "file": "observ-viz-lang-dotnet/02-threads.webp"
+    },
+    {
+     "title": "Exceptions",
+     "slug": "exceptions",
+     "file": "observ-viz-lang-dotnet/03-exceptions.webp"
+    },
+    {
+     "title": "JIT",
+     "slug": "jit",
+     "file": "observ-viz-lang-dotnet/04-jit.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-framework-django",
+   "title": "Django",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "A Django application as django-prometheus reports it: requests by view and method, responses by status, latency measured inside and around the middleware stack, and exceptions by view and type.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-framework-django/00-overview.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-framework-django/01-requests.webp"
+    },
+    {
+     "title": "Exceptions and payloads",
+     "slug": "exceptions-and-payloads",
+     "file": "observ-viz-framework-django/02-exceptions-and-payloads.webp"
+    },
+    {
+     "title": "Python runtime",
+     "slug": "python-runtime",
+     "file": "observ-viz-framework-django/03-python-runtime.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-golang",
+   "title": "Go",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "The Go runtime as exposed by `client_golang`: goroutines, threads, heap, stack and garbage collection, plus the shared `process_*` metrics.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-golang/00-overview.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-lang-golang/01-go-runtime.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-lang-golang/02-memory.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "observ-viz-lang-golang/03-garbage-collection.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-jvm",
+   "title": "JVM",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "JVM memory pools, threads, loaded classes and garbage collection, as exposed by Micrometer or the JMX exporter.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-jvm/00-overview.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-lang-jvm/01-memory.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "observ-viz-lang-jvm/02-garbage-collection.webp"
+    },
+    {
+     "title": "Threads",
+     "slug": "threads",
+     "file": "observ-viz-lang-jvm/03-threads.webp"
+    },
+    {
+     "title": "Classes",
+     "slug": "classes",
+     "file": "observ-viz-lang-jvm/04-classes.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-nodejs",
+   "title": "Node.js",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "The Node.js event loop, V8 heap and handle/request counts, as exposed by `prom-client` default metrics.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-nodejs/00-overview.webp"
+    },
+    {
+     "title": "Event loop",
+     "slug": "event-loop",
+     "file": "observ-viz-lang-nodejs/01-event-loop.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-lang-nodejs/02-memory.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "observ-viz-lang-nodejs/03-garbage-collection.webp"
+    },
+    {
+     "title": "Handles",
+     "slug": "handles",
+     "file": "observ-viz-lang-nodejs/04-handles.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-python",
+   "title": "Python",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "CPython garbage collection plus the process metrics exposed by `prometheus_client` default collectors.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-python/00-overview.webp"
+    },
+    {
+     "title": "Garbage collection",
+     "slug": "garbage-collection",
+     "file": "observ-viz-lang-python/01-garbage-collection.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-lang-python/02-process.webp"
+    },
+    {
+     "title": "File descriptors",
+     "slug": "file-descriptors",
+     "file": "observ-viz-lang-python/03-file-descriptors.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-framework-rails",
+   "title": "Rails",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "A Rails application as yabeda-rails reports it: requests by controller action and status, request duration percentiles, and the split of that time between the database, view rendering and outbound service calls.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-framework-rails/00-overview.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-framework-rails/01-requests.webp"
+    },
+    {
+     "title": "Where the time goes",
+     "slug": "where-the-time-goes",
+     "file": "observ-viz-framework-rails/02-where-the-time-goes.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-lang-rust",
+   "title": "Rust",
+   "folder": "Runtimes",
+   "folderPath": [
+    "Reference",
+    "Runtimes"
+   ],
+   "description": "The Tokio runtime as exposed by the `tokio-metrics` crate: the worker threads, what they are busy with, and the queues behind them. Rust has no runtime of its own to measure, so this is the async executor most services run on.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-lang-rust/00-overview.webp"
+    },
+    {
+     "title": "Tokio runtime",
+     "slug": "tokio-runtime",
+     "file": "observ-viz-lang-rust/01-tokio-runtime.webp"
+    },
+    {
+     "title": "Scheduling",
+     "slug": "scheduling",
+     "file": "observ-viz-lang-rust/02-scheduling.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-loki",
+   "title": "Loki",
+   "folder": "Storage",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Storage"
+   ],
+   "description": "Loki as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-loki/00-overview.webp"
+    },
+    {
+     "title": "Writes",
+     "slug": "writes",
+     "file": "observ-viz-svc-loki/01-writes.webp"
+    },
+    {
+     "title": "Reads",
+     "slug": "reads",
+     "file": "observ-viz-svc-loki/02-reads.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-loki/03-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-loki/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-loki/05-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-loki/06-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-loki/07-go-runtime.webp"
+    },
+    {
+     "title": "Ingress",
+     "slug": "ingress",
+     "file": "observ-viz-svc-loki/08-ingress.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-loki/09-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-loki/10-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-loki/11-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-mimir",
+   "title": "Mimir",
+   "folder": "Storage",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Storage"
+   ],
+   "description": "Mimir as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-mimir/00-overview.webp"
+    },
+    {
+     "title": "Writes",
+     "slug": "writes",
+     "file": "observ-viz-svc-mimir/01-writes.webp"
+    },
+    {
+     "title": "Reads",
+     "slug": "reads",
+     "file": "observ-viz-svc-mimir/02-reads.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-mimir/03-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-mimir/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-mimir/05-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-mimir/06-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-mimir/07-go-runtime.webp"
+    },
+    {
+     "title": "Ingress",
+     "slug": "ingress",
+     "file": "observ-viz-svc-mimir/08-ingress.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-mimir/09-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-mimir/10-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-mimir/11-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-pyroscope",
+   "title": "Pyroscope",
+   "folder": "Storage",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Storage"
+   ],
+   "description": "Pyroscope as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-pyroscope/00-overview.webp"
+    },
+    {
+     "title": "Ingest",
+     "slug": "ingest",
+     "file": "observ-viz-svc-pyroscope/01-ingest.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-svc-pyroscope/02-requests.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-pyroscope/03-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-pyroscope/04-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-pyroscope/05-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-pyroscope/06-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-pyroscope/07-go-runtime.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-pyroscope/08-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-pyroscope/09-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-pyroscope/10-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-svc-tempo",
+   "title": "Tempo",
+   "folder": "Storage",
+   "folderPath": [
+    "Platform",
+    "Monitoring",
+    "Storage"
+   ],
+   "description": "Tempo as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-svc-tempo/00-overview.webp"
+    },
+    {
+     "title": "Ingest",
+     "slug": "ingest",
+     "file": "observ-viz-svc-tempo/01-ingest.webp"
+    },
+    {
+     "title": "Storage",
+     "slug": "storage",
+     "file": "observ-viz-svc-tempo/02-storage.webp"
+    },
+    {
+     "title": "Requests",
+     "slug": "requests",
+     "file": "observ-viz-svc-tempo/03-requests.webp"
+    },
+    {
+     "title": "Resources",
+     "slug": "resources",
+     "file": "observ-viz-svc-tempo/04-resources.webp"
+    },
+    {
+     "title": "Kubernetes",
+     "slug": "kubernetes",
+     "file": "observ-viz-svc-tempo/05-kubernetes.webp"
+    },
+    {
+     "title": "Containers",
+     "slug": "containers",
+     "file": "observ-viz-svc-tempo/06-containers.webp"
+    },
+    {
+     "title": "Process",
+     "slug": "process",
+     "file": "observ-viz-svc-tempo/07-process.webp"
+    },
+    {
+     "title": "Go runtime",
+     "slug": "go-runtime",
+     "file": "observ-viz-svc-tempo/08-go-runtime.webp"
+    },
+    {
+     "title": "Logs",
+     "slug": "logs",
+     "file": "observ-viz-svc-tempo/09-logs.webp"
+    },
+    {
+     "title": "Component",
+     "slug": "component",
+     "file": "observ-viz-svc-tempo/10-component.webp"
+    },
+    {
+     "title": "Alerts",
+     "slug": "alerts",
+     "file": "observ-viz-svc-tempo/11-alerts.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-use-container",
+   "title": "USE / Containers (cAdvisor)",
+   "folder": "USE",
+   "folderPath": [
+    "Analysis",
+    "USE"
+   ],
+   "description": "The USE method over containers (cadvisor). The same four resources per container, read from cAdvisor; saturation is what the cgroup throttled or reclaimed.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-use-container/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "observ-viz-use-container/01-cpu.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "observ-viz-use-container/02-disk.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-use-container/03-memory.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "observ-viz-use-container/04-network.webp"
+    }
+   ]
+  },
+  {
+   "uid": "observ-viz-use-node",
+   "title": "USE / Nodes (node_exporter)",
+   "folder": "USE",
+   "folderPath": [
+    "Analysis",
+    "USE"
+   ],
+   "description": "The USE method over nodes (node_exporter). Brendan Gregg's USE method over node_exporter: for every resource, how busy it is, how much work is queued, and what is failing.",
+   "tabs": [
+    {
+     "title": "Overview",
+     "slug": "overview",
+     "file": "observ-viz-use-node/00-overview.webp"
+    },
+    {
+     "title": "CPU",
+     "slug": "cpu",
+     "file": "observ-viz-use-node/01-cpu.webp"
+    },
+    {
+     "title": "Disk",
+     "slug": "disk",
+     "file": "observ-viz-use-node/02-disk.webp"
+    },
+    {
+     "title": "Memory",
+     "slug": "memory",
+     "file": "observ-viz-use-node/03-memory.webp"
+    },
+    {
+     "title": "Network",
+     "slug": "network",
+     "file": "observ-viz-use-node/04-network.webp"
+    }
+   ]
+  }
+ ]
+}
