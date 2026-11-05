@@ -102,7 +102,8 @@ local resolve(config) =
       timeLeft: sig('Time left', e.timeLeft, 's',
                     'How long until it reaches zero at the rate of the last ' + cfg.learn + '. Empty where it is not shrinking.'),
       predicted: sig('Predicted in ' + cfg.ahead, e.predicted, src.unit,
-                     'What the same trend leaves in ' + cfg.ahead + '. Below zero is the alert.'),
+                     'What the same trend leaves in ' + cfg.ahead + '. Below zero is the alert.')
+                 .withLegendFormat(legend + ' in ' + cfg.ahead),
     },
 
   utilisationSignals(config={})::
@@ -116,7 +117,8 @@ local resolve(config) =
     {
       now: sig('Utilisation', u.now, 'percentunit', 'How full it is right now.'),
       before: sig('Utilisation ' + cfg.past + ' ago', u.before, 'percentunit', 'What it was ' + cfg.past + ' ago, so the current number reads as a trend rather than a snapshot.'),
-      soon: sig('Utilisation in ' + cfg.ahead, u.soon, 'percentunit', 'Where the line from ' + cfg.past + ' ago through now puts it in ' + cfg.ahead + '. Blank where there is no history that far back.'),
+      soon: sig('Utilisation in ' + cfg.ahead, u.soon, 'percentunit', 'Where the line from ' + cfg.past + ' ago through now puts it in ' + cfg.ahead + '. Blank where there is no history that far back.')
+            .withLegendFormat(legend + ' in ' + cfg.ahead),
       total: sig(src.totalTitle, u.total, src.totalUnit, 'What there is to use.'),
     },
 

@@ -25,6 +25,9 @@ Four more mistakes that render, review and deploy fine, and only show on the boa
   variable but the job, hidden ones too: `up` lists only what has a scrape target,
   so the rest go missing with no sign of it (35 of 57 namespaces on one fleet), and
   the pods of every job of the fleet, so the board opens on all of them.
+
+And on an analysis board, two lines of a chart with one legend: a value and its
+forecast, say, with nothing to tell them apart.
 """
 import json
 import os
@@ -106,6 +109,19 @@ def up_variables(name, spec):
     return sorted(labels)
 
 
+def shared_legends(spec):
+    """The charts of a board where two queries carry one legend."""
+    titles = []
+    for element in spec.get("elements", {}).values():
+        panel = element.get("spec", {})
+        if panel.get("vizConfig", {}).get("group") == "timeseries":
+            legends = [q.get("spec", {}).get("query", {}).get("spec", {}).get("legendFormat")
+                       for q in panel.get("data", {}).get("spec", {}).get("queries", [])]
+            if len(legends) != len(set(legends)):
+                titles.append(panel.get("title", "?"))
+    return titles
+
+
 def declared(spec):
     return {v["spec"]["name"] for v in spec.get("variables", []) if "name" in v.get("spec", {})}
 
@@ -131,6 +147,10 @@ def main():
         if asks_up:
             fails += 1
             print("  FAIL %s: asks `up` for %s; name the series with varMetric" % (name, ", ".join(asks_up)))
+        shared = shared_legends(spec) if name.startswith("ref:analysis-") else []
+        if shared:
+            fails += 1
+            print("  FAIL %s: lines with one legend in %s" % (name, ", ".join(sorted(shared))))
     print("\n%d boards checked, %d with undeclared variable references or bad queries" % (checked, fails))
     sys.exit(1 if fails else 0)
 
