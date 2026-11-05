@@ -21,9 +21,10 @@ Four more mistakes that render, review and deploy fine, and only show on the boa
 - a filter variable asking `up` for a label it cannot have. `up` carries a scrape
   target's labels and no others, so the variable comes out empty, `label=~""`
   matches nothing and the board says No data. Name the series with `varMetric`.
-  An analysis board reads someone else's metrics, so there it goes for every filter
-  but the job: `up` lists only what has a scrape target, and the rest go missing
-  with no sign of it (35 of 57 namespaces on one fleet).
+  An analysis board reads someone else's metrics, so there it goes for every
+  variable but the job, hidden ones too: `up` lists only what has a scrape target,
+  so the rest go missing with no sign of it (35 of 57 namespaces on one fleet), and
+  the pods of every job of the fleet, so the board opens on all of them.
 """
 import json
 import os
@@ -93,14 +94,12 @@ def query_defects(spec):
 
 
 def up_variables(name, spec):
-    """The labels a board's filter variables ask `up` for and should not."""
+    """The labels a board's variables ask `up` for and should not."""
     allowed = {"job"} if name.startswith("ref:analysis-") else TARGET_LABELS
     labels = set()
     for variable in spec.get("variables", []):
-        var = variable.get("spec", {})
-        query = var.get("query")
-        # the hidden ones gate the pod rows, and name no filter
-        if isinstance(query, dict) and var.get("hide") != "hideVariable":
+        query = variable.get("spec", {}).get("query")
+        if isinstance(query, dict):
             found = UP_VARIABLE.search(query.get("spec", {}).get("query") or "")
             if found and found.group(1) not in allowed:
                 labels.add(found.group(1))

@@ -86,11 +86,13 @@
   },
 
   // An anomaly source is just a set of series to watch; the method compares
-  // each with its own past, so anything with a number works.
+  // each with its own past, so anything with a number works. `varMetric` is the
+  // series its job filter lists from.
   anomaly: {
     process: {
       title: 'Process',
       service: 'process',
+      varMetric: 'process_cpu_seconds_total',
       description: 'The three numbers every Prometheus client exposes, whatever the service is written in.',
       series: [
         { key: 'cpu', title: 'CPU', unit: 'short', expr: 'sum by (instance) (rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval]))' },
@@ -101,6 +103,8 @@
     requests: {
       title: 'Requests',
       service: 'requests',
+      // no `varMetric`: the counter and the histogram do not always come from the
+      // same jobs, so naming one would empty the panels of the other
       description: 'Rate, failures and latency of a request-driven service, each against its own past - the RED numbers, watched for a change of shape rather than a threshold.',
       series: [
         { key: 'rate', title: 'Request rate', unit: 'reqps', expr: 'sum(rate(http_requests_total{%(queriesSelector)s}[$__rate_interval]))' },
@@ -424,6 +428,7 @@
   use: {
     node: {
       title: 'Nodes (node_exporter)',
+      varMetric: 'node_cpu_seconds_total',
       groupBy: ['instance'],
       description: "Brendan Gregg's USE method over node_exporter: for every resource, how busy it is, how much work is queued, and what is failing.",
       resources: {
@@ -448,6 +453,7 @@
     },
     container: {
       title: 'Containers (cAdvisor)',
+      varMetric: 'container_cpu_usage_seconds_total',
       groupBy: ['namespace', 'pod'],
       description: 'The same four resources per container, read from cAdvisor; saturation is what the cgroup throttled or reclaimed.',
       resources: {

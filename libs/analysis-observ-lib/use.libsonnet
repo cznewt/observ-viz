@@ -20,6 +20,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       legendLabels: [],
       tabbed: true,
       source: sources.use.node,
+      // the rows here are machines and containers, not the pods behind a job
+      overviewPods: false,
     } + config;
     local src = cfg.source;
     local by = std.join(', ', src.groupBy);
@@ -56,6 +58,8 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         { title: 'node-mixin USE boards', url: 'https://github.com/prometheus/node_exporter/tree/master/docs/node-mixin', description: 'the node_exporter boards this generalises' },
       ],
       rowLabels: src.groupBy,
+      // the job filter lists what this source's own series carry
+      [if !std.objectHas(config, 'varMetric') && std.objectHas(src, 'varMetric') then 'varMetric']: src.varMetric,
       overviewSignals: [key(res, 'utilisation') for res in std.objectFields(src.resources)],
     }, signals, [
       {
