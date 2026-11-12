@@ -69,10 +69,13 @@ local exprs(cfg, sel, rate) = {
   local by = std.join(', ', src.groupBy),
   local inSel(extra='') = '{' + sel + extra + '}',
   total: 'sum by (' + by + ') (rate(' + src.counter + inSel() + '[' + rate + ']))',
+  // a route with no failure has no error series at all; `or 0 * total` reads
+  // it as 0, else success (total - errors) and the ratio would be empty too
   errors:
-    if std.objectHas(src, 'errorCounter')
-    then 'sum by (' + by + ') (rate(' + src.errorCounter + inSel() + '[' + rate + ']))'
-    else 'sum by (' + by + ') (rate(' + src.counter + inSel(', ' + src.errorSelector) + '[' + rate + ']))',
+    '(' + (if std.objectHas(src, 'errorCounter')
+           then 'sum by (' + by + ') (rate(' + src.errorCounter + inSel() + '[' + rate + ']))'
+           else 'sum by (' + by + ') (rate(' + src.counter + inSel(', ' + src.errorSelector) + '[' + rate + ']))')
+    + ' or 0 * ' + self.total + ')',
   success: '(' + self.total + ') - (' + self.errors + ')',
   // clamp_min so a route with no traffic reads 0, not NaN
   errorRatio: '(' + self.errors + ') / clamp_min(' + self.total + ', 1e-9)',
