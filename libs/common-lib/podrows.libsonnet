@@ -25,6 +25,12 @@ local dashed(regex) = panel.withOverrides([{
     { id: 'custom.fillOpacity', value: 0 },
   ],
 }]);
+// the matching series drawn below zero, a mirror of the rest: in above the
+// axis, out below it, one colour per pod
+local mirrored(regex) = panel.withOverrides([{
+  matcher: { id: 'byRegexp', options: regex },
+  properties: [{ id: 'custom.transform', value: 'negative-Y' }],
+}]);
 local logLevelColors = { critical: 'dark-red', fatal: 'dark-red', 'error': 'red', warn: 'orange', info: 'green', debug: 'blue', unknown: 'text' };
 
 {
@@ -121,7 +127,7 @@ local logLevelColors = { critical: 'dark-red', fatal: 'dark-red', 'error': 'red'
                     + dashed('/ (requests|limits)$/'),
          ovr13_net: s.netRx.asTimeSeries('Network: received / transmitted')
                     + panel.withTargetsMixin([s.netTx.asTarget()])
-                    + dashed('/ transmitted$/'),
+                    + mirrored('/ transmitted$/'),
          ovr14_disk: s.diskRead.asTimeSeries('Disk: read / write')
                      + panel.withTargetsMixin([s.diskWrite.asTarget()])
                      + dashed('/ write$/'),
