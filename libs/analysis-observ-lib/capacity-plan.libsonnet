@@ -14,7 +14,7 @@
 //
 // Future is deliberately not predict_linear. A regression over sparse data is
 // wild: one node with 8 hours of data in 30 days read 3210 percent. The line needs
-// a past window to exist, so a row without history leaves the cell blank rather
+// a past window to exist, so a row without history shows a dash rather
 // than inventing a number, it can be checked by eye, and it compares like with
 // like whichever aggregation is chosen.
 //
@@ -87,7 +87,9 @@ local instant(target) = target { spec+: { query+: { spec+: { instant: true, rang
   moments(u):: {
     local windowed = '${aggregation}_over_time((' + u + ')[${interval}s:1h]',
     now: windowed + ')',
-    past: windowed + ' offset ${past}s)',
+    // NaN where the data does not reach `past` back: a query with no series at
+    // all leaves the table's merge with nothing but its own empty column
+    past: '(' + windowed + ' offset ${past}s) or ' + self.now + ' * NaN)',
     line: self.now + ' + (' + self.now + ' - ' + self.past + ') * ${future} / ${past}',
   },
 
@@ -217,10 +219,12 @@ local instant(target) = target { spec+: { query+: { spec+: { instant: true, rang
       if std.length(linksFor(l)) > 0 || std.objectHas(labelWidths, l)
     ];
     local amounts = if src.kind == 'quota' then amount(res.unit, res.decimals) else amount(res.totalUnit, 0);
+    // NaN is no history: Past and Future show a dash
+    local noHistory = [{ id: 'mappings', value: [{ type: 'special', options: { match: 'nan', result: { text: '-', index: 0 } } }] }];
     local columnOverrides = {
-      past: (if src.kind == 'quota' then amounts else bandCell(text)) + [{ id: 'displayName', value: 'Past (${past:text} ago)' }],
+      past: (if src.kind == 'quota' then amounts else bandCell(text)) + noHistory + [{ id: 'displayName', value: 'Past (${past:text} ago)' }],
       now: if src.kind == 'quota' then amounts else bandCell(gauge),
-      future: (if src.kind == 'quota' then amounts else bandCell(text)) + [{ id: 'displayName', value: 'Future (in ${future:text})' }],
+      future: (if src.kind == 'quota' then amounts else bandCell(text)) + noHistory + [{ id: 'displayName', value: 'Future (in ${future:text})' }],
       total: amounts,
       request: amounts,
       limit: amounts,
@@ -229,7 +233,7 @@ local instant(target) = target { spec+: { query+: { spec+: { instant: true, rang
     };
     panel.table.new(res.title + ' by ' + std.asciiLower(src.labels[src.by[std.length(src.by) - 1]]) + ', ${aggregation} over ${interval:text}')
     + panel.table.withDescription(
-      'Now is the chosen aggregation of the hourly value over the chosen interval, and Past is the same, `past` ago. Future is the straight line through the two, carried `future` ahead. Past is blank where the data does not reach that far back, and Future is blank with it.'
+      'Now is the chosen aggregation of the hourly value over the chosen interval, and Past is the same, `past` ago. Future is the straight line through the two, carried `future` ahead. Past shows a dash where the data does not reach that far back, and Future with it.'
     )
     + panel.table.withTargets([sigs[res.key + '_' + c[0]].asTableTarget() for c in cols])
     + panel.table.withTransformations([
