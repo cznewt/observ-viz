@@ -117,10 +117,11 @@ one). Capacity answers two questions, chosen by the source's `kind`. An
 trailing `> 0`, a filter rather than a comparison, so a quantity that is flat or
 growing drops out instead of reading as infinite. A `utilisation` source is used
 against total, and the board says how full it is, how full it was `past` ago and
-where the trend puts it in `ahead` - the capacity planning question, ported from
-the service catalog's capacity-mixin. That mixin's future column repeated the
-present rather than predicting it; here it is a `predict_linear` over the same
-window the alert uses.
+where the line through the two puts it in `ahead` - the capacity planning
+question, ported from the service catalog's capacity-mixin. That mixin's future
+column repeated the present rather than predicting it. Here it is a straight line,
+blank where there is no past to draw it from, and the alert reads the same
+expression: over the band, unless the line takes it back under.
 
 Capacity plan is the same conversation for the whole fleet at one moment: one
 table of clusters, nodes or applications per resource, under three counts of how
