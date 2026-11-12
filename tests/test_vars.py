@@ -21,9 +21,13 @@ Four more mistakes that render, review and deploy fine, and only show on the boa
 - a filter variable asking `up` for a label it cannot have. `up` carries a scrape
   target's labels and no others, so the variable comes out empty, `label=~""`
   matches nothing and the board says No data. Name the series with `varMetric`.
-  An analysis board reads someone else's metrics, so there it goes for every filter
-  but the job: `up` lists only what has a scrape target, and the rest go missing
-  with no sign of it (35 of 57 namespaces on one fleet).
+  An analysis board reads someone else's metrics, so there it goes for every
+  variable but the job, hidden ones too: `up` lists only what has a scrape target,
+  so the rest go missing with no sign of it (35 of 57 namespaces on one fleet), and
+  the pods of every job of the fleet, so the board opens on all of them.
+
+And on an analysis board, two lines of a chart with one legend: a value and its
+forecast, say, with nothing to tell them apart.
 """
 import json
 import os
@@ -93,18 +97,29 @@ def query_defects(spec):
 
 
 def up_variables(name, spec):
-    """The labels a board's filter variables ask `up` for and should not."""
+    """The labels a board's variables ask `up` for and should not."""
     allowed = {"job"} if name.startswith("ref:analysis-") else TARGET_LABELS
     labels = set()
     for variable in spec.get("variables", []):
-        var = variable.get("spec", {})
-        query = var.get("query")
-        # the hidden ones gate the pod rows, and name no filter
-        if isinstance(query, dict) and var.get("hide") != "hideVariable":
+        query = variable.get("spec", {}).get("query")
+        if isinstance(query, dict):
             found = UP_VARIABLE.search(query.get("spec", {}).get("query") or "")
             if found and found.group(1) not in allowed:
                 labels.add(found.group(1))
     return sorted(labels)
+
+
+def shared_legends(spec):
+    """The charts of a board where two queries carry one legend."""
+    titles = []
+    for element in spec.get("elements", {}).values():
+        panel = element.get("spec", {})
+        if panel.get("vizConfig", {}).get("group") == "timeseries":
+            legends = [q.get("spec", {}).get("query", {}).get("spec", {}).get("legendFormat")
+                       for q in panel.get("data", {}).get("spec", {}).get("queries", [])]
+            if len(legends) != len(set(legends)):
+                titles.append(panel.get("title", "?"))
+    return titles
 
 
 def declared(spec):
@@ -132,6 +147,10 @@ def main():
         if asks_up:
             fails += 1
             print("  FAIL %s: asks `up` for %s; name the series with varMetric" % (name, ", ".join(asks_up)))
+        shared = shared_legends(spec) if name.startswith("ref:analysis-") else []
+        if shared:
+            fails += 1
+            print("  FAIL %s: lines with one legend in %s" % (name, ", ".join(sorted(shared))))
     print("\n%d boards checked, %d with undeclared variable references or bad queries" % (checked, fails))
     sys.exit(1 if fails else 0)
 

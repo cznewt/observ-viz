@@ -30,6 +30,8 @@ local defaults = {
   varLabels: [],
   legendLabels: [],
   tabbed: true,
+  // a board about series against their own past, not the pods behind a job
+  overviewPods: false,
   // the window the baseline is learned from, and how often it is sampled
   baseline: '1d',
   step: '5m',

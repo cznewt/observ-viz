@@ -54,7 +54,7 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
       probeSuccess: sig('Probe success', 'min by (probe, module) (anomaly_probe_success{%(queriesSelector)s})', 'short', '{{probe}} ({{module}})', desc='1 when the probe ran and scored, 0 when it failed. A failing probe is a silent gap in detection.'),
       probeLatency: sig('Probe latency', 'max by (probe, module) (anomaly_probe_duration_seconds{%(queriesSelector)s})', 's', '{{probe}} ({{module}})', desc='How long the module took. Prophet and Holt-Winters are the slow ones; past the module timeout the probe returns nothing.'),
       seriesScored: sig('Series scored', 'sum by (probe) (anomaly_series_scored{%(queriesSelector)s})', 'short', '{{probe}}', desc='Series the detector actually scored.'),
-      seriesSkipped: sig('Series skipped', 'sum by (probe) (anomaly_series_total{%(queriesSelector)s} - anomaly_series_scored{%(queriesSelector)s})', 'short', '{{probe}}', desc='Returned by the query but not scored - usually too few training points in the lookback.'),
+      seriesSkipped: sig('Series skipped', 'sum by (probe) (anomaly_series_total{%(queriesSelector)s} - anomaly_series_scored{%(queriesSelector)s})', 'short', '{{probe}} skipped', desc='Returned by the query but not scored - usually too few training points in the lookback.'),
       cpu: sig('CPU', 'rate(process_cpu_seconds_total{%(queriesSelector)s}[$__rate_interval])', 'short', desc='CPU cores used by the exporter process.'),
       rss: sig('Resident memory', 'process_resident_memory_bytes{%(queriesSelector)s}', 'bytes', desc='Resident memory of the exporter process.'),
     };

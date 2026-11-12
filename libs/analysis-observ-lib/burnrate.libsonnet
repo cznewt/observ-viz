@@ -86,7 +86,7 @@ local resolve(config) =
       for w in windows
     } + (if src.kind == 'budget' then {
            availability: sig('Availability', src.availability + '{%(queriesSelector)s}', 'percentunit', legend, 'The SLI over the SLO window.'),
-           objective: sig('Objective', src.objective + '{%(queriesSelector)s}', 'percentunit', legend, 'What it is supposed to be.'),
+           objective: sig('Objective', src.objective + '{%(queriesSelector)s}', 'percentunit', legend + ' objective', 'What it is supposed to be.'),
            budgetLeft: sig(
              'Error budget left',
              '1 - ((1 - ' + src.availability + '{%(queriesSelector)s}) / clamp_min(1 - ' + src.objective + '{%(queriesSelector)s}, 1e-9))',
