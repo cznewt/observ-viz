@@ -30,7 +30,28 @@ local variable =
     local this = self,
     // the rendered alerting rules carry a runbook_url: the written one, else
     // the alert's page on the docs site (config.runbookBaseUrl, '' for none)
-    local linkedAlerts = runbook.withUrls(alerts, if std.objectHas(config, 'runbookBaseUrl') then config.runbookBaseUrl else runbook.docsBase),
+    local runbookAlerts = runbook.withUrls(alerts, if std.objectHas(config, 'runbookBaseUrl') then config.runbookBaseUrl else runbook.docsBase),
+    // with config.grafanaUrl, every alerting rule without one also carries a
+    // dashboard_url: the pack's board in that Grafana, filtered by each label
+    // the alert has among the board's variables (cluster, namespace, job,
+    // pod, ingress, instance); the ruler fills the labels in when it fires
+    local boardLabels = ['cluster', 'namespace', 'job', 'pod', 'ingress', 'instance'],
+    local linkedAlerts =
+      local base = if std.objectHas(config, 'grafanaUrl') then std.rstripChars(config.grafanaUrl, '/') else '';
+      if base == '' then runbookAlerts else
+        local vars = [v.spec.name for v in std.get(this.grafana.dashboard.spec, 'variables', [])];
+        local url = base + '/d/' + config.uid + '?orgId=1' + std.join('', [
+          '{{ with $labels.' + l + ' }}&var-' + l + '={{ . | urlquery }}{{ end }}'
+          for l in boardLabels
+          if std.member(vars, l)
+        ]);
+        [
+          grp + { rules: [
+            if std.objectHas(r, 'alert') && runbook.ann(r, 'dashboard_url') == '' then r + { annotations+: { dashboard_url: url } } else r
+            for r in grp.rules
+          ] }
+          for grp in runbookAlerts
+        ],
     config: config,
     signals: signals,
 
