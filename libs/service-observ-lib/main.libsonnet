@@ -17,7 +17,10 @@
 //   Go runtime    runtimes.golang elements
 //   Windows       windows_exporter service state + windows_process_*
 //   Ingress       networking.ingressNginx elements for the Ingress objects that
-//                 route to this service
+//                 route to this service (ingress-nginx)
+//   F5 ingress    networking.nginxIngress elements for the same, from the F5
+//                 NGINX Ingress Controller's upstream latency histogram (the
+//                 tab is "Ingress" when ingress.controllers is ['f5'] alone)
 //   Logs          Loki: pod logs + Kubernetes events where it runs in kube, the
 //                 journal where it is a systemd unit (each row on its marker)
 //   Component     Backstage catalog entry through the Infinity datasource
@@ -77,6 +80,7 @@ local rustLib = import 'libs/rust-observ-lib/main.libsonnet';
 local dotnetLib = import 'libs/dotnet-observ-lib/main.libsonnet';
 local podLib = import 'libs/kubernetes-observ-lib/main.libsonnet';
 local ingressLib = import 'libs/ingress-nginx-observ-lib/main.libsonnet';
+local f5Lib = import 'libs/nginx-ingress-observ-lib/main.libsonnet';
 local systemdLib = import 'libs/systemd-observ-lib/main.libsonnet';
 local processLib = import 'libs/process-exporter-observ-lib/main.libsonnet';
 local backstageLib = import 'libs/backstage-observ-lib/main.libsonnet';
@@ -158,8 +162,17 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       description: def('description', cap(app) + ' as a service, wherever it runs: its pods, their resources and logs first, then its own metrics, then only the platform tabs that have data (Kubernetes, containers, Docker, systemd, process, ingress, Windows, logs, the Backstage catalog entry), alerts and Kubernetes event annotations.'),
       // per-platform identity of this service (regexes, PromQL-anchored).
       kubernetes: plat('kubernetes', { enabled: true, workload: app + '.*' }),
-      // ingress-nginx labels its series with the backend Service name.
-      ingress: plat('ingress', { enabled: true, service: app + '.*' }),
+      // ingress-nginx labels its series with the backend Service name, and so
+      // does the F5 controller's latency histogram, which names the Ingress
+      // namespace resource_namespace (f5Selector). controllers: the ingress
+      // controllers to show, 'ingress-nginx' and / or 'f5' (each tab is
+      // presence-gated).
+      ingress: plat('ingress', {
+        enabled: true,
+        service: app + '.*',
+        controllers: ['ingress-nginx', 'f5'],
+        f5Selector: 'cluster=~"$cluster", resource_namespace=~"$namespace"',
+      }),
       // Backstage catalog entry (an Infinity datasource pointed at the Backstage
       // backend). api: 'rest' | 'graphql'; uiUrl adds Backstage/TechDocs links.
       backstage: plat('backstage', { enabled: true, name: app, kind: 'component', namespace: 'default', api: 'rest', backendUrl: '', uiUrl: '' }),
@@ -185,6 +198,10 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     // ----- signal helpers per scope -----
     // ingress-nginx series carry the backend Service name, not the pod.
     local ingressSelector = cfg.workloadSelector + ', service=~"' + cfg.ingress.service + '"';
+    // the F5 histogram too, with the Ingress namespace as resource_namespace
+    local f5IngressSelector = cfg.ingress.f5Selector + ', service=~"' + cfg.ingress.service + '"';
+    local ingNginxOn = cfg.ingress.enabled && std.count(cfg.ingress.controllers, 'ingress-nginx') > 0;
+    local f5On = cfg.ingress.enabled && std.count(cfg.ingress.controllers, 'f5') > 0;
     local ksig(name, expr, unit, legend='{{pod}}', desc='') =
       signal.new(name, 'prometheus', cfg.datasource, expr, unit).filteringSelector(cfg.kubeSelector).withLegendFormat(legend).withDescription(desc);
     local wsig(name, expr, unit, legend, desc='') =
@@ -275,11 +292,13 @@ local stateMappings(m) = [{ type: 'value', options: m }];
     local sysd = systemdLib.units(cfg.datasource, cfg.hostSelector, unit);
     local hproc = processLib.group(cfg.datasource, cfg.hostSelector, grp);
     local ingr = ingressLib.ingress(cfg.datasource, ingressSelector);
+    local f5Ingr = f5Lib.upstream(cfg.datasource, f5IngressSelector, prefix='f5_');
     local bs = backstageLib.component('${backstage_datasource}', cfg.backstage.name, cfg.backstage.kind, cfg.backstage.namespace, cfg.backstage.api, cfg.backstage.backendUrl, cfg.backstage.uiUrl);
     local platformSignals =
       { ['systemd_' + k]: sysd.signals[k] for k in std.objectFields(sysd.signals) }
       + { ['hproc_' + k]: hproc.signals[k] for k in std.objectFields(hproc.signals) }
-      + { ['ing_' + k]: ingr.signals[k] for k in std.objectFields(ingr.signals) };
+      + { ['ing_' + k]: ingr.signals[k] for k in std.objectFields(ingr.signals) }
+      + (if f5On then { ['f5ing_' + k]: f5Ingr.signals[k] for k in std.objectFields(f5Ingr.signals) } else {});
 
     // static per-platform scopes for the merged rules (the dashboard variables
     // do not exist in a ruler). Kube pods are matched by the workload regex.
@@ -298,7 +317,8 @@ local stateMappings(m) = [{ type: 'value', options: m }];
       + (if cfg.docker.enabled then [scoped(dockerLib, scopes.docker)] else [])
       + (if cfg.systemd.enabled then [scoped(systemdLib, scopes.systemd)] else [])
       + (if cfg.process.enabled then [scoped(processLib, scopes.process)] else [])
-      + (if cfg.ingress.enabled then [scoped(ingressLib, scopes.ingress)] else [])
+      + (if ingNginxOn then [scoped(ingressLib, scopes.ingress)] else [])
+      + (if f5On then [scoped(f5Lib, scopes.ingress)] else [])
       // Go rules alert on `up == 0` and friends: only with a static job scope.
       + (if cfg.golang && cfg.ruleSelector != '' then [scoped(golangLib, cfg.ruleSelector)] else []);
     local platformAlerts = if cfg.platformRules then std.flattenArrays([rename(p.alerts) for p in platformPacks]) else [];
@@ -510,12 +530,21 @@ local stateMappings(m) = [{ type: 'value', options: m }];
              } } + charts,
            ],
          }] else [])
-      + (if cfg.ingress.enabled then [{
+      + (if ingNginxOn then [{
            title: 'Ingress',
            presence: { query: 'nginx_ingress_controller_requests{' + ingressSelector + '}', label: 'ingress' },
            groups: [
              { title: 'Overview', elements: ingr.stats } + stats,
              { title: 'Traffic', elements: ingr.charts } + charts,
+           ],
+         }] else [])
+      + (if f5On then [{
+           // two tabs of one title clash: "F5 ingress" next to ingress-nginx's
+           title: if ingNginxOn then 'F5 ingress' else 'Ingress',
+           presence: { query: f5Lib.latencyMetric + '_count{' + f5IngressSelector + '}', label: 'resource_name' },
+           groups: [
+             { title: 'Overview', elements: f5Ingr.stats } + stats,
+             { title: 'Traffic', elements: f5Ingr.charts } + charts,
            ],
          }] else [])
       + (if cfg.logs then [{

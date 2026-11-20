@@ -18,7 +18,7 @@ PACKS = [
     "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter", "monitoring.kubeStateMetrics",
     "collector.alloy",
     "system.linux", "system.docker", "system.windows", "system.systemd", "system.processExporter", "system.windowsService", "system.proxmox",
-    "networking.ingressNginx", "networking.kong", "networking.traefik", "networking.envoy",
+    "networking.ingressNginx", "networking.nginxIngress", "networking.kong", "networking.traefik", "networking.envoy",
     "kubernetes.pod", "kubernetes.cadvisor", "kubernetes.coredns", "kubernetes.certManager",
     "runtimes.golang", "runtimes.jvm", "runtimes.python", "runtimes.dotnet", "runtimes.nodejs", "runtimes.process", "runtimes.rust", "runtimes.php", "runtimes.ruby", "runtimes.beam",
     "services.alloy", "services.k8sMonitoring", "services.grafana", "services.grafanaTest", "services.mimir", "services.loki", "services.tempo", "services.pyroscope", "services.prometheus", "services.redisTest", "services.demoGo", "services.demoPython", "services.demoJvm", "services.backstage", "services.alertmanager", "services.alertHandler", "services.opencost", "services.anomalyExporter", "services.argocd",

@@ -101,10 +101,10 @@ instrumentation with the right shape:
 
 | Method | Profile says | Boards |
 | --- | --- | --- |
-| `analysis.red` | request counter, how failures are marked, latency histogram, the dimension to group by | OpenTelemetry HTTP, Prometheus client, ingress-nginx, Django, Grafana, API server, Tempo service graph |
+| `analysis.red` | request counter, how failures are marked, latency histogram, the dimension to group by | OpenTelemetry HTTP, Prometheus client, ingress-nginx, F5 NGINX Ingress Controller, Django, Grafana, API server, Tempo service graph |
 | `analysis.use` | the four resources and how each is measured | node_exporter, cAdvisor |
 | `analysis.anomaly` | the series to watch | process, requests |
-| `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, container |
+| `analysis.golden` | the four signals and where each comes from | Kubernetes API server, Linux node, ingress-nginx, F5 NGINX Ingress Controller, container |
 | `analysis.burnRate` | recorded burn-rate windows, or an availability and its objective | Kubernetes API server (the `kubernetes.cluster` or kubernetes-mixin burn-rate rules), Pyrra |
 | `analysis.capacity` | one quantity that shrinks, or used against total | filesystems, free node memory, certificates; cluster and node CPU and memory, workload memory |
 | `analysis.capacityPlan` | what a row is, and the resources it is measured in | clusters, nodes, applications |

@@ -58,7 +58,7 @@ LIBS = [
     "monitoring.prometheus", "monitoring.mimir", "monitoring.loki", "monitoring.tempo", "monitoring.pyroscope",
     "monitoring.blackboxExporter", "monitoring.pushgateway", "monitoring.statsdExporter", "monitoring.kubeStateMetrics",
     "collector.alloy",
-    "networking.wireguard", "networking.unifi", "networking.traefik", "networking.envoy",
+    "networking.wireguard", "networking.unifi", "networking.traefik", "networking.envoy", "networking.nginxIngress",
     "webservers.apache",
     "frameworks.django", "frameworks.wagtail", "frameworks.wordpress",
     "services.demoGo", "services.demoPython", "services.demoJvm",
