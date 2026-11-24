@@ -85,7 +85,7 @@ local variable =
     local qvar(name, label, title, query) =
       variable.query.new(name)
       + variable.query.withLabel(title)
-      + variable.query.withLabelValues(label, query)
+      + variable.query.withRangeValues(label, query)
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + allCurrent;

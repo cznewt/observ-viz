@@ -198,7 +198,7 @@ local variable =
     local containerVar =
       variable.query.new('container')
       + variable.query.withLabel('Container')
-      + variable.query.withLabelValues('container', 'kube_pod_container_status_ready{namespace=~"$namespace", container=~"' + cfg.containerMatcher + '"}')
+      + variable.query.withRangeValues('container', 'kube_pod_container_status_ready{namespace=~"$namespace", container=~"' + cfg.containerMatcher + '"}')
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + { spec+: { current: { text: 'All', value: '$__all' } } };

@@ -265,7 +265,7 @@ local stubElements(s) = {
     local qvar(name, title, label, query) =
       variable.query.new(name)
       + variable.query.withLabel(title)
-      + variable.query.withLabelValues(label, query)
+      + variable.query.withRangeValues(label, query)
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       // .* also matches a series without the label (a server outside Kubernetes has no cluster)

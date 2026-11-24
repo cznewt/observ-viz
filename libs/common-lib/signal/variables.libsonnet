@@ -43,7 +43,7 @@ local utils = import './parentUtils.libsonnet';
 
     local queryVar(chainVar, multiInstance, isInstance) =
       var.query.new(chainVar.label)
-      + var.query.withLabelValues(
+      + var.query.withRangeValues(
         chainVar.label,
         varMetricTemplate(varMetric, chainVar.chainSelector),
         datasourceVar=prometheusDatasourceName,
