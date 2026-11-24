@@ -170,6 +170,18 @@ local signal = import 'libs/common-lib/signal/main.libsonnet';
         ownerRule('StatefulSet', 'statefulset'),
         ownerRule('DaemonSet', 'daemonset'),
         ownerRule('Job', 'job'),
+        // static pods (owned by their Node) and bare pods: the pod is its own workload
+        alert.rule.record('namespace_workload_pod:kube_pod_owner:relabel',
+                          'max by (cluster, namespace, workload, pod) (label_replace(kube_pod_owner{owner_kind="Node"' + rsComma + '}, "workload", "$1", "pod", "(.+)"))',
+                          { workload_type: 'staticpod' }),
+        alert.rule.record('namespace_workload_pod:kube_pod_owner:relabel',
+                          'max by (cluster, namespace, workload, pod) (label_replace(kube_pod_owner{owner_kind="", owner_name=""' + rsComma + '}, "workload", "$1", "pod", "(.+)"))',
+                          { workload_type: 'barepod' }),
+        // any other controller (CloudNativePG Cluster, StrimziPodSet, ...): the
+        // owner is the workload, its kind the workload_type
+        alert.rule.record('namespace_workload_pod:kube_pod_owner:relabel',
+                          'max by (cluster, namespace, workload, workload_type, pod) (label_replace(label_replace(kube_pod_owner{owner_kind!~"ReplicaSet|StatefulSet|DaemonSet|Job|Node|"' + rsComma + '}, "workload", "$1", "owner_name", "(.+)"), "workload_type", "$1", "owner_kind", "(.+)"))',
+                          {}),
       ]),
       apiserverBurnrate,
     ];
