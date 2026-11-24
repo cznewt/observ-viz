@@ -577,19 +577,19 @@ local stateMappings(m) = [{ type: 'value', options: m }];
            variable.datasource.new('backstage_datasource', 'yesoreyeram-infinity-datasource') + { spec+: { label: 'Backstage' } },
          ] else []) + [
       variable.query.new('cluster') + variable.query.withLabel('Cluster')
-      + variable.query.withLabelValues('cluster', wbVarMetric + '{job=~"$job"' + scopeSel('cluster') + '}') + multi,
+      + variable.query.withRangeValues('cluster', wbVarMetric + '{job=~"$job"' + scopeSel('cluster') + '}') + multi,
       variable.query.new('namespace') + variable.query.withLabel('Namespace')
-      + variable.query.withLabelValues('namespace', wbVarMetric + '{job=~"$job", cluster=~"$cluster"' + scopeSel('namespace') + '}') + multi,
+      + variable.query.withRangeValues('namespace', wbVarMetric + '{job=~"$job", cluster=~"$cluster"' + scopeSel('namespace') + '}') + multi,
       variable.query.new('pod') + variable.query.withLabel('Pod')
-      + variable.query.withLabelValues('pod', wbVarMetric + '{job=~"$job", cluster=~"$cluster", namespace=~"$namespace"' + scopeSel('pod') + '}') + multi,
+      + variable.query.withRangeValues('pod', wbVarMetric + '{job=~"$job", cluster=~"$cluster", namespace=~"$namespace"' + scopeSel('pod') + '}') + multi,
       // the runtime packs (whitebox and the embedded runtime tabs) add their
       // own instance=~"$instance" filter; without the variable Grafana leaves
       // "$instance" in the query literally and those panels match nothing.
       variable.query.new('instance') + variable.query.withLabel('Instance')
-      + variable.query.withLabelValues('instance', wbVarMetric + '{' + cfg.selector + '}') + multi,
+      + variable.query.withRangeValues('instance', wbVarMetric + '{' + cfg.selector + '}') + multi,
       // hosts where this service is a systemd unit, a windows service or a docker container.
       variable.query.new('host') + variable.query.withLabel('Host')
-      + variable.query.withLabelValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,
+      + variable.query.withRangeValues('instance', '{__name__=~"node_systemd_unit_state|windows_service_state|container_last_seen", name=~"' + hostIdentity + '"}') + multi,
     ];
 
     // ----- the Overview tab: the shared pod rows (podrows.libsonnet: Pods,

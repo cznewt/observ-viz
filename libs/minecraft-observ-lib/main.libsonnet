@@ -84,7 +84,7 @@ local variable =
     local kubeVar(name, label, title, scope) =
       variable.query.new(name)
       + variable.query.withLabel(title)
-      + variable.query.withLabelValues(label, labelSel(scope))
+      + variable.query.withRangeValues(label, labelSel(scope))
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + allCurrent;

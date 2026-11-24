@@ -148,14 +148,14 @@ local dsVar =
 local clusterVar(c, multi=true) =
   variable.query.new('cluster')
   + variable.query.withLabel('Cluster')
-  + variable.query.withLabelValues(c.clusterLabel, c.nodeMetric + selBrace(c))
+  + variable.query.withRangeValues(c.clusterLabel, c.nodeMetric + selBrace(c))
   + (if multi then variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent else {});
 // multi-select node variable (Linux + Windows) — filters every clusterDetail
 // panel and drives the storage-pie grid-item repeat.
 local instanceVar(c) =
   variable.query.new('instance')
   + variable.query.withLabel('Node')
-  + variable.query.withLabelValues(c.nodeLabel, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
+  + variable.query.withRangeValues(c.nodeLabel, '{__name__=~"' + c.nodeMetric + '|' + c.windowsNodeMetric + '", ' + clComma(c) + '}')
   + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
 // hidden node-count variable: resolves to the number of nodes in the current
 // cluster+node selection (query_result + regex extract) — drives the
@@ -710,7 +710,7 @@ local storagePie(c) =
 local namespaceVar(c) =
   variable.query.new('namespace')
   + variable.query.withLabel('Namespace')
-  + variable.query.withLabelValues('namespace', '{__name__=~"kube_pod_info|container_memory_working_set_bytes", namespace!="", ' + clComma(c) + '}')
+  + variable.query.withRangeValues('namespace', '{__name__=~"kube_pod_info|container_memory_working_set_bytes", namespace!="", ' + clComma(c) + '}')
   + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent;
 
 // Applications table (one per repeated namespace row): one line per app x

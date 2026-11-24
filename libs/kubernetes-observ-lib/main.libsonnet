@@ -56,7 +56,7 @@ local variable =
     local podVar =
       variable.query.new('pod')
       + variable.query.withLabel('Pod')
-      + variable.query.withLabelValues('pod', 'kube_pod_info{' + std.join(', ', std.filter(function(p) p != '', ['job=~"$job"', cfg.selector])) + '}')
+      + variable.query.withRangeValues('pod', 'kube_pod_info{' + std.join(', ', std.filter(function(p) p != '', ['job=~"$job"', cfg.selector])) + '}')
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + variable.query.withAllValue('.*')

@@ -86,7 +86,7 @@ local variable =
       extraVariables: [
         variable.query.new('namespace')
         + variable.query.withLabel('Namespace')
-        + variable.query.withLabelValues('namespace', 'kube_pod_container_status_ready{cluster=~"$cluster", container=~"' + cfg.containerMatcher + '"}')
+        + variable.query.withRangeValues('namespace', 'kube_pod_container_status_ready{cluster=~"$cluster", container=~"' + cfg.containerMatcher + '"}')
         + variable.query.withMulti()
         + variable.query.withIncludeAll()
         + allCurrent,

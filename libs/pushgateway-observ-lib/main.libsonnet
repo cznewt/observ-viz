@@ -60,7 +60,7 @@ local variable =
       extraVariables+: [
         variable.query.new('pushed_job')
         + variable.query.withLabel('Pushed job')
-        + variable.query.withLabelValues(cfg0.pushedJobLabel, 'push_time_seconds{cluster=~"$cluster"}')
+        + variable.query.withRangeValues(cfg0.pushedJobLabel, 'push_time_seconds{cluster=~"$cluster"}')
         + variable.query.withMulti()
         + variable.query.withIncludeAll()
         + allCurrent,
