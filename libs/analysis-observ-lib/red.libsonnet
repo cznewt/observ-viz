@@ -80,9 +80,11 @@ local exprs(cfg, sel, rate) = {
   // clamp_min so a route with no traffic reads 0, not NaN
   errorRatio: '(' + self.errors + ') / clamp_min(' + self.total + ', 1e-9)',
   // a source's bucketSelector narrows the latency histogram only (requests
-  // whose duration is a session, not a response, e.g. API server watches)
+  // whose duration is a session, not a response, e.g. API server watches);
+  // bucketUnit 'ms' scales a millisecond histogram to the seconds the panels show
   quantile(q):: 'histogram_quantile(' + q + ', sum by (le, ' + by + ') (rate(' + src.bucket
-                + inSel(if std.objectHas(src, 'bucketSelector') then ', ' + src.bucketSelector else '') + '[' + rate + '])))',
+                + inSel(if std.objectHas(src, 'bucketSelector') then ', ' + src.bucketSelector else '') + '[' + rate + '])))'
+                + (if std.objectHas(src, 'bucketUnit') && src.bucketUnit == 'ms' then ' / 1000' else ''),
 };
 
 {

@@ -32,6 +32,19 @@
       groupBy: ['ingress'],
       description: 'Every request the cluster ingress terminates, as the controller counts them.',
     },
+    // the F5 NGINX Ingress Controller counts requests only in its upstream
+    // latency histogram (controller.enableLatencyMetrics), in milliseconds
+    nginxIngress: {
+      title: 'NGINX Ingress Controller (F5)',
+      counter: 'nginx_ingress_controller_upstream_server_response_latency_ms_count',
+      bucket: 'nginx_ingress_controller_upstream_server_response_latency_ms_bucket',
+      bucketUnit: 'ms',
+      // a WebSocket session (101) lasts as long as the session
+      bucketSelector: 'code!="101"',
+      errorSelector: 'code=~"5.."',
+      groupBy: ['resource_name'],
+      description: 'Every request the F5 controller passed to a backend, from its upstream latency histogram: status codes and latency as the backend answered. Answers nginx gives without a backend are not counted.',
+    },
     kong: {
       title: 'Kong',
       counter: 'kong_http_requests_total',
@@ -191,6 +204,19 @@
         // keeps the job/cluster filter and drops the per-ingress matchers, which
         // would otherwise match nothing.
         saturation: { title: 'Active connections', unit: 'short', scope: 'base', expr: 'sum (nginx_ingress_controller_nginx_process_connections{%(queriesSelector)s, state="active"})' },
+      },
+    },
+    nginxIngress: {
+      title: 'NGINX Ingress Controller (F5)',
+      varMetric: 'nginx_ingress_controller_upstream_server_response_latency_ms_count',
+      groupBy: ['resource_name'],
+      description: 'Traffic, errors and latency from the upstream latency histogram (controller.enableLatencyMetrics), so only requests that reached a backend; WebSocket sessions are left out of the latency. Saturation is the open client connections.',
+      signals: {
+        latency: { title: 'Latency p99', unit: 's', expr: 'histogram_quantile(0.99, sum by (le, resource_name) (rate(nginx_ingress_controller_upstream_server_response_latency_ms_bucket{%(queriesSelector)s, code!="101"}[$__rate_interval]))) / 1000' },
+        traffic: { title: 'Requests', unit: 'reqps', expr: 'sum by (resource_name) (rate(nginx_ingress_controller_upstream_server_response_latency_ms_count{%(queriesSelector)s}[$__rate_interval]))' },
+        errors: { title: 'Error ratio', unit: 'percentunit', expr: 'sum by (resource_name) (rate(nginx_ingress_controller_upstream_server_response_latency_ms_count{%(queriesSelector)s, code=~"5.."}[$__rate_interval])) / clamp_min(sum by (resource_name) (rate(nginx_ingress_controller_upstream_server_response_latency_ms_count{%(queriesSelector)s}[$__rate_interval])), 1e-9)' },
+        // per controller pod, with no Ingress label of its own (see ingressNginx)
+        saturation: { title: 'Active connections', unit: 'short', scope: 'base', expr: 'sum (nginx_ingress_nginx_connections_active{%(queriesSelector)s})' },
       },
     },
     container: {

@@ -11,6 +11,7 @@ local redBoards = [
   ['otel-http', 'otelHttpServer'],
   ['prometheus-client', 'prometheusClient'],
   ['ingress-nginx', 'ingressNginx'],
+  ['nginx-ingress', 'nginxIngress'],
   ['kong', 'kong'],
   ['django', 'django'],
   ['grafana', 'grafana'],
@@ -29,6 +30,7 @@ local goldenBoards = [
   ['apiserver', 'apiserver'],
   ['node', 'node'],
   ['ingress-nginx', 'ingressNginx'],
+  ['nginx-ingress', 'nginxIngress'],
   ['container', 'container'],
 ];
 local burnRateBoards = [

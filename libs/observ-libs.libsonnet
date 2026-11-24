@@ -103,6 +103,9 @@
     wireguard: import 'libs/wg-easy-observ-lib/main.libsonnet',
     unifi: import 'libs/unifi-observ-lib/main.libsonnet',
     ingressNginx: import 'libs/ingress-nginx-observ-lib/main.libsonnet',
+    // the F5 NGINX Ingress Controller (open source): controller + stub status,
+    // per-Ingress traffic from its upstream latency histogram
+    nginxIngress: import 'libs/nginx-ingress-observ-lib/main.libsonnet',
     // the Kong gateway, from the Prometheus plugin or OpenTelemetry
     kong: import 'libs/kong-observ-lib/main.libsonnet',
     // Traefik v3 (entrypoints / routers / services / TLS) and Envoy (admin /stats/prometheus)
