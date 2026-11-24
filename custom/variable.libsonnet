@@ -31,7 +31,10 @@
     // qryType 3 = "Query result" (varQuery is what the editor shows; query is
     // the classic string the datasource runs).
     withRangeValues(label, selector, datasourceVar='datasource'):
-      local expr = 'count by (' + label + ') (count_over_time(' + selector + '[$__range]))';
+      self.withRangeQuery('count by (' + label + ') (count_over_time(' + selector + '[$__range]))', label, datasourceVar),
+    // the general form: any PromQL expr (use $__range for the window) whose
+    // result carries the value as label `label`.
+    withRangeQuery(expr, label, datasourceVar='datasource'):
       self.withQuery(
         'prometheus',
         { qryType: 3, varQuery: expr, query: 'query_result(' + expr + ')', refId: 'A' },

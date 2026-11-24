@@ -162,14 +162,16 @@ local instanceVar(c) =
 // selection-sized layout buckets.
 local nodeCountVar(c) =
   variable.query.new('nodecount')
-  // count_values folds the node count into label "n", so the proven
-  // label_values plumbing reads it directly — no query_result, no regex.
-  // label_values() can only read labels off real series (computed exprs like
-  // count_values() don't work there, and $__range doesn't interpolate in
-  // variable queries) — so the base-node-count recording rule materializes the
-  // per-cluster 6h node count as label "n" and this just reads it. Note: the
-  // rule is per-cluster, so manual node narrowing doesn't shrink the count.
-  + variable.query.withLabelValues('n', 'base:cluster_nodes:n{' + clComma(c) + '}')
+  // the nodes (Linux + Windows) seen in the selected cluster and node selection
+  // over the dashboard range; count_values folds the count into label "n" for
+  // the range-query regex. The base-node-count recording rule is no longer read
+  // here (it stays for other consumers).
+  + variable.query.withRangeQuery(
+    'count_values("n", count(group by (' + c.nodeLabel + ') ('
+    + 'last_over_time(' + c.nodeMetric + '{' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"}[$__range])'
+    + ' or last_over_time(' + c.windowsNodeMetric + '{' + clComma(c) + ', ' + c.nodeLabel + '=~"$instance"}[$__range]))))',
+    'n'
+  )
   + variable.query.withLabel('Nodes')
   + { spec+: { hide: 'hideVariable', refresh: 'onTimeRangeChanged' } };
 
