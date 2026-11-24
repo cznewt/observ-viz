@@ -31,7 +31,7 @@ local dashboard =
     + g.variable.datasource.withLabel('Metrics'),
     g.variable.query.new('job')
     + g.variable.query.withLabel('Job')
-    + g.variable.query.withLabelValues('job', 'up'),
+    + g.variable.query.withRangeValues('job', 'up'),
   ])
   + g.dashboard.withTimeSettings(
     g.timeSettings.withFrom('now-1h') + g.timeSettings.withTo('now') + g.timeSettings.withAutoRefresh('30s')

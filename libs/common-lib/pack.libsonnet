@@ -125,7 +125,7 @@ local variable =
       local slug(s) = std.asciiLower(std.strReplace(s, ' ', '_')),
       local presenceVars = [
         variable.query.new('has_' + slug(t.title))
-        + variable.query.withLabelValues(t.presence.label, t.presence.query)
+        + variable.query.withRangeValues(t.presence.label, t.presence.query)
         + variable.query.withHide('hideVariable')
         for t in optionalTabs
         if std.objectHas(t, 'presence')
@@ -279,7 +279,7 @@ local variable =
         // a board without a job (the server containers of a workload board).
         local podUp = if std.objectHas(config, 'podMetric') then config.podMetric else varMetric + '{job=~"$job", pod!=""}';
         local podVars = if podsOn then [
-          variable.query.new('has_pods') + variable.query.withLabelValues('pod', podUp) + variable.query.withHide('hideVariable'),
+          variable.query.new('has_pods') + variable.query.withRangeValues('pod', podUp) + variable.query.withHide('hideVariable'),
         ] + [
           variable.query.new('job_' + l) + variable.query.withRangeValues(l, podUp) + variable.query.withHide('hideVariable')
           + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent

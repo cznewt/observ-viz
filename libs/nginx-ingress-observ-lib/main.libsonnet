@@ -339,7 +339,7 @@ local ruleGroups(ruleSelector, latencySelector) = {
     local qvar(name, title, label, query) =
       variable.query.new(name)
       + variable.query.withLabel(title)
-      + variable.query.withLabelValues(label, query)
+      + variable.query.withRangeValues(label, query)
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + variable.query.withAllValue('.*')
