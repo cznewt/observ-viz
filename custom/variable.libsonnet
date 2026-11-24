@@ -23,6 +23,21 @@
       { qryType: 1, query: 'label_values(' + metric + ', ' + label + ')', refId: 'A' },
       datasourceVar,
     ),
+    // range-scoped values: every value of `label` that had a sample anywhere in
+    // the dashboard time range (a pod gone three days ago still shows on a 7d
+    // view). label_values() only sees what the series/label API returns for the
+    // query window, and a range can't go inside it; query_result() takes plain
+    // PromQL, where $__range does interpolate. Refreshes on time-range change.
+    // qryType 3 = "Query result" (varQuery is what the editor shows; query is
+    // the classic string the datasource runs).
+    withRangeValues(label, selector, datasourceVar='datasource'):
+      local expr = 'count by (' + label + ') (count_over_time(' + selector + '[$__range]))';
+      self.withQuery(
+        'prometheus',
+        { qryType: 3, varQuery: expr, query: 'query_result(' + expr + ')', refId: 'A' },
+        datasourceVar,
+      )
+      + { spec+: { regex: '/' + label + '="([^"]+)"/', refresh: 'onTimeRangeChanged' } },
   },
   datasource: {
     new(name, pluginId): { kind: 'DatasourceVariable', spec: { name: name, pluginId: pluginId } },

@@ -281,7 +281,7 @@ local variable =
         local podVars = if podsOn then [
           variable.query.new('has_pods') + variable.query.withLabelValues('pod', podUp) + variable.query.withHide('hideVariable'),
         ] + [
-          variable.query.new('job_' + l) + variable.query.withLabelValues(l, podUp) + variable.query.withHide('hideVariable')
+          variable.query.new('job_' + l) + variable.query.withRangeValues(l, podUp) + variable.query.withHide('hideVariable')
           + variable.query.withMulti() + variable.query.withIncludeAll() + allCurrent
           for l in ['cluster', 'namespace', 'pod']
         ] else [];
@@ -304,14 +304,14 @@ local variable =
           + variable.datasource.withLabel('Data source'),
           variable.query.new(groupVar)
           + variable.query.withLabel(cap(groupVar))
-          + variable.query.withLabelValues(groupVar, varMetric)
+          + variable.query.withRangeValues(groupVar, varMetric)
           + variable.query.withMulti()
           + variable.query.withIncludeAll()
           + allCurrent,
         ] + [
           variable.query.new(varLabels[i])
           + variable.query.withLabel(cap(varLabels[i]))
-          + variable.query.withLabelValues(
+          + variable.query.withRangeValues(
             varLabels[i],
             varMetric + '{' + std.join(', ', [groupVar + '=~"$' + groupVar + '"'] + [varLabels[j] + '=~"$' + varLabels[j] + '"' for j in std.range(0, i - 1)]) + '}'
           )

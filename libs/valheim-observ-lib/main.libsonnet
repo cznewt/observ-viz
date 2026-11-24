@@ -73,7 +73,7 @@ local variable =
     local kubeVar(name, label, title, scope) =
       variable.query.new(name)
       + variable.query.withLabel(title)
-      + variable.query.withLabelValues(label, cfg.varMetric + '{' + scope + 'container=~"' + cfg.containerMatcher + '"}')
+      + variable.query.withRangeValues(label, cfg.varMetric + '{' + scope + 'container=~"' + cfg.containerMatcher + '"}')
       + variable.query.withMulti()
       + variable.query.withIncludeAll()
       + allCurrent;
